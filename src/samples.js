@@ -22,12 +22,20 @@
 // ]
 
 const col_def =  [
-{headerName: 'Sample', field: 'run', checkboxSelection: true},
-// {headerName: 'Species latin', field: 'organism',  rowGroupIndex: 0},
-{headerName: 'Maximum lifespan', field: 'maximum_longevity'},
-{headerName: 'Tissue', field: 'source', rowGroupIndex: 1},
-{headerName: 'Sex', field: 'sex'},
-{headerName: 'Sequencer', field: 'sequencer'},
+    {
+        headerName: 'Sample', 
+        field: 'run', 
+        checkboxSelection: true, 
+        headerCheckboxSelectionFilteredOnly: true,
+        headerCheckboxSelection: true,
+        // width: 130
+    },
+    {headerName: "Species", field: "organism"},
+    // {headerName: 'Species latin', field: 'organism',  rowGroupIndex: 0},
+    {headerName: 'Max lifespan', field: 'maximum_longevity'},
+    {headerName: 'Tissue', field: 'source'},
+    {headerName: 'Sex', field: 'sex'},
+    {headerName: 'Sequencer', field: 'sequencer'}
 ]
 
 // const row_data =  [
@@ -44,7 +52,7 @@ const col_def =  [
 // ]
 const gridOptions = {
     defaultColDef: {
-    sortable: true
+        sortable: true
     },
     rowData: values,
     columnDefs: col_def,
@@ -59,14 +67,14 @@ const gridOptions = {
         filter: true
     },
     debug: true,
-    autoGroupColumnDef: {headerName: "Species", field: "organism", width: 200,
-        cellRenderer:'agGroupCellRenderer',
-        cellRendererParams: {
-            checkbox: function(params) {
-                return params.node.group === true;
-            }
-        }
-    },
+    // autoGroupColumnDef: {headerName: "Species", field: "organism", width: 200,
+    //     cellRenderer:'agGroupCellRenderer',
+    //     cellRendererParams: {
+    //         checkbox: function(params) {
+    //             return params.node.group === true;
+    //         }
+    //     }
+    // },
     // onRowSelected: onRowSelected,
     // onSelectionChanged: onSelectionChanged,
 
