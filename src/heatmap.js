@@ -58,18 +58,24 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             return false;
         }
 
+        for ( var i = 0; i < allXValues.length; i++ ) {
+            if(!isSelectedSample(allXValues[i]))
+                    continue;
+            
+            xValues.push({val: allXValues[i], idx: i});
+        }
 
         for ( var i = 0; i < allYValues.length; i++ ) {
             if(!isSelectedGene(allYValues[i]))
                 continue;
-            for ( var j = 0; j < allXValues.length; j++ ) {
-                if(isSelectedSample(allXValues[j]))
-                    console.log(i,j)
-                if(!isSelectedSample(allXValues[j]))
-                    continue;
+            
+            yValues.push({val: allYValues[i], idx: i});
+        }
 
-                console.log(i, j)
-                const currentValue = allZValues[i][j];//TODO: parseInt?
+
+        for ( var i = 0; i < yValues.length; i++ ) {
+            for ( var j = 0; j < xValues.length; j++ ) {
+                const currentValue = allZValues[yValues[i].idx][xValues[j].idx];//TODO: parseInt?
                 if (currentValue != 0.0) {
                     var textColor = 'white';
                 }else{
@@ -78,9 +84,9 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 const result = {
                     xref: 'x1',
                     yref: 'y1',
-                    x: allXValues[j],
-                    y: allYValues[i],
-                    text: GENE_EXPRESSIONS[i][j],
+                    x: xValues[j].val,
+                    y: yValues[i].val,
+                    text: GENE_EXPRESSIONS[yValues[i].idx][xValues[j].idx],
                     font: {
                         family: 'Arial',
                         size: 5,
@@ -92,15 +98,14 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                         size: '12'
                     }
                 };
-                xValues.push(allXValues[j]);
-                yValues.push(allYValues[i]);
-                zValues.push(allZValues[i][j]);
+                zValues.push(allZValues[yValues[i].idx][xValues[j].idx]);
+                console.log(i, j,yValues[i], xValues[j], allZValues[yValues[i].idx][xValues[j].idx],GENE_EXPRESSIONS[yValues[i].idx][xValues[j].idx])
                 layout.annotations.push(result);
             }
         }
 
-        layout.width = 1000 * xValues.length / 18;
-        layout.height = 1000 * yValues.length / 22;
+        layout.width = Math.max(500, 1000 * xValues.length / 18);
+        layout.height = Math.max(500, 1000 * yValues.length / 22);
 
         
         const data = [{
@@ -112,6 +117,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             type: 'heatmap' , reversescale: true
         }];
 
+        console.log(xValues.length, yValues.length, zValues.length);
         console.log(data,layout)
         Plotly.newPlot('genes_heatmap', data, layout);
         const heatmapElement = document.getElementById("genes_heatmap");
