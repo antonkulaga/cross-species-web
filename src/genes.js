@@ -1,5 +1,5 @@
 const genesDropdown = $('#genes');
-selectedGenes = [];
+selectedGenes = genage_genes_pro;
 genesDropdown.dropdown({
     onChange: function(val) {
         switch(val){
@@ -11,6 +11,8 @@ genesDropdown.dropdown({
 
                 break;
         }
+        console.log(selectedGenes);
+        
     }
 });
 
