@@ -8,16 +8,16 @@ var xValues = ["Bowhead whale liver","Gray whale liver","Minke whale liver","Hum
       console.log("show results");
       console.log(gridOptions.api.getSelectedRows());
       const layout = {
-        title: 'Heatmap with selected genes and samples',
+        // title: 'Heatmap with selected genes and samples',
         annotations: [],
         margin: {
-            l: 400,
-            r: 125,
-            t: 300,
+            l: 100,
+            r: 100,
+            t: 150,
             b: 50
         },
-        width: 1500,
-        height: 1400,
+        width: 1000 * xValues.length / 18,
+        height: 1000 * yValues.length / 22,
         autosize: true,
         xaxis: {
             side: 'top',
@@ -58,7 +58,7 @@ var xValues = ["Bowhead whale liver","Gray whale liver","Minke whale liver","Hum
                   showarrow: false,
                   font: {
                       color: textColor,
-                      size: '18'
+                      size: '12'
                   }
               };
               layout.annotations.push(result);
@@ -74,6 +74,8 @@ var xValues = ["Bowhead whale liver","Gray whale liver","Minke whale liver","Hum
           type: 'heatmap' , reversescale: true
       }];
       Plotly.newPlot('genes_heatmap', data, layout);
-      document.getElementById("genes_heatmap").scrollIntoView()
+      const heatmapElement = document.getElementById("genes_heatmap");
+      heatmapElement.scrollIntoView();
+      heatmapElement.style = "overflow:scroll;";
     });
   });

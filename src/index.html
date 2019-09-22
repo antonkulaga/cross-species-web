@@ -63,7 +63,7 @@
       parse_attr: ['data-title', 'data-content', 'data-text'],
       ignore_class: ['code', 'anchor']
     };
-  </script>
+</script>
   <script type="text/javascript" src="./semantic_ui/live.js"></script>
   <style type="text/css">
     .txlive {
@@ -93,15 +93,18 @@
 
 
         <div class="ui masthead vertical tab segment">
-          <div class="ui container">
+          <div class="ui" style="margin-left: 30px; margin-right: 30px;">
             <div class="introduction">
 
               <h1 class="ui header">
-                Title
+                  Comparative transcriptomics of Longevity
+
 
                 <div class="sub header">
 
-                  Description
+                    Computational Biology of Aging Group
+                    <br/>
+                    Institute of Biochemistry, Romanian Academy
                 </div>
               </h1>
 
@@ -127,27 +130,43 @@
 
           <div class="ui intro tab" data-tab="introduction">
 
-            <div class="ui main container">
+            <div class="ui main" style="margin-left: 30px; margin-right: 30px;">
 
-              <h2 class="ui dividing header">Search<a class="anchor" id="introduction"></a></h2>
+              <h2 class="ui dividing header">
+                <!-- Search -->
+                <a class="anchor" id="introduction"></a></h2>
 
               <div class="introduction">
 
-                <h3 class="ui header">Subtitle</h3>
+                <!-- <h3 class="ui header">Subtitle</h3> -->
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus auctor finibus lectus, a porttitor
-                  leo iaculis vel. Phasellus nec lorem et orci tempus convallis.</p>
+                <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus auctor finibus lectus, a porttitor
+                  leo iaculis vel. Phasellus nec lorem et orci tempus convallis.</p> -->
 
 
                 <h3 class="ui header">Select samples</h3>
 
-                <p>Containers are designed to responsively adjust their maximum width based on the size of the screen on
-                  which they are appearing.</p>
-                <div id="samples" style="min-width: 900px; height: 300px;" class="ag-theme-balham"></div>
+                <!-- <p>Containers are designed to responsively adjust their maximum width based on the size of the screen on
+                  which they are appearing.</p> -->
+                
+                <div style="margin-bottom: 5px;">
+                  <div class="ui input">
+                      <!-- <i class="search icon"></i> -->
+                      <input type="text" id="quickFilter" placeholder="quick filter..." oninput="onQuickFilterChanged()">
+                      <!-- <div class="ui teal button">Search</div> -->
+                    </div>
+                  <!-- <button onclick="filterLung()">Filter all species by lung</button>
+                  <button onclick="filterRbieti()">Filter all tissues by species rbieti</button>
+                  <button onclick="clearFilter()" style="margin-left: 10px;">Clear Filter</button> -->
+                </div>
+                <div style="height: calc(100% - 25px);">
+                  <div id="samples" style="height: 300px;" class="ag-theme-balham"></div>
+                </div>
+
 
                 <h3 class="ui header">Choose genes or gene sets</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus auctor finibus lectus, a porttitor
-                  leo iaculis vel. Phasellus nec lorem et orci tempus convallis</p>
+                <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus auctor finibus lectus, a porttitor
+                  leo iaculis vel. Phasellus nec lorem et orci tempus convallis</p> -->
                 <div id="genes" class="ui selection fluid dropdown" multiple="">
                   <i class="dropdown icon"></i>
                   <div class="default text">Select gene list</div>
@@ -163,10 +182,12 @@
                 </div>
 
                 <!-- <h3 class="ui header">Results - heatmap</h3> -->
-                <button class="ui positive button" id="show_results">
-                  Show results
-                </button>
-                <div id="genes_heatmap" style="overflow:scroll;"></div>
+                <div style="margin-top: 48px;">
+                  <button class="ui positive button" id="show_results">
+                    Show results
+                  </button>
+                </div>
+                <div id="genes_heatmap"></div>
 
 
               </div>
