@@ -55280,7 +55280,20 @@ for(var i = 0; i < values.length; i++){
   
 }
 
-fs.writeFile("file.json", JSON.stringify(values), 'utf8', function (err) {
+var new_values = [];
+var hash = [];
+for(var i = 0; i < values.length; i++){
+   if(hash[values[i].run] == null){
+        hash[values[i].run] = 1;
+        new_values.push(values[i]);
+   }
+}
+
+console.log("old values", values.length);
+console.log("new values", new_values.length);
+
+
+fs.writeFile("file.json", JSON.stringify(new_values), 'utf8', function (err) {
     if (err) {
         console.log("An error occured while writing JSON Object to File.");
         return console.log(err);
