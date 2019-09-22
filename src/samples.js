@@ -1,4 +1,4 @@
-const col_def =  [
+const col_def = [
     {
     headerName: 'Sample', 
     field: 'sample', 
@@ -15,7 +15,7 @@ const col_def =  [
     {headerName: 'Sequencer', field: 'sequencer'},
     {headerName: 'Description', field: 'description'}
 ]
-const row_data =  [
+const row_data = [
     {sample: "SRS614720", tissue: "lung", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
     {sample: "SRR1300763", tissue: "kidney", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
     {sample: "SRR1300767", tissue: "heart", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
