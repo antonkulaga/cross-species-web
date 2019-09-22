@@ -55254,13 +55254,28 @@ var fs = require('fs');
 for(var i = 0; i < values.length; i++){
     for(var j = 0; j < mammals_lifespan.length; j++){
         if(mammals_lifespan[j].ncbi_taxid == values[i].taxid){
-            values[i]['maximum_longevity'] = JSON.stringify(mammals_lifespan[j]['Maximum longevity (yrs)']);
+            values[i]['maximum_longevity'] = mammals_lifespan[j]['Maximum longevity (yrs)'];
             console.log("found maximum_longevity", mammals_lifespan[j]['Maximum longevity (yrs)']);
             break;
         }
     }
     if(values[i]['maximum_longevity'] == null){
             values[i]['maximum_longevity']= "";
+    }
+  
+}
+
+
+values.sort(function(a, b){
+    return b.maximum_longevity - a.maximum_longevity;
+});
+
+for(var i = 0; i < values.length; i++){
+  
+    if(values[i]['maximum_longevity'] == null){
+            values[i]['maximum_longevity']= null;
+    } else {
+         values[i]['maximum_longevity'] = JSON.stringify(values[i]['maximum_longevity']);
     }
   
 }
