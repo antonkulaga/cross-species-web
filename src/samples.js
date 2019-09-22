@@ -61,35 +61,36 @@ const gridOptions = {
 
     animateRows: true
 };
+function onQuickFilterChanged() {
+    gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
+}
+
+
+// function onRowSelected(event) {
+//     console.log("row " + event.node.data.athlete + " selected = " + event.node.selected);
+// }
+
+// function onSelectionChanged(event) {
+//     var rowCount = event.api.getSelectedNodes().length;
+//     console.log('selection changed, ' + rowCount + ' rows selected');
+// }
+
+
+
+// function filterLung() {
+//   gridOptions.api.setFilterModel({tissue: ['lung']});
+// }
+
+
+// function filterRbieti() {
+//   gridOptions.api.setFilterModel({species: ['Rhinopithecus bieti']});
+// }
+
+// function clearFilter() {
+//     gridOptions.api.setFilterModel(null);
+// }
 
 $(document).ready(function(){
-    // function onRowSelected(event) {
-    //     console.log("row " + event.node.data.athlete + " selected = " + event.node.selected);
-    // }
-
-    // function onSelectionChanged(event) {
-    //     var rowCount = event.api.getSelectedNodes().length;
-    //     console.log('selection changed, ' + rowCount + ' rows selected');
-    // }
-
-    function onQuickFilterChanged() {
-        gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
-    }
-
-    // function filterLung() {
-    //   gridOptions.api.setFilterModel({tissue: ['lung']});
-    // }
-
-
-    // function filterRbieti() {
-    //   gridOptions.api.setFilterModel({species: ['Rhinopithecus bieti']});
-    // }
-
-    // function clearFilter() {
-    //     gridOptions.api.setFilterModel(null);
-    // }
-
-
     const gridDiv = document.querySelector('#samples');
     const grid = new agGrid.Grid(gridDiv, gridOptions);
 });
