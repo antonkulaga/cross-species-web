@@ -1,4 +1,4 @@
-var values = [
+[
   {
     "age": "",
     "bioproject": "PRJNA193501",
