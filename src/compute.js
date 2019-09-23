@@ -55272,8 +55272,8 @@ values.sort(function(a, b){
 
 for(var i = 0; i < values.length; i++){
   
-    if(values[i]['maximum_longevity'] == null){
-            values[i]['maximum_longevity']= null;
+    if(values[i]['maximum_longevity'] == null  || values[i]['maximum_longevity'] == ""){
+            values[i]['maximum_longevity']= 0;
     } else {
         values[i]['maximum_longevity'] = values[i]['maximum_longevity'];
     }
