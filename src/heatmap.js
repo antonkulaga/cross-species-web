@@ -86,7 +86,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             for (var y = 0; y < words.length - 1; y++) {
                 words[y] += " ";
             }
-            console.log(words);
+            // console.log(words);
             if(words.length >1){
                 curr = words[0][0] + " ";
             } else if(words.length == 1){
@@ -144,7 +144,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 speciesHash[allXValues[i]] = allXValues[i];
             }
         }
-        console.log("speciesHash", speciesHash);
+        // console.log("speciesHash", speciesHash);
 
         //sort allXValues by maximum lifespan descending
         var maximumLifesSpanBySpecies = {};
@@ -169,12 +169,22 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             }
         }
 
+        console.log(allYValues.length,allXValues.length);
+        var alreadyUsedSample = {}
+
         for ( var i = 0; i < allYValues.length; i++ ) {
             if(!isSelectedGene(allYValues[i]))
                 continue;
+          
             for ( var j = 0; j < allXValues.length; j++ ) {
                 if(!isSelectedSample(allXValues[j]))
                     continue;
+
+                if(alreadyUsedSample[allYValues[i]] != null){
+                        continue;
+                } else {
+                    alreadyUsedSample[allYValues[i]] = 1;
+                }
 
                 // console.log(i, j)
                 const currentValue = allZValues[i][j];//TODO: parseInt?
@@ -207,6 +217,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 zValues.push(allZValues[i][j]);
                 layout.annotations.push(result);
             }
+
         }
 
         layout.width = Math.max(500, 75 * xIndices.length);
@@ -222,7 +233,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             type: 'heatmap' , reversescale: true
         }];
 
-        // console.log(xValues.length, yValues.length, zValues.length);
+        console.log(xValues.length, yValues.length, zValues.length);
         // console.log(data,layout,xValues,yValues,zValues)
         // console.log(xIndices, yIndices)
         Plotly.newPlot('genes_heatmap', data, layout);
