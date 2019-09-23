@@ -146,6 +146,29 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
         }
         console.log("speciesHash", speciesHash);
 
+        //sort allXValues by maximum lifespan descending
+        var maximumLifesSpanBySpecies = {};
+        for(var i = 0; i < selectedRows.length; i++){
+            maximumLifesSpanBySpecies[selectedRows[i].run] = selectedRows[i].maximum_longevity;
+        }
+        for(var i = 0; i < allXValues.length -1 ; i++){
+            for(var j = i + 1 ; j < allXValues.length; j++){
+                if(maximumLifesSpanBySpecies[allXValues[i]] == null){
+                    maximumLifesSpanBySpecies[allXValues[i]] = 0;
+                }
+
+                if(maximumLifesSpanBySpecies[allXValues[j]] == null){
+                    maximumLifesSpanBySpecies[allXValues[j]] = 0;
+                }
+
+                if(maximumLifesSpanBySpecies[allXValues[j]] > maximumLifesSpanBySpecies[allXValues[i]]){
+                    var aux = allXValues[j];
+                    allXValues[j] = allXValues[i];
+                    allXValues[i] = aux;
+                }
+            }
+        }
+
         for ( var i = 0; i < allYValues.length; i++ ) {
             if(!isSelectedGene(allYValues[i]))
                 continue;
