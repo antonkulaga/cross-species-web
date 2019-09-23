@@ -111,6 +111,22 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
         //     }
         // }
 
+        var speciesHash = {};
+
+        for ( var i = 0; i < allXValues.length; i++ ) {
+            for(var j = 0; j < values.length; j++){
+                if(allXValues[i] == values[j].run){
+                    // console.log(allXValues[i], values[j]);
+                    speciesHash[allXValues[i]] = values[j].organism + " "+ values[j].source;
+                }
+
+            }
+            if(speciesHash[allXValues[i]] == null){
+                speciesHash[allXValues[i]] = allXValues[i];
+            }
+        }
+        console.log("speciesHash", speciesHash);
+
         for ( var i = 0; i < allYValues.length; i++ ) {
             if(!isSelectedGene(allYValues[i]))
                 continue;
@@ -128,7 +144,9 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 const result = {
                     xref: 'x1',
                     yref: 'y1',
-                    x: allXValues[j],
+                    x: speciesHash[allXValues[j]],
+                    // x: allXValues[j],
+
                     y: ENSEMBL_TO_NAME[allYValues[i]],
                     text: parseFloat(GENE_EXPRESSIONS[i][j]).toFixed(2),
                     font: {
@@ -142,7 +160,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                         size: '12'
                     }
                 };
-                xValues.push(allXValues[j]);
+                xValues.push(speciesHash[allXValues[j]]);
                 yValues.push(ENSEMBL_TO_NAME[allYValues[i]]);
                 zValues.push(allZValues[i][j]);
                 layout.annotations.push(result);
