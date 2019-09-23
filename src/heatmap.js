@@ -8,7 +8,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
 
 
   $(document).ready(function(){
-      console.log(allXValues, allYValues, allZValues)
+    //   console.log(allXValues, allYValues, allZValues)
     $('#show_results').click(function(){
         let xValues = [];
         let xIndices = [];
@@ -115,12 +115,10 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             if(!isSelectedGene(allYValues[i]))
                 continue;
             for ( var j = 0; j < allXValues.length; j++ ) {
-                if(isSelectedSample(allXValues[j]))
-                    console.log(i,j)
                 if(!isSelectedSample(allXValues[j]))
                     continue;
 
-                console.log(i, j)
+                // console.log(i, j)
                 const currentValue = allZValues[i][j];//TODO: parseInt?
                 if (currentValue != 0.0) {
                     var textColor = 'white';
@@ -131,7 +129,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                     xref: 'x1',
                     yref: 'y1',
                     x: allXValues[j],
-                    y: allYValues[i],
+                    y: ENSEMBL_TO_NAME[allYValues[i]],
                     text: parseFloat(GENE_EXPRESSIONS[i][j]).toFixed(2),
                     font: {
                         family: 'Arial',
@@ -145,7 +143,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                     }
                 };
                 xValues.push(allXValues[j]);
-                yValues.push(allYValues[i]);
+                yValues.push(ENSEMBL_TO_NAME[allYValues[i]]);
                 zValues.push(allZValues[i][j]);
                 layout.annotations.push(result);
             }
@@ -165,8 +163,8 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
         }];
 
         // console.log(xValues.length, yValues.length, zValues.length);
-        console.log(data,layout,xValues,yValues,zValues)
-        console.log(xIndices, yIndices)
+        // console.log(data,layout,xValues,yValues,zValues)
+        // console.log(xIndices, yIndices)
         Plotly.newPlot('genes_heatmap', data, layout);
         const heatmapElement = document.getElementById("genes_heatmap");
         heatmapElement.scrollIntoView();
