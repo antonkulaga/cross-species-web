@@ -55275,7 +55275,7 @@ for(var i = 0; i < values.length; i++){
     if(values[i]['maximum_longevity'] == null){
             values[i]['maximum_longevity']= null;
     } else {
-         values[i]['maximum_longevity'] = JSON.stringify(values[i]['maximum_longevity']);
+        values[i]['maximum_longevity'] = values[i]['maximum_longevity'];
     }
   
 }
