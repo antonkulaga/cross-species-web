@@ -134,8 +134,9 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
         for ( var i = 0; i < allXValues.length; i++ ) {
             for(var j = 0; j < values.length; j++){
                 if(allXValues[i] == values[j].run){
-                    // console.log(allXValues[i], values[j])                    
+                                    // console.log(allXValues[i], values[j])                    
                     speciesHash[allXValues[i]] = getHeatmapColumnName(values[j].organism + " "+ values[j].source);
+
                 }
 
             }
