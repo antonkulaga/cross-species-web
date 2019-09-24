@@ -180,10 +180,10 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 if(!isSelectedSample(allXValues[j]))
                     continue;
 
-                if(alreadyUsedSample[allYValues[i]] != null){
+                if(alreadyUsedSample[allXValues[j]] != null){
                         continue;
                 } else {
-                    alreadyUsedSample[allYValues[i]] = 1;
+                    alreadyUsedSample[allXValues[j]] = 1;
                 }
 
                 // console.log(i, j)
@@ -217,7 +217,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 zValues.push(allZValues[i][j]);
                 layout.annotations.push(result);
             }
-
+            alreadyUsedSample = {};
         }
 
         layout.width = Math.max(500, 75 * xIndices.length);
