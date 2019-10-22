@@ -230,7 +230,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             z: zValues,
 
             colorscale: 'RdBu',
-            type: 'heatmap' , reversescale: true
+            type: 'heatmap'
         }];
 
         console.log(xValues.length, yValues.length, zValues.length);
