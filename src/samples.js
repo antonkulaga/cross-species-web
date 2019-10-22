@@ -23,36 +23,55 @@
 
 const col_def =  [
     {
-        headerName: 'Sample', 
+        headerName: 'Sample',
         field: 'run', 
         checkboxSelection: true, 
         headerCheckboxSelectionFilteredOnly: true,
         headerCheckboxSelection: true,
+        filterParams: {
+            filterOptions:['contains']
+        }
         // width: 130
     },
-    {headerName: "Species", field: "organism"},
+    {
+        headerName: "Species",
+        field: "organism", 
+        filterParams: {
+            filterOptions:['contains']
+        }
+    },
     // {headerName: 'Species latin', field: 'organism',  rowGroupIndex: 0},
-    {headerName: 'Max lifespan', field: 'maximum_longevity'},
-    {headerName: 'Tissue', field: 'source'},
-    {headerName: 'Sex', field: 'sex'},
-    {headerName: 'Sequencer', field: 'sequencer'}
+    {
+        headerName: 'Max lifespan',
+        field: 'maximum_longevity',
+        filterParams: {
+            filterOptions:['contains']
+        }
+    },
+    {
+        headerName: 'Tissue',
+        field: 'source',
+        filterParams: {
+            filterOptions:['contains']
+        }
+    },
+    {
+        headerName: 'Sex',
+        field: 'sex',
+        filterParams: {
+            filterOptions:['contains']
+        }
+    },
+    {
+        headerName: 'Sequencer', 
+        field: 'sequencer'
+    }
 ]
 
-// const row_data =  [
-//     {sample: "SRS614720", tissue: "lung", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
-//     {sample: "SRR1300763", tissue: "kidney", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
-//     {sample: "SRR1300767", tissue: "heart", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
-//     {sample: "SRR1300765", tissue: "liver", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
-//     {sample: "SRR1300766", tissue: "brain", species: "Rhinopithecus bieti", common: "Black snub-nosed monkey", sequencer: "Illumina HiSeq 2000", age: "32", sex: "male"},
-//     {sample: "SRS614720", tissue: "lung", species: "Cercocebus atys", common: "Cercocebus atys", sequencer: "Illumina HiSeq 2000", age: "N/A", sex: "male", lifespan: "27"},
-//     {sample: "SRR1300763", tissue: "kidney", species: "Cercocebus atys", common: "Cercocebus atys", sequencer: "Illumina HiSeq 2000", age: "N/A", sex: "male", lifespan: "27"},
-//     {sample: "SRR1300767", tissue: "heart", species: "Cercocebus atys", common: "Cercocebus atys", sequencer: "Illumina HiSeq 2000", age: "N/A", sex: "male", lifespan: "27"},
-//     {sample: "SRR1300765", tissue: "liver", species: "Cercocebus atys", common: "Cercocebus atys", sequencer: "Illumina HiSeq 2000", age: "N/A", sex: "male", lifespan: "27"},
-//     {sample: "SRR1300766", tissue: "brain", species: "Cercocebus atys", common: "Cercocebus atys", sequencer: "Illumina HiSeq 2000", age: "N/A", sex: "male", lifespan: "27"}
-// ]
 const gridOptions = {
     defaultColDef: {
-        sortable: true
+        sortable: true,
+        filter: true
     },
     rowData: SAMPLES_VALUES,
     columnDefs: col_def,
@@ -78,7 +97,8 @@ const gridOptions = {
     // onRowSelected: onRowSelected,
     // onSelectionChanged: onSelectionChanged,
 
-    animateRows: true
+    animateRows: true,
+    floatingFilter:true
 };
 function onQuickFilterChanged() {
     gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
@@ -95,15 +115,6 @@ function onQuickFilterChanged() {
 // }
 
 
-
-// function filterLung() {
-//   gridOptions.api.setFilterModel({tissue: ['lung']});
-// }
-
-
-// function filterRbieti() {
-//   gridOptions.api.setFilterModel({species: ['Rhinopithecus bieti']});
-// }
 
 // function clearFilter() {
 //     gridOptions.api.setFilterModel(null);
