@@ -1,4 +1,4 @@
-allXValues = [
+ALL_X_VALUES = [
   "SRR1506079",
   "SRR1759020",
   "SRR1758982",
