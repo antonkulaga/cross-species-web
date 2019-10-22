@@ -1,4 +1,4 @@
-genage_genes_anti = [
+GENAGE_GENES_ANTI = [
     {ensembl_id: "ENSG00000172818", name: "OVOL1"},
     {ensembl_id: "ENSG00000184588", name: "PDE4B"},
     {ensembl_id: "ENSG00000111252", name: "SH2B3"},

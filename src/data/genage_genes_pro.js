@@ -1,4 +1,4 @@
-genage_genes_pro = [
+GENAGE_GENES_PRO = [
     {ensembl_id: "ENSG00000105974", name: "CAV1"},
     {ensembl_id: "ENSG00000197579", name: "TOPORS"},
     {ensembl_id: "ENSG00000115414", name: "FN1"},

@@ -54,7 +54,7 @@ const gridOptions = {
     defaultColDef: {
         sortable: true
     },
-    rowData: values,
+    rowData: SAMPLES_VALUES,
     columnDefs: col_def,
     rowSelection: 'multiple',
     groupSelectsChildren: true,

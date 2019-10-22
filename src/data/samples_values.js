@@ -1,4 +1,4 @@
-var values = [
+SAMPLES_VALUES = [
   {
     "age": "",
     "bioproject": "PRJNA193501",
