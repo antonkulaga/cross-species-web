@@ -27,7 +27,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
             margin: {
                 l: 100,
                 r: 100,
-                t: 150,
+                t: 250,
                 b: 50
             },
             autosize: true,
@@ -196,7 +196,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                 const result = {
                     xref: 'x1',
                     yref: 'y1',
-                    x: speciesHash[ALL_X_VALUES[j]],
+                    x: speciesHash[ALL_X_VALUES[j]] + ", " + ALL_X_VALUES[j],
                     // x: ALL_X_VALUES[j],
 
                     y: ENSEMBL_TO_NAME[ALL_Y_VALUES[i]],
@@ -212,7 +212,7 @@ allZValues =  GENE_EXPRESSIONS.map(function(row){
                         size: '12'
                     }
                 };
-                xValues.push(speciesHash[ALL_X_VALUES[j]]);
+                xValues.push(speciesHash[ALL_X_VALUES[j]] + ", " + ALL_X_VALUES[j]);
                 yValues.push(ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]);
                 zValues.push(allZValues[i][j]);
                 layout.annotations.push(result);
