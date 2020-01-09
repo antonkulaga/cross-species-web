@@ -1,4 +1,4 @@
-const genesDropdown = $('#genes');
+const genesDropdown = $('#gene_lists');
 selectedGenes = GENAGE_GENES_PRO;
 genesDropdown.dropdown({
     onChange: function(val) {
