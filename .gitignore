@@ -37,3 +37,6 @@ tags
 services/data/cromwell-executions/*
 services/data/cromwell-workflow-logs/*
 services/data/mysql/*
+
+#node
+node_modules/
