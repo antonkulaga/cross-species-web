@@ -45,6 +45,9 @@
   <link rel="stylesheet" type="text/css" href="./plugins/semantic_ui/docs.css">
   <link rel="stylesheet" type="text/css" href="./plugins/semantic_ui/rtl.css">
   <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <link rel="stylesheet" href="assets/0.4/build/vendor.css" />
+  <link rel="stylesheet" href="assets/0.4/build/form.css" />
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
 
 
   <script src="./plugins/semantic_ui/monetization.js" type="text/javascript"></script>
@@ -297,6 +300,43 @@
                   </div>
                 <!-- </div> -->
                 
+              <span>or upload your custom list:</span>
+              <div class="field is-horizontal"  style="margin-top: 24px;">
+                <div class="field-label">
+                  <label class="label">Upload list of gene ENSEMBL IDs or symbols</label>
+                </div>
+                <div class="field-body" style="margin-top: 10px;">
+                  <div class="msg-wrapper">
+                    <div class="field is-grouped"><!----> 
+                      <div class="field file"><!---->
+                         <label class="upload control">
+                          <a class="button is-outlined is-small">
+                            <span class="icon is-small"><i class="mdi mdi-upload">
+                            
+                            </i></span><span></span></a> <input type="file" accept=".txt" name="gene_list_file">
+                        </label> <!----> <!---->
+                      </div>  <!---->
+                    </div> <!---->
+                  </div>
+                </div>
+              </div>
+               <div class="field is-horizontal">
+                <div class="field-label">
+                  <label class="label">
+                    
+                  </label>
+                </div>
+                 <div class="field-body">
+                  <div class="gene-list-wrapper" style="margin-top: 10px;">
+                    <p class="or-spacer has-text-primary">OR</p> 
+                    <div class="field"><!----> <div style="position: relative;">
+                      <a class="delete is-small input-clear"></a> 
+                      <div class="control is-clearfix"><textarea style="width:400px; height:150px;" placeholder="Please enter gene ids..." name="gene_list" class="textarea"></textarea> <!----> <!----> <!----></div>
+                      </div> <!---->
+                    </div>
+                  </div>
+                  </div>
+                </div>
 
                 <!-- <h3 class="ui header">Results - heatmap</h3> -->
                 <div style="margin-top: 24px;">
