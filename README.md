@@ -1,74 +1,68 @@
-<p align="center">
-    <img src="https://react.semantic-ui.com/logo.png" alt="Semantic UI React logo" align="center">
-</p>
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-<h1 align="center">react-semantic-boilerplate</h1>
+## Available Scripts
 
-**NOTE: This project is not officially associated with Semantic UI and/or Facebook in any way. It is just a helpful boilerplate arranged by me.**
+In the project directory, you can run:
 
-## Introduction
+### `yarn start`
 
-This is a boilerplate project that intends to provide an easy way to setup [Create React App](https://github.com/facebookincubator/create-react-app) with a customizable version of [Semantic UI](https://semantic-ui.com/), as this process is usually clumsy and full of little inconveniences.
+Runs the app in the development mode.<br />
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-It is based on the [Webpack 3 example](https://github.com/Semantic-Org/Semantic-UI-React/tree/master/examples/webpack3) provided by the Semantic UI folks, with a bunch of opinionated changes.
+The page will reload if you make edits.<br />
+You will also see any lint errors in the console.
 
-## What's included
+### `yarn test`
 
-:heavy_check_mark: Direct module imports to reduce bundle size  
-:heavy_check_mark: Hot module reloading  
-:heavy_check_mark: SEO optimizations (incl. Open Graph, Twitter and Google)  
-:heavy_check_mark: The beautiful Inter UI font  
-:heavy_check_mark: Semantic UI React (duh!)  
-:heavy_check_mark: Tachyons for easy layouting
+Launches the test runner in the interactive watch mode.<br />
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-## How to use
+### `yarn build`
 
-### Installation
+Builds the app for production to the `build` folder.<br />
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-First clone the repository to your computer by running  
-`git clone https://github.com/pretzelhands/react-semantic-boilerplate.git`
+The build is minified and the filenames include the hashes.<br />
+Your app is ready to be deployed!
 
-Then you need to install the required dependencies with  
-`yarn install` (**npm:** `npm install`)
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-And after that you are ready to go!
+### `yarn eject`
 
-### Basic usage
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-You can now use the same commands as with any other Create React App! They are as follows:
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-`yarn start` (**npm:** `npm run start`)  
-`yarn build` (**npm:** `npm run build`)
+Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-They function exactly the same way as you're used to, but include Semantic UI compilation on-the-fly and hot module reloading.
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-### Customizing Semantic UI
+## Learn More
 
-To customize Semantic UI you can find the appropriate files in `src/styling/theme`. To understand the file structure provided in that folder, please read the [Customization Guide](http://learnsemantic.com/developing/customizing.html) provided by Semantic UI.
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-The theme files are pre-filled with all available variables so you can just set them and forget them. As you save those files Webpack will automatically rec-compile your files.
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Customize the SEO optimizations
+### Code Splitting
 
-This boilerplate includes all tags to make your app look great when you share it on Facebook, Twitter, or wherever else. For this purpose I included various meta tags which you can customize as follows:
+This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
 
-* Rename `.env.example` to `.env`
-* Update the variables you see in `.env` - these are used for the base url for loading the assets, the page title, the meta description, the theme color for Android and the correct site for Twitter.
-* After that generate the necessary files on [realfavicongenerator.net](https://realfavicongenerator.net/) and copy the files to the `public/assets` directory
-* Make custom images for `twitter-card.png`, `open-graph.png` and `social.png` - They are all provided in the recommended sizes.
+### Analyzing the Bundle Size
 
-And you're done! Your application/site is now optimized for sharing on social media and other places! :tada:
+This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
 
-## Contributing
+### Making a Progressive Web App
 
-Contributions in any form are welcome! If you find a bug, please [file an issue.](https://github.com/pretzelhands/react-semantic-boilerplate/issues) All contributors are asked to abide by the rules of the [Contributor Covenant.](./CODE_OF_CONDUCT.md)
+This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
 
-## Updates
+### Advanced Configuration
 
-This repo will be kept up-to-date in accordance with the stable releases of React, Create React App, Semantic UI and Semantic UI React insofar they are compatible.
+This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
 
-If major changes happen to the Webpack 3 example of the Semantic UI React repository, I will reflect them in this repository.
+### Deployment
 
-## License
+This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
 
-This project is licensed under the ISC license. See the [LICENSE file](./LICENSE.md) for more details.
+### `yarn build` fails to minify
+
+This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify

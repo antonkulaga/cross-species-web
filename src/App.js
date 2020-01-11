@@ -1,8 +1,7 @@
-import 'tachyons'
-import 'styling/semantic.less'
-
 import React from 'react'
 import { Button, Icon, Menu } from 'semantic-ui-react'
+
+import './App.css';
 
 export default class App extends React.Component {
     state = {
@@ -11,7 +10,7 @@ export default class App extends React.Component {
 
     handleItemClick = (e, { name }) => this.setState({ activeMenu: name })
     
-    render = () => {
+    render() {
         const { activeMenu } = this.state
         return (
             <div className="min-vh-100 w-100 flex flex-column "> {/*items-center justify-center*/}
@@ -67,7 +66,7 @@ export default class App extends React.Component {
                                         </Menu>
                                     </div>
                                 </div>
-                                <span>jksakdjsankjand</span>
+                                <span>jhbsa</span>
                                 <div className="ui intro tab" data-tab="introduction">
                                     <div className="ui main" style={{
                                             marginLeft: "30px",
@@ -90,4 +89,3 @@ export default class App extends React.Component {
         )
     }
 }
-                                    
