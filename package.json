@@ -1,8 +1,8 @@
 {
-  "name": "react-semantic-boilerplate",
+  "name": "cross-species-gerontomics",
   "license": "ISC",
   "version": "1.0.0",
-  "description": "Get started with Semantic UI React and Webpack 3",
+  "description": "Comparative transcriptomics of longevity",
   "dependencies": {
     "dotenv": "^5.0.1",
     "dotenv-expand": "^4.2.0",

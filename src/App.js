@@ -2,35 +2,92 @@ import 'tachyons'
 import 'styling/semantic.less'
 
 import React from 'react'
-import { Button, Icon } from 'semantic-ui-react'
+import { Button, Icon, Menu } from 'semantic-ui-react'
 
-const App = () => <div className="min-vh-100 w-100 flex flex-column items-center justify-center">
-    <div className="w-100 mw7">
-        <h1 className="lh-title"><Icon name='home' /> react-semantic-boilerplate</h1>
+export default class App extends React.Component {
+    state = {
+        activeMenu: 'Search'
+    }
 
-        <p className="lh-copy">
-            Hello there! If you're reading this it means that your Semantic UI React
-            app is all set up and ready to go! You can delete the contents of this site
-            in <code>src/App.js</code> and build something amazing!
-        </p>
+    handleItemClick = (e, { name }) => this.setState({ activeMenu: name })
+    
+    render = () => {
+        const { activeMenu } = this.state
+        return (
+            <div className="min-vh-100 w-100 flex flex-column "> {/*items-center justify-center*/}
+                <div className="pusher">
+                    <div className="full height">
+                        <div className="article">
+                            <div className="ui masthead vertical segment"> {/* tab */}
+                                <div className="ui" style={{
+                                        marginLeft: "30px",
+                                        marginRight: "30px"
+                                    }}>
+                                    <div className="introduction">
+                                        <h1 className="ui header">
+                                            Comparative transcriptomics of Longevity
 
-        <h3>What's included:</h3>
 
-        <p className="lh-copy">
-            ✔️ Direct module imports to reduce bundle size<br />
-            ✔️ Hot module reloading<br />
-            ✔️ SEO optimizations (incl. Open Graph, Twitter and Google)<br />
-            ✔️ The beautiful Inter UI font<br />
-            ✔️ Semantic UI React (duh!)<br />
-            ✔️ Tachyons for easy layouting
-        </p>
+                                            <div className="sub header">
+                                                Computational Biology of Aging Group
+                                                <br />
+                                                Institute of Biochemistry, Romanian Academy
+                                            </div>
+                                        </h1>
 
-        <p className="lh-copy">
-            And just for fun: A button!
-        </p>
+                                        <div className="ui hidden divider">
+                                        </div>
 
-        <Button primary>Semantic UI button</Button>
-    </div>
-</div>
+                                        <Menu stackable className="three item tabs">
+                                            <Menu.Item
+                                                name='Search'
+                                                data-tab="laur1"
+                                                active={activeMenu === 'Search'}
+                                                onClick={this.handleItemClick}
+                                            >
+                                                Search
+                                            </Menu.Item>
 
-export default App
+                                            <Menu.Item
+                                                name='Analysis'
+                                                data-tab="laur2"
+                                                active={activeMenu === 'Analysis'}
+                                                onClick={this.handleItemClick}
+                                            >
+                                                Analysis
+                                            </Menu.Item>
+
+                                            <Menu.Item
+                                                name='About'
+                                                active={activeMenu === 'About'}
+                                                onClick={this.handleItemClick}
+                                            >
+                                                About
+                                            </Menu.Item>
+                                        </Menu>
+                                    </div>
+                                </div>
+                                <span>jksakdjsankjand</span>
+                                <div className="ui intro tab" data-tab="introduction">
+                                    <div className="ui main" style={{
+                                            marginLeft: "30px",
+                                            marginRight: "30px"
+                                        }}>
+
+                                        <h2 className="ui dividing header">
+                                            {/* Search */}
+                                            <a className="anchor" id="laur1"></a></h2>
+                                            laur1
+                                    </div>
+                                </div>
+                            </div>
+                                
+                            
+                            </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
+                                    
