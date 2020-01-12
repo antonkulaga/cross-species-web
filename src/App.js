@@ -3,6 +3,10 @@ import { Button, Icon, Menu } from 'semantic-ui-react'
 
 import './App.css';
 
+import SearchPage from './SearchPage'
+import AnalysisPage from './AnalysisPage'
+import AboutPage from './AboutPage'
+
 export default class App extends React.Component {
     state = {
         activeMenu: 'Search'
@@ -10,6 +14,16 @@ export default class App extends React.Component {
 
     handleItemClick = (e, { name }) => this.setState({ activeMenu: name })
     
+    renderPage(page) {
+        switch(page){
+            case 'Analysis':
+                return <AnalysisPage />
+            case 'About':
+                return <AboutPage />
+            default:
+                return <SearchPage />
+        }
+    }
     render() {
         const { activeMenu } = this.state
         return (
@@ -66,19 +80,10 @@ export default class App extends React.Component {
                                         </Menu>
                                     </div>
                                 </div>
-                                <span>jhbsa</span>
-                                <div className="ui intro tab" data-tab="introduction">
-                                    <div className="ui main" style={{
-                                            marginLeft: "30px",
-                                            marginRight: "30px"
-                                        }}>
-
-                                        <h2 className="ui dividing header">
-                                            {/* Search */}
-                                            <a className="anchor" id="laur1"></a></h2>
-                                            laur1
-                                    </div>
-                                </div>
+                                
+                                {
+                                    this.renderPage(activeMenu)
+                                }
                             </div>
                                 
                             

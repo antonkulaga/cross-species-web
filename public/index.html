@@ -24,21 +24,31 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+
+    <title>Cross Species Comparison | Gerontomics</title>
+
+
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" />
-    <title>React App</title>
+    <script src="https://cdn.plot.ly/plotly-latest.js" charset="utf-8"></script>
+    <!-- <script src="https://unpkg.com/ag-grid-community@21.2.1/dist/ag-grid-community.min.js"></script> -->
+
+    
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    
+    <script src="./data/mammals_lifespan.js"></script>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    <script src="./data/genage_genes_pro.js"></script>
+    <script src="./data/genage_genes_anti.js"></script>
+    <script src="../genes.js"></script>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    <script src="./data/allXValues.js"></script>
+    <script src="./data/allYValues.js"></script>
+    <script src="./data/geneExpressions.js"></script>
+    <script src="./data/ensemblToName.js"></script>
+    <script src="../heatmap.js"></script>
   </body>
 </html>
