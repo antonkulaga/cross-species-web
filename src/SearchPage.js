@@ -23,13 +23,14 @@ import ALL_Y_VALUES from './data/allYValues.json'
 
 import GENE_EXPRESSIONS from './data/geneExpressions.json'
 
-const allZValues =  GENE_EXPRESSIONS.map(function(row){ 
-  return row.map(function(x){
-      //TODO: parseInt?
-      // if(!x) return 0;
-      return Math.log(x+1);//TODO: divide / Math.log(10); 
-  });
-});
+const allZValues =  GENE_EXPRESSIONS
+                        .map(function(row){ 
+                            return row.map(function(x){
+                                //TODO: parseInt?
+                                // if(!x) return 0;
+                                return Math.log(x+1);//TODO: divide / Math.log(10); 
+                            });
+                        });
 
 const columnDefs = [
   {
@@ -295,7 +296,7 @@ export default class SearchPage extends React.Component {
             tickfont: {
                 size: 12
             }
-        },
+        }
     };
 
 
@@ -315,7 +316,7 @@ export default class SearchPage extends React.Component {
         yIndices.push(i);
     }
 
-    
+    {
 
     // for ( var i = 0; i < yValues.length; i++ ) {
     //     for ( var j = 0; j < xValues.length; j++ ) {
@@ -347,6 +348,7 @@ export default class SearchPage extends React.Component {
     //         this.layout.annotations.push(result);
     //     }
     // }
+    }
 
     var speciesHash = {};
 
@@ -370,7 +372,7 @@ export default class SearchPage extends React.Component {
     for(var i = 0; i < this.selectedRows.length; i++){
         maximumLifesSpanBySpecies[this.selectedRows[i].run] = this.selectedRows[i].maximum_longevity;
     }
-    for(var i = 0; i < ALL_X_VALUES.length -1 ; i++){
+    for(var i = 0; i < ALL_X_VALUES.length - 1 ; i++){
         for(var j = i + 1 ; j < ALL_X_VALUES.length; j++){
             if(maximumLifesSpanBySpecies[ALL_X_VALUES[i]] == null){
                 maximumLifesSpanBySpecies[ALL_X_VALUES[i]] = 0;
@@ -442,6 +444,46 @@ export default class SearchPage extends React.Component {
     this.layout.width = Math.max(500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
+    let logColors = zValues.map(function(x){
+        //TODO: parseInt?
+        // if(!x) return 0;
+        return Math.log(x+1);//TODO: divide / Math.log(10); 
+    })
+    console.log(logColors)
+
+    // this.layout.marker = {
+        // color: logColors,
+        // showscale: false,
+        // cmin: 0,
+        // cmax: Math.log(zValues.reduce((x,y) => {if(x<y) return y; return x;})),
+        // colorscale = [[0, 'rgb(166,206,227, 0.5)'],
+        //               [0.05, 'rgb(31,120,180,0.5)'],
+        //               [0.2, 'rgb(178,223,138,0.5)'],
+        //               [0.5, 'rgb(51,160,44,0.5)'],
+        //               [factor, 'rgb(251,154,153,0.5)'],
+        //               [factor, 'rgb(227,26,28,0.5)'],
+        //               [1, 'rgb(227,26,28,0.5)']
+        //              ],
+        // colorbar: {
+        //     tickvals: [0,50,100,150,200,250,300],
+        //     ticks: 'outside'
+        // }
+    // }
+    const maxVal = parseInt(
+        Math.exp(
+            zValues.reduce((x,y) => {
+                if(x<y) 
+                    return y; 
+                return x;
+            })
+        ) - 1
+    )
+    // const minVal = zValues.reduce((x,y) => {if(x>y) return Math.exp(y)-1; return Math.exp(x)-1;})
+    const tickVals = [0];
+    for(let i = 1; i < 5; i++){
+        tickVals.push(tickVals[i-1] + maxVal / 5)
+    }
+    console.log(maxVal, tickVals)
     
     this.data = [{
         x: xValues,
@@ -449,7 +491,13 @@ export default class SearchPage extends React.Component {
         z: zValues,
 
         colorscale: 'RdBu',
-        type: 'heatmap'
+        // color: logColors,
+        showscale: false,
+        type: 'heatmap',
+        // colorbar: {
+        //     tickvals: tickVals,
+        //     ticks: 'outside'
+        // }
     }];
 
     // console.log(xValues.length, yValues.length, zValues.length);
