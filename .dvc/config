@@ -1,0 +1,7 @@
+['remote "species_website"']
+url = gdrive://0APuU2w04mc7qUk9PVA/website_repository
+gdrive_client_id = 871008254275-7ohqojcepttgc5qkiee7tu10fstb6aes.apps.googleusercontent.com
+gdrive_client_secret = G_YY-CaEgtYjSQXbzixq4sgL
+[core]
+remote = species_website
+
