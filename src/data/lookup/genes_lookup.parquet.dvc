@@ -1,0 +1,7 @@
+md5: c9acf8ce059fcc9b766984b42bd531a8
+outs:
+- md5: 5d94142514ae58e7d6996e408cbeea1a
+  path: genes_lookup.parquet
+  cache: true
+  metric: false
+  persist: false
