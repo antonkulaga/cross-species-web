@@ -8,6 +8,9 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 
+import _ from 'lodash';
+
+
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
 
@@ -24,18 +27,22 @@ import ALL_Y_VALUES from './data/allYValues.json'
 import GENE_EXPRESSIONS from './data/geneExpressions.json'
 
 const allZValues =  GENE_EXPRESSIONS
-                        .map(function(row){ 
-                            return row.map(function(x){
-                                //TODO: parseInt?
-                                // if(!x) return 0;
-                                return Math.log(x+1);//TODO: divide / Math.log(10); 
-                            });
-                        });
+.map(function(row){ 
+    return row.map(function(x){
+        //TODO: parseInt?
+        // if(!x) return 0;
+        return Math.log(x+1);//TODO: divide / Math.log(10); 
+    });
+});
+
+const SPECIES_TO_ENSEMBL = _.invertBy(ENSEMBL_TO_NAME)
+
 
 const columnDefs = [
   {
       headerName: 'Sample',
       field: 'run', 
+      value: [],
       checkboxSelection: true, 
       headerCheckboxSelectionFilteredOnly: true,
       headerCheckboxSelection: true,
@@ -168,8 +175,12 @@ export default class SearchPage extends React.Component {
   constructor(props) {
     super(props);
     this.heatmapRef = React.createRef();
-    this.state = {
-      selectedGenes: GENAGE_GENES_PRO,
+    this.state = {      
+      selectedGenes: [],
+      selectedGenesByName: [],
+      selectedGenesSymbols: [],
+      selectedPredefinedGenes: [],
+      selectedGeneIds:[],
       gridOptions: {
         rowData: SAMPLES_VALUES,
         columnDefs: columnDefs,
@@ -201,25 +212,125 @@ export default class SearchPage extends React.Component {
       displayHeatmap: "none"
     }
 
+    this.convertSpeciesToEnsemble.bind(this)
+    this.addGenesToDictionary.bind(this)
     this.onChangePredefinedGenes.bind(this)
     this.onChangeGenes.bind(this)
     this.onClickShowResults.bind(this)
     this.isSelectedGene.bind(this)
     this.isSelectedSample.bind(this)
     this.getHeatmapColumnName.bind(this)
+    this.refreshSelectedGenes.bind(this)
   }
 
-  onChangeGenes(e, target){
+  async refreshSelectedGenes(){
+    var selectedGenes = [];
+    var selectedGenesSymbols  = this.state.selectedGenesSymbols;
+    var selectedPredefinedGenes =  this.state.selectedPredefinedGenes;
+    var selectedGeneIds = this.state.selectedGeneIds;
+
+    selectedGenes = selectedGenesSymbols;
+    selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
+    selectedGenes = selectedGenes.concat(selectedGeneIds);
+    await this.setState({ selectedGenes });
+    await this.addGenesToDictionary(selectedGenes);
+  }
+
+  async onChangeGenes(e, target){
     console.log(e, target)
+    var selected =  await this.convertSpeciesToEnsemble(target.value);
+    await this.setState({ selectedGenesSymbols : selected });
+    await this.refreshSelectedGenes();
+    await this.setState({ selectedGenesByName : target.value})
   }
 
-  onChangePredefinedGenes(e, target){
-    switch(target){
+  async handleChangeTextarea(e, target){
+    var lines  = (e.target.value).split('\n');
+    await this.setState({ selectedGeneIds : this.createEnsembleObjectsFromIds(lines) });
+    await this.refreshSelectedGenes();
+    await this.addSelectedPredefinedGenesToDropdown(await this.state.selectedGeneIds);
+
+  }
+
+  async addGenesToDictionary(currentSelection){
+    var oldGeneSelection = this.state.selectedGenes;
+    if(oldGeneSelection == null || oldGeneSelection.length == 0){
+      await this.setState({selectedGenes: currentSelection})
+    } else {
+      for(var i = 0; i < currentSelection.length; i++){
+        console.log(i, currentSelection[i]);
+        if(this.isSelectedGene(currentSelection[i].ensembl_id) == false){
+          oldGeneSelection.push(currentSelection[i]);
+          await this.setState({ selectedGenes: oldGeneSelection });
+        }    
+      }
+      await this.setState({ selectedGenes: oldGeneSelection });
+    }
+  }
+
+  createEnsembleObjectsFromIds(ids){
+    var result = [];
+    for(var i = 0; i < ids.length; i++){
+       var object = {
+        "ensembl_id": ids[i],
+        "key":  ids[i],
+        "name": ENSEMBL_TO_NAME[ids[i]],
+        "value": ENSEMBL_TO_NAME[ids[i]],
+        "text": ENSEMBL_TO_NAME[ids[i]]
+      } 
+      result.push(object); 
+    }
+    return result;
+  }
+
+  convertSpeciesToEnsemble(species){
+    var speciesHash  = {};
+    var result = [];
+
+    for(var i = 0; i < species.length; i++){
+      var object = {
+        "ensembl_id": SPECIES_TO_ENSEMBL[species[i]][0],
+        "key":  SPECIES_TO_ENSEMBL[species[i]][0],
+        "name": species[i],
+        "value": species[i],
+        "text": species[i]  
+      } 
+      result.push(object);
+    }
+
+    return result;
+  }
+
+  async addSelectedPredefinedGenesToDropdown(genesList){
+    var genesArray = [];
+    var currentSelectedGenes = await this.state.selectedGenesByName;
+
+    var genesHash = {};
+    for(var i = 0; i < currentSelectedGenes.length; i++){
+      genesHash[currentSelectedGenes[i]] = true;
+    }
+
+    for(var i = 0; i < genesList.length; i++){
+      if(genesHash[genesList[i].name])
+          continue;
+      genesArray.push(genesList[i].name);
+    }
+
+    var newSelectedGenes = currentSelectedGenes.concat(genesArray);
+    await this.setState({ selectedGenesByName: newSelectedGenes });
+  }
+
+  async onChangePredefinedGenes(e, target){
+    switch(target.value){ 
       case "Pro-Longevity Genes":
-          this.setState({selectedGenes: GENAGE_GENES_PRO});
+          await this.setState({ selectedPredefinedGenes : GENAGE_GENES_PRO })
+          await this.refreshSelectedGenes()
+          await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_PRO);
           break;
       case "Anti-Longevity Genes":
-          this.setState({selectedGenes: GENAGE_GENES_ANTI});
+          await this.setState({ selectedPredefinedGenes : GENAGE_GENES_ANTI })
+          await this.refreshSelectedGenes()
+          await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_ANTI);
           break;
       default:
         break;
@@ -241,6 +352,10 @@ export default class SearchPage extends React.Component {
     }
     return false;
   }
+
+
+ 
+
   getHeatmapColumnName(value){
     var curr = value;
     var words = curr.split(" ");
@@ -270,7 +385,7 @@ export default class SearchPage extends React.Component {
 
     let zValues = [];
 
-    console.log("show results");
+    console.log("show results", this.state.selectedGenes);
     this.selectedRows = this.api.getSelectedRows();
 
     this.layout = {
@@ -533,6 +648,7 @@ export default class SearchPage extends React.Component {
   }
 
   render() {
+    const { selectedGenesByName } = this.state;
     return (
       <div className="ui intro">
         <div className="ui main" style={{
@@ -566,7 +682,7 @@ export default class SearchPage extends React.Component {
                 <AgGridReact
                   onGridReady={this.onGridReady}
                   gridOptions={this.state.gridOptions}>
-                </AgGridReact>
+                </AgGridReact>  
               </div>
             </div>
           </div>
@@ -578,8 +694,10 @@ export default class SearchPage extends React.Component {
             multiple
             search
             selection
+            allowAdditions
             options={GENES}
-            onChange={this.onChangeGenes}
+            value={selectedGenesByName}
+            onChange={this.onChangeGenes.bind(this)}
           />
           
           <span>or choose a predefined list:</span>
@@ -590,26 +708,15 @@ export default class SearchPage extends React.Component {
             search
             selection
             options={PREDEFINED_GENES}
-            onChange={this.onChangePredefinedGenes}
+            onChange={this.onChangePredefinedGenes.bind(this)}
           />
           
-          <span>or upload your custom list:</span>
+        
           <div className="field is-horizontal"  style={{marginTop: "24px"}}>
-            <div className="field-label">
-            <label className="label">Upload list of gene ENSEMBL IDs or symbols</label>
-            </div>
+         
             <div className="field-body" style={{marginTop: "10px"}}>
             <div className="msg-wrapper">
-              <div className="field is-grouped">{/**/} 
-              <div className="field file">{/**/}
-                <label className="upload control">
-                <a className="button is-outlined is-small">
-                  <span className="icon is-small"><i className="mdi mdi-upload">
-                  
-                  </i></span><span></span></a> <input type="file" accept=".txt" name="gene_list_file"></input>
-                </label> {/**/} {/**/}
-              </div>  {/**/}
-              </div> {/**/}
+             
             </div>
             </div>
           </div>
@@ -621,7 +728,7 @@ export default class SearchPage extends React.Component {
             </div>
             <div className="field-body">
             <div className="gene-list-wrapper" style={{marginTop: "10px"}}>
-              <p className="or-spacer has-text-primary">OR</p> 
+              <p className="or-spacer has-text-primary">Or paste custom gene ids</p> 
               <div className="field">{/**/} <div style={{position: "relative"}}>
               <a className="delete is-small input-clear"></a> 
               <div className="control is-clearfix">
@@ -630,6 +737,7 @@ export default class SearchPage extends React.Component {
                   width: "400px", 
                   height: "150px"
                   }} 
+                onChange={this.handleChangeTextarea.bind(this)}
                 placeholder="Please enter gene ids..." 
                 name="gene_list" 
                 className="textarea"></textarea> 
