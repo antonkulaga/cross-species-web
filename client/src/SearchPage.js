@@ -14,19 +14,27 @@ import _ from 'lodash';
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
 
-import SAMPLES_VALUES from './data/samples_values.json'
+// import SAMPLES_VALUES from './data/samples_values.json'
 
-import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
-import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
+// import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
+// import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
 
-import ENSEMBL_TO_NAME from './data/ensemblToName.json'
+// import ENSEMBL_TO_NAME from './data/ensemblToName.json'
 
-import ALL_X_VALUES from './data/allXValues.json'
-import ALL_Y_VALUES from './data/allYValues.json'
+// import ALL_X_VALUES from './data/allXValues.json'
+// import ALL_Y_VALUES from './data/allYValues.json'
 
-import GENE_EXPRESSIONS from './data/geneExpressions.json'
+// import GENE_EXPRESSIONS from './data/geneExpressions.json'
 
-const allZValues =  GENE_EXPRESSIONS
+var SAMPLES_VALUES = [];
+var GENAGE_GENES_PRO = [];
+var GENAGE_GENES_ANTI = [];
+var ENSEMBL_TO_NAME = [];
+var ALL_X_VALUES = [];
+var ALL_Y_VALUES = [];
+var GENE_EXPRESSIONS = [];
+var allZValues =  GENE_EXPRESSIONS
+
 .map(function(row){ 
     return row.map(function(x){
         //TODO: parseInt?
@@ -35,7 +43,7 @@ const allZValues =  GENE_EXPRESSIONS
     });
 });
 
-const SPECIES_TO_ENSEMBL = _.invertBy(ENSEMBL_TO_NAME)
+var SPECIES_TO_ENSEMBL = [];
 
 
 const columnDefs = [
@@ -181,9 +189,9 @@ export default class SearchPage extends React.Component {
       selectedGenesSymbols: [],
       selectedPredefinedGenes: [],
       selectedGeneIds:[],
+      columnDefs: columnDefs,
+      rowData: [],
       gridOptions: {
-        rowData: SAMPLES_VALUES,
-        columnDefs: columnDefs,
         rowSelection: 'multiple',
         groupSelectsChildren: true,
         suppressRowClickSelection: true,
@@ -223,16 +231,100 @@ export default class SearchPage extends React.Component {
     this.refreshSelectedGenes.bind(this)
   }
 
-  // callAPI() {
-  //   fetch("http://localhost:9000/testAPI")
-  //       .then(res => res.text())
-  //       .then(res => alert(JSON.stringify(res)))
-  //       .catch(err => err);
-  // }
+  getSamples() {
+    console.log("getSamples");
+    fetch("http://localhost:9000/testAPI/getSamples")
+        .then(res => res.json())
+        .then(response => {
+          this.setState({ rowData : response })
+          SAMPLES_VALUES = response
+        });
+  }
 
-  // componentDidMount() {
-  //       this.callAPI();
-  // }
+  getSamples() {
+    console.log("getSamples");//remove testApi
+    fetch("http://localhost:9000/testAPI/getSamples")
+        .then(res => res.json())
+        .then(response => {
+          this.setState({ rowData : response })
+          SAMPLES_VALUES = response
+        });
+  }
+
+  getGenesPro() {
+    console.log("getGenesPro");//remove testApi
+    fetch("http://localhost:9000/testAPI/getGenesPro")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          GENAGE_GENES_PRO = response
+        });
+  }
+
+  getGenesAnti() {
+    console.log("getGenesAnti");//remove testApi
+    fetch("http://localhost:9000/testAPI/getGenesAnti")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          GENAGE_GENES_ANTI = response
+        });
+  }
+
+  getEnsembleToName() {
+    console.log("getEnsembleToName");//remove testApi
+    fetch("http://localhost:9000/testAPI/getEnsembleToName")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          ENSEMBL_TO_NAME = response
+          SPECIES_TO_ENSEMBL = _.invertBy(response)
+        });
+  } 
+
+  getAllXValues() {
+    console.log("getAllXValues");//remove testApi
+    fetch("http://localhost:9000/testAPI/getAllXValues")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          ALL_X_VALUES = response
+        });
+  }
+
+  getAllYValues() {
+    console.log("getAllYValues");//remove testApi
+    fetch("http://localhost:9000/testAPI/getAllYValues")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          ALL_Y_VALUES = response
+        });
+  }
+
+  getGeneExpression() {
+    console.log("getGeneExpression");//remove testApi
+    fetch("http://localhost:9000/testAPI/getGeneExpression")
+        .then(res => res.json())
+        .then(response => {
+          // this.setState({ rowData : response })
+          GENE_EXPRESSIONS = response
+          allZValues = response
+        });
+  }
+
+
+
+  //getsamplesValues
+  componentWillMount() {
+    this.getSamples();
+    this.getGenesPro();
+    this.getGenesAnti();
+    this.getEnsembleToName();
+    this.getAllXValues();
+    this.getAllYValues();
+    this.getGeneExpression();
+  }
 
   async refreshSelectedGenes(){
     var selectedGenes = [];
@@ -692,6 +784,8 @@ export default class SearchPage extends React.Component {
                 } }>
                 <AgGridReact
                   onGridReady={this.onGridReady}
+                  rowData={this.state.rowData}
+                  columnDefs={this.state.columnDefs}
                   gridOptions={this.state.gridOptions}>
                 </AgGridReact>  
               </div>
