@@ -232,16 +232,6 @@ export default class SearchPage extends React.Component {
   }
 
   getSamples() {
-    console.log("getSamples");
-    fetch("http://localhost:9000/testAPI/getSamples")
-        .then(res => res.json())
-        .then(response => {
-          this.setState({ rowData : response })
-          SAMPLES_VALUES = response
-        });
-  }
-
-  getSamples() {
     console.log("getSamples");//remove testApi
     fetch("http://localhost:9000/testAPI/getSamples")
         .then(res => res.json())
