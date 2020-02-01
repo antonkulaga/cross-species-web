@@ -1,0 +1,7 @@
+md5: 712ceda9ead3b35ef1ea9fb8bb810f5c
+outs:
+- md5: 2db86be5e5c7c7440f492c06f7515797
+  path: samples_index.parquet
+  cache: true
+  metric: false
+  persist: false
