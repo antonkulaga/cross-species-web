@@ -232,8 +232,8 @@ export default class SearchPage extends React.Component {
   }
 
   getSamples() {
-    console.log("getSamples");//remove testApi
-    fetch("http://localhost:9000/testAPI/getSamples")
+    console.log("getSamples");
+    fetch("/testAPI/getSamples")
         .then(res => res.json())
         .then(response => {
           this.setState({ rowData : response })
@@ -243,7 +243,7 @@ export default class SearchPage extends React.Component {
 
   getGenesPro() {
     console.log("getGenesPro");//remove testApi
-    fetch("http://localhost:9000/testAPI/getGenesPro")
+    fetch("/testAPI/getGenesPro")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -253,7 +253,7 @@ export default class SearchPage extends React.Component {
 
   getGenesAnti() {
     console.log("getGenesAnti");//remove testApi
-    fetch("http://localhost:9000/testAPI/getGenesAnti")
+    fetch("/testAPI/getGenesAnti")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -263,7 +263,7 @@ export default class SearchPage extends React.Component {
 
   getEnsembleToName() {
     console.log("getEnsembleToName");//remove testApi
-    fetch("http://localhost:9000/testAPI/getEnsembleToName")
+    fetch("/testAPI/getEnsembleToName")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -274,7 +274,7 @@ export default class SearchPage extends React.Component {
 
   getAllXValues() {
     console.log("getAllXValues");//remove testApi
-    fetch("http://localhost:9000/testAPI/getAllXValues")
+    fetch("/testAPI/getAllXValues")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -284,7 +284,7 @@ export default class SearchPage extends React.Component {
 
   getAllYValues() {
     console.log("getAllYValues");//remove testApi
-    fetch("http://localhost:9000/testAPI/getAllYValues")
+    fetch("/testAPI/getAllYValues")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -294,7 +294,7 @@ export default class SearchPage extends React.Component {
 
   getGeneExpression() {
     console.log("getGeneExpression");//remove testApi
-    fetch("http://localhost:9000/testAPI/getGeneExpression")
+    fetch("/testAPI/getGeneExpression")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
