@@ -13,5 +13,13 @@ Actually, there are two separated apps. The Client which serves the FrontEnd (us
 2. Run `npm install` to install all dependencies.
 3. Run `npm start` to start the app
 
+## How to run GraphDB
+
+Install docker, go to cross-species-web/services and run:
+```bash
+docker-compose up
+```
+Check webinterface at http://localhost:7200/sparql
+
 ## Check if they are connected
 With the two apps running, open your browser in http://localhost:3000/.

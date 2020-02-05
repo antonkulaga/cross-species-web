@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  graphdb:
+    image: "daschswiss/graphdb:9.0.0-free"
+    ports:
+      - "7200:7200"
+    volumes:
+      - "./database:/opt/graphdb/home"
+      - "./config/graphdb.properties:/opt/graphdb/dist/conf/graphdb.properties"
+    entrypoint: /opt/graphdb/dist/bin/graphdb
+    command:  -Xmx10g -Dgraphdb.home=/opt/graphdb/home -Dgraphdb.global.page.cache=true -Ddefault.min.distinct.threshold=6g
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
