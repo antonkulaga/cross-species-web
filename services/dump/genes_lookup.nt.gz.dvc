@@ -1,0 +1,7 @@
+md5: f030437a879d8d2ded0d8b169cb02497
+outs:
+- md5: ac047a4d4f6120f62911fc369f3cafb7
+  path: genes_lookup.nt.gz
+  cache: true
+  metric: false
+  persist: false
