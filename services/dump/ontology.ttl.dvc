@@ -1,0 +1,7 @@
+md5: 4eab6a3783ffe95709fe372e35a216c6
+outs:
+- md5: 9cf1ed29ef120d5f8d6dc86a851f6d02
+  path: ontology.ttl
+  cache: true
+  metric: false
+  persist: false

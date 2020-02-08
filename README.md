@@ -10,7 +10,7 @@ Actually, there are two separated apps. The Client which serves the FrontEnd (us
 
 ## How to run the Client
 1. In another terminal, navigate to the `client` directory.
-2. Run `npm install` to install all dependencies.
+2. Run `np7200m install` to install all dependencies.
 3. Run `npm start` to start the app
 
 ## How to run GraphDB

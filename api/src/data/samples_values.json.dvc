@@ -1,7 +1,0 @@
-md5: e6a3c8d81c9787dd71d66bcf7647b32b
-outs:
-- md5: 29411482df2e2ab31c64ceebd2f96c8f
-  path: samples_values.json
-  cache: true
-  metric: false
-  persist: false

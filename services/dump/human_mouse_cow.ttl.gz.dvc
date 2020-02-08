@@ -1,0 +1,7 @@
+md5: f118ea283d899c8b7717a12502ec90d6
+outs:
+- md5: 2d056b9e3595d4bd942d755e70fd7a9a
+  path: human_mouse_cow.ttl.gz
+  cache: true
+  metric: false
+  persist: false
