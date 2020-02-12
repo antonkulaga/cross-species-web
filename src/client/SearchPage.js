@@ -45,7 +45,6 @@ var allZValues =  GENE_EXPRESSIONS
 
 var SPECIES_TO_ENSEMBL = [];
 
-
 const columnDefs = [
   {
       headerName: 'Sample',
@@ -233,7 +232,7 @@ export default class SearchPage extends React.Component {
 
   getSamples() {
     console.log("getSamples");
-    fetch("/testAPI/getSamples")
+    fetch("/getSamples")
         .then(res => res.json())
         .then(response => {
           this.setState({ rowData : response })
@@ -243,9 +242,10 @@ export default class SearchPage extends React.Component {
 
   getGenesPro() {
     console.log("getGenesPro");//remove testApi
-    fetch("/testAPI/getGenesPro")
+    fetch("/api/getGenesPro")
         .then(res => res.json())
         .then(response => {
+          console.log("getGenesPro", response);
           // this.setState({ rowData : response })
           GENAGE_GENES_PRO = response
         });
@@ -253,7 +253,7 @@ export default class SearchPage extends React.Component {
 
   getGenesAnti() {
     console.log("getGenesAnti");//remove testApi
-    fetch("/testAPI/getGenesAnti")
+    fetch("/api/getGenesAnti")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -262,8 +262,8 @@ export default class SearchPage extends React.Component {
   }
 
   getEnsembleToName() {
-    console.log("getEnsembleToName");//remove testApi
-    fetch("/testAPI/getEnsembleToName")
+    console.log("getEnsembleToName");//remove api
+    fetch("/api/getEnsembleToName")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -273,8 +273,8 @@ export default class SearchPage extends React.Component {
   } 
 
   getAllXValues() {
-    console.log("getAllXValues");//remove testApi
-    fetch("/testAPI/getAllXValues")
+    console.log("getAllXValues");//remove api
+    fetch("/api/getAllXValues")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -283,8 +283,8 @@ export default class SearchPage extends React.Component {
   }
 
   getAllYValues() {
-    console.log("getAllYValues");//remove testApi
-    fetch("/testAPI/getAllYValues")
+    console.log("getAllYValues");//remove api
+    fetch("/api/getAllYValues")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -293,8 +293,8 @@ export default class SearchPage extends React.Component {
   }
 
   getGeneExpression() {
-    console.log("getGeneExpression");//remove testApi
-    fetch("/testAPI/getGeneExpression")
+    console.log("getGeneExpression");//remove api
+    fetch("/api/getGeneExpression")
         .then(res => res.json())
         .then(response => {
           // this.setState({ rowData : response })
@@ -302,8 +302,6 @@ export default class SearchPage extends React.Component {
           allZValues = response
         });
   }
-
-
 
   //getsamplesValues
   componentWillMount() {
@@ -379,14 +377,15 @@ export default class SearchPage extends React.Component {
   convertSpeciesToEnsemble(species){
     var speciesHash  = {};
     var result = [];
-
+    console.log("convertSpeciesToEnsemble", species);
+     console.log("SPECIES_TO_ENSEMBL", SPECIES_TO_ENSEMBL);
     for(var i = 0; i < species.length; i++){
       var object = {
         "ensembl_id": SPECIES_TO_ENSEMBL[species[i]][0],
         "key":  SPECIES_TO_ENSEMBL[species[i]][0],
         "name": species[i],
         "value": species[i],
-        "text": species[i]  
+        "text": species[i]    
       } 
       result.push(object);
     }
