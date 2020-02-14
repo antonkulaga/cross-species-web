@@ -80,7 +80,20 @@ app.get('/api/getGeneExpression', async (req, res, next) => {
   res.send(result);
 });
 
-async function getSpeciesNamesQuery() {
+app.get('/api/getSpeciesNames', async (req, res, next) => {
+  const result = await querySpeciesNames();
+  console.log(result);
+  res.send(result);
+});
+
+app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
+  const referenceOrg = req.query.referenceOrg;
+  const result = await queryReferenceOrgGenes();
+  console.log(result);
+  res.send(result);
+});
+
+async function querySpeciesNames() {
   // const payload = new GetStatementsPayload()
   //   .setResponseType(RDFMimeType.RDF_JSON)
   //   .setSubject('?species')
@@ -102,7 +115,10 @@ async function getSpeciesNamesQuery() {
       stream.on('data', (bindings) => {
         // the bindings stream converted to data objects with the registered parser
         // console.log('@@', bindings.common_name.id);
-        speciesNames.push(bindings.common_name.id.replace(/"/g,''));
+        speciesNames.push({
+          id: bindings.species.id,
+          common_name: bindings.common_name.id.replace(/"/g,'')
+        });
       });
       stream.on('end', () => {
         // handle end of the stream
@@ -118,10 +134,6 @@ async function getSpeciesNamesQuery() {
   //   )
   //   .catch(error => console.error(error))
 }
-app.get('/api/getSpeciesNames', async (req, res, next) => {
-  const result = await getSpeciesNamesQuery();
-  console.log(result);
-  res.send(result);
-});
+
 
 app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
