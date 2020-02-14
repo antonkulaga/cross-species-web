@@ -87,11 +87,40 @@ app.get('/api/getSpeciesNames', async (req, res, next) => {
 });
 
 app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
-  const referenceOrg = req.query.referenceOrg;
-  const result = await queryReferenceOrgGenes();
+  const referenceOrg = req.query.referenceOrg || 'http://aging-research.group/resource/Homo_sapiens';
+  const result = await queryReferenceOrgGenes(referenceOrg);
   console.log(result);
   res.send(result);
 });
+
+async function queryReferenceOrgGenes(referenceOrg) {
+  console.log(referenceOrg)
+  repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
+
+  const payload = new graphdb.query.GetQueryPayload()
+    .setQuery(`SELECT ?gene ?symbol WHERE { values ?species { <${referenceOrg}> } . \n ?gene <http://www.w3.org/2000/01/rdf-schema#label> ?symbol . \n ?species <http://aging-research.group/resource/has_gene> ?gene .}`)
+    .setQueryType(graphdb.query.QueryType.SELECT)
+    .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON)
+    // .setLimit(100);
+
+  return repository.query(payload).then((stream) => {
+    return new Promise((resolve, reject) => {
+      const genes = [];
+      stream.on('data', (bindings) => {
+        // the bindings stream converted to data objects with the registered parser
+        // console.log('@@', bindings);
+        genes.push({
+          symbol: bindings.symbol.id.replace(/"/g,''),
+          ensembl_id: bindings.gene.id
+        });
+      });
+      stream.on('end', () => {
+        // handle end of the stream
+        resolve(genes);
+      });
+    });
+  });
+}
 
 async function querySpeciesNames() {
   // const payload = new GetStatementsPayload()
