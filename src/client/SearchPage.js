@@ -188,6 +188,8 @@ export default class SearchPage extends React.Component {
       selectedGenesSymbols: [],
       selectedPredefinedGenes: [],
       selectedGeneIds:[],
+      selectedOrganism:[],
+      organismList:[],
       columnDefs: columnDefs,
       rowData: [],
       gridOptions: {
@@ -224,10 +226,11 @@ export default class SearchPage extends React.Component {
     this.onChangePredefinedGenes.bind(this)
     this.onChangeGenes.bind(this)
     this.onClickShowResults.bind(this)
-    this.isSelectedGene.bind(this)
+    this.isSelectedGene.bind(this)  
     this.isSelectedSample.bind(this)
     this.getHeatmapColumnName.bind(this)
     this.refreshSelectedGenes.bind(this)
+    this.onChangeOrganism.bind(this)
   }
 
   getSamples() {
@@ -303,6 +306,27 @@ export default class SearchPage extends React.Component {
         });
   }
 
+  getSpeciesNames() {
+    console.log("getSpeciesNames request");//remove api
+    fetch("/api/getSpeciesNames")
+        .then(res => res.json())
+        .then(response =>   {
+          // this.setState({ rowData : response })
+          var results = [];
+          for(var i = 0; i < response.length; i++){
+            results.push({
+              key: response[i].common_name,
+              value: response[i].common_name, 
+              text: response[i].common_name 
+            })
+          }
+          
+          console.log("getSpeciesNames results", results);
+          this.setState({ organismList: results });
+        });
+  }
+
+
   //getsamplesValues
   componentWillMount() {
     this.getSamples();
@@ -312,6 +336,7 @@ export default class SearchPage extends React.Component {
     this.getAllXValues();
     this.getAllYValues();
     this.getGeneExpression();
+    this.getSpeciesNames();
   }
 
   async refreshSelectedGenes(){
@@ -340,7 +365,6 @@ export default class SearchPage extends React.Component {
     await this.setState({ selectedGeneIds : this.createEnsembleObjectsFromIds(lines) });
     await this.refreshSelectedGenes();
     await this.addSelectedPredefinedGenesToDropdown(await this.state.selectedGeneIds);
-
   }
 
   async addGenesToDictionary(currentSelection){
@@ -372,6 +396,13 @@ export default class SearchPage extends React.Component {
       result.push(object); 
     }
     return result;
+  }
+
+  async onChangeOrganism(e, target){
+    console.log("onChangeOrganism");
+    console.log(e, target)
+    await this.setState({ selectedOrganism : target.value });
+    // await this.refreshSelectedGenes();
   }
 
   convertSpeciesToEnsemble(species){
@@ -446,7 +477,6 @@ export default class SearchPage extends React.Component {
   }
 
 
- 
 
   getHeatmapColumnName(value){
     var curr = value;
@@ -457,7 +487,7 @@ export default class SearchPage extends React.Component {
     // console.log(words);
     if(words.length >1){
       curr = words[0][0] + " ";
-    } else if(words.length == 1){
+    } else if(words.length == 1){ 
       curr = words[0];
     }
     for(let x = 1; x < words.length; x++){
@@ -740,7 +770,7 @@ export default class SearchPage extends React.Component {
   }
 
   render() {
-    const { selectedGenesByName } = this.state;
+    const { selectedGenesByName, selectedOrganism, organismList } = this.state;
     return (
       <div className="ui intro">
         <div className="ui main" style={{
@@ -780,6 +810,19 @@ export default class SearchPage extends React.Component {
               </div>
             </div>
           </div>
+
+          <h3 className="ui header">Choose reference organism</h3>
+          <Dropdown
+            placeholder='Select reference organism (human default)'
+            fluid
+            multiple
+            search
+            selection
+            allowAdditions
+            options={organismList}
+            value={selectedOrganism}
+            onChange={this.onChangeOrganism.bind(this)}
+          />
 
           <h3 className="ui header">Choose genes or gene sets</h3>
           <Dropdown
