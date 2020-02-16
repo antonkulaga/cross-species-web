@@ -93,79 +93,79 @@ const columnDefs = [
   }
 ];
 
-const GENES = [
-  {"ensembl_id": "ENSG00000105974", key: "ENSG00000105974", value:  "CAV1", text: "CAV1"},
-  {"ensembl_id": "ENSG00000197579", key: "ENSG00000197579", value:  "TOPORS", text: "TOPORS"},
-  {"ensembl_id": "ENSG00000115414", key: "ENSG00000115414", value:  "FN1", text: "FN1"},
-  {"ensembl_id": "ENSG00000164867", key: "ENSG00000164867", value:  "NOS3", text: "NOS3"},
-  {"ensembl_id": "ENSG00000152127", key: "ENSG00000152127", value:  "MGAT5", text: "MGAT5"},
-  {"ensembl_id": "ENSG00000138668", key: "ENSG00000138668", value:  "HNRNPD", text: "HNRNPD"},
-  {"ensembl_id": "ENSG00000121680", key: "ENSG00000121680", value:  "PEX16", text: "PEX16"},
-  {"ensembl_id": "ENSG00000104142", key: "ENSG00000104142", value:  "VPS18", text: "VPS18"},
-  {"ensembl_id": "ENSG00000112562", key: "ENSG00000112562", value:  "SMOC2", text: "SMOC2"},
-  {"ensembl_id": "ENSG00000198732", key: "ENSG00000198732", value:  "SMOC1", text: "SMOC1"},
-  {"ensembl_id": "ENSG00000006715", key: "ENSG00000006715", value:  "VPS41", text: "VPS41"},
-  {"ensembl_id": "ENSG00000068903", key: "ENSG00000068903", value:  "SIRT2", text: "SIRT2"},
-  {"ensembl_id": "ENSG00000107105", key: "ENSG00000107105", value:  "ELAVL2", text: "ELAVL2"},
-  {"ensembl_id": "ENSG00000163625", key: "ENSG00000163625", value:  "WDFY3", text: "WDFY3"},
-  {"ensembl_id": "ENSG00000004776", key: "ENSG00000004776", value:  "HSPB6", text: "HSPB6"},
-  {"ensembl_id": "ENSG00000126603", key: "ENSG00000126603", value:  "GLIS2", text: "GLIS2"},
-  {"ensembl_id": "ENSG00000102683", key: "ENSG00000102683", value:  "SGCG", text: "SGCG"},
-  {"ensembl_id": "ENSG00000148840", key: "ENSG00000148840", value:  "PPRC1", text: "PPRC1"},
-  {"ensembl_id": "ENSG00000070718", key: "ENSG00000070718", value:  "AP3M2", text: "AP3M2"},
-  {"ensembl_id": "ENSG00000066739", key: "ENSG00000066739", value:  "ATG2B", text: "ATG2B"},
-  {"ensembl_id": "ENSG00000130222", key: "ENSG00000130222", value:  "GADD45G", text: "GADD45G"},
-  {"ensembl_id": "ENSG00000163106", key: "ENSG00000163106", value:  "HPGDS", text: "HPGDS"},
-  {"ensembl_id": "ENSG00000105851", key: "ENSG00000105851", value:  "PIK3CG", text: "PIK3CG"},
-  {"ensembl_id": "ENSG00000171608", key: "ENSG00000171608", value:  "PIK3CD", text: "PIK3CD"},
-  {"ensembl_id": "ENSG00000133056", key: "ENSG00000133056", value:  "PIK3C2B", text: "PIK3C2B"},
-  {"ensembl_id": "ENSG00000102230", key: "ENSG00000102230", value:  "PCYT1B", text: "PCYT1B"},
-  {"ensembl_id": "ENSG00000113163", key: "ENSG00000113163", value:  "COL4A3BP", text: "COL4A3BP"},
-  {"ensembl_id": "ENSG00000134900", key: "ENSG00000134900", value:  "TPP2", text: "TPP2"},
-  {"ensembl_id": "ENSG00000115380", key: "ENSG00000115380", value:  "EFEMP1", text: "EFEMP1"},
-  {"ensembl_id": "ENSG00000109819", key: "ENSG00000109819", value:  "PPARGC1A", text: "PPARGC1A"},
-  {"ensembl_id": "ENSG00000175220", key: "ENSG00000175220", value:  "ARHGAP1", text: "ARHGAP1"},
-  {"ensembl_id": "ENSG00000101146", key: "ENSG00000101146", value:  "RAE1", text: "RAE1"},
-  {"ensembl_id": "ENSG00000023909", key: "ENSG00000023909", value:  "GCLM", text: "GCLM"},
-  {"ensembl_id": "ENSG00000001084", key: "ENSG00000001084", value:  "GCLC", text: "GCLC"},
-  {"ensembl_id": "ENSG00000084073", key: "ENSG00000084073", value:  "ZMPSTE24", text: "ZMPSTE24"},
-  {"ensembl_id": "ENSG00000175054", key: "ENSG00000175054", value:  "ATR", text: "ATR"},
-  {"ensembl_id": "ENSG00000100038", key: "ENSG00000100038", value:  "TOP3B", text: "TOP3B"},
-  {"ensembl_id": "ENSG00000111206", key: "ENSG00000111206", value:  "FOXM1", text: "FOXM1"},
-  {"ensembl_id": "ENSG00000136936", key: "ENSG00000136936", value:  "XPA", text: "XPA"},
-  {"ensembl_id": "ENSG00000079246", key: "ENSG00000079246", value:  "XRCC5", text: "XRCC5"},
-  {"ensembl_id": "ENSG00000122861", key: "ENSG00000122861", value:  "PLAU", text: "PLAU"},
-  {"ensembl_id": "ENSG00000172818", key: "ENSG00000172818", value: "OVOL1", text: "OVOL1"},
-  {"ensembl_id": "ENSG00000184588", key: "ENSG00000184588", value: "PDE4B", text: "PDE4B"},
-  {"ensembl_id": "ENSG00000111252", key: "ENSG00000111252", value: "SH2B3", text: "SH2B3"},
-  {"ensembl_id": "ENSG00000149809", key: "ENSG00000149809", value: "TM7SF2", text: "TM7SF2"},
-  {"ensembl_id": "ENSG00000111885", key: "ENSG00000111885", value: "MAN1A1", text: "MAN1A1"},
-  {"ensembl_id": "ENSG00000116406", key: "ENSG00000116406", value: "EDEM3", text: "EDEM3"},
-  {"ensembl_id": "ENSG00000088298", key: "ENSG00000088298", value: "EDEM2", text: "EDEM2"},
-  {"ensembl_id": "ENSG00000115221", key: "ENSG00000115221", value: "ITGB6", text: "ITGB6"},
-  {"ensembl_id": "ENSG00000158296", key: "ENSG00000158296", value: "SLC13A3", text: "SLC13A3"},
-  {"ensembl_id": "ENSG00000164707", key: "ENSG00000164707", value: "SLC13A4", text: "SLC13A4"},
-  {"ensembl_id": "ENSG00000141485", key: "ENSG00000141485", value: "SLC13A5", text: "SLC13A5"},
-  {"ensembl_id": "ENSG00000112033", key: "ENSG00000112033", value: "PPARD", text: "PPARD"},
-  {"ensembl_id": "ENSG00000069667", key: "ENSG00000069667", value: "RORA", text: "RORA"},
-  {"ensembl_id": "ENSG00000126368", key: "ENSG00000126368", value: "NR1D1", text: "NR1D1"},
-  {"ensembl_id": "ENSG00000126351", key: "ENSG00000126351", value: "THRA", text: "THRA"},
-  {"ensembl_id": "ENSG00000077092", key: "ENSG00000077092", value: "RARB", text: "RARB"},
-  {"ensembl_id": "ENSG00000025434", key: "ENSG00000025434", value: "NR1H3", text: "NR1H3"},
-  {"ensembl_id": "ENSG00000131759", key: "ENSG00000131759", value: "RARA", text: "RARA"},
-  {"ensembl_id": "ENSG00000143365", key: "ENSG00000143365", value: "RORC", text: "RORC"},
-  {"ensembl_id": "ENSG00000144852", key: "ENSG00000144852", value: "NR1I2", text: "NR1I2"},
-  {"ensembl_id": "ENSG00000198963", key: "ENSG00000198963", value: "RORB", text: "RORB"},
-  {"ensembl_id": "ENSG00000111424", key: "ENSG00000111424", value: "VDR", text: "VDR"},
-  {"ensembl_id": "ENSG00000124762", key: "ENSG00000124762", value: "CDKN1A", text: "CDKN1A"},
-  {"ensembl_id": "ENSG00000081800", key: "ENSG00000081800", value: "SLC13A1", text: "SLC13A1"},
-  {"ensembl_id": "ENSG00000151491", key: "ENSG00000151491", value: "EPS8", text: "EPS8"},
-  {"ensembl_id": "ENSG00000173175", key: "ENSG00000173175", value: "ADCY5", text: "ADCY5"},
-  {"ensembl_id": "ENSG00000196591", key: "ENSG00000196591", value: "HDAC2", text: "HDAC2"},
-  {"ensembl_id": "ENSG00000186951", key: "ENSG00000186951", value: "PPARA", text: "PPARA"},
-  {"ensembl_id": "ENSG00000064835", key: "ENSG00000064835", value: "POU1F1", text: "POU1F1"},
-  {"ensembl_id": "ENSG00000112964", key: "ENSG00000112964", value: "GHR", text: "GHR"}
-]
+// const GENES = [
+//   {"ensembl_id": "ENSG00000105974", key: "ENSG00000105974", value:  "CAV1", text: "CAV1"},
+//   {"ensembl_id": "ENSG00000197579", key: "ENSG00000197579", value:  "TOPORS", text: "TOPORS"},
+//   {"ensembl_id": "ENSG00000115414", key: "ENSG00000115414", value:  "FN1", text: "FN1"},
+//   {"ensembl_id": "ENSG00000164867", key: "ENSG00000164867", value:  "NOS3", text: "NOS3"},
+//   {"ensembl_id": "ENSG00000152127", key: "ENSG00000152127", value:  "MGAT5", text: "MGAT5"},
+//   {"ensembl_id": "ENSG00000138668", key: "ENSG00000138668", value:  "HNRNPD", text: "HNRNPD"},
+//   {"ensembl_id": "ENSG00000121680", key: "ENSG00000121680", value:  "PEX16", text: "PEX16"},
+//   {"ensembl_id": "ENSG00000104142", key: "ENSG00000104142", value:  "VPS18", text: "VPS18"},
+//   {"ensembl_id": "ENSG00000112562", key: "ENSG00000112562", value:  "SMOC2", text: "SMOC2"},
+//   {"ensembl_id": "ENSG00000198732", key: "ENSG00000198732", value:  "SMOC1", text: "SMOC1"},
+//   {"ensembl_id": "ENSG00000006715", key: "ENSG00000006715", value:  "VPS41", text: "VPS41"},
+//   {"ensembl_id": "ENSG00000068903", key: "ENSG00000068903", value:  "SIRT2", text: "SIRT2"},
+//   {"ensembl_id": "ENSG00000107105", key: "ENSG00000107105", value:  "ELAVL2", text: "ELAVL2"},
+//   {"ensembl_id": "ENSG00000163625", key: "ENSG00000163625", value:  "WDFY3", text: "WDFY3"},
+//   {"ensembl_id": "ENSG00000004776", key: "ENSG00000004776", value:  "HSPB6", text: "HSPB6"},
+//   {"ensembl_id": "ENSG00000126603", key: "ENSG00000126603", value:  "GLIS2", text: "GLIS2"},
+//   {"ensembl_id": "ENSG00000102683", key: "ENSG00000102683", value:  "SGCG", text: "SGCG"},
+//   {"ensembl_id": "ENSG00000148840", key: "ENSG00000148840", value:  "PPRC1", text: "PPRC1"},
+//   {"ensembl_id": "ENSG00000070718", key: "ENSG00000070718", value:  "AP3M2", text: "AP3M2"},
+//   {"ensembl_id": "ENSG00000066739", key: "ENSG00000066739", value:  "ATG2B", text: "ATG2B"},
+//   {"ensembl_id": "ENSG00000130222", key: "ENSG00000130222", value:  "GADD45G", text: "GADD45G"},
+//   {"ensembl_id": "ENSG00000163106", key: "ENSG00000163106", value:  "HPGDS", text: "HPGDS"},
+//   {"ensembl_id": "ENSG00000105851", key: "ENSG00000105851", value:  "PIK3CG", text: "PIK3CG"},
+//   {"ensembl_id": "ENSG00000171608", key: "ENSG00000171608", value:  "PIK3CD", text: "PIK3CD"},
+//   {"ensembl_id": "ENSG00000133056", key: "ENSG00000133056", value:  "PIK3C2B", text: "PIK3C2B"},
+//   {"ensembl_id": "ENSG00000102230", key: "ENSG00000102230", value:  "PCYT1B", text: "PCYT1B"},
+//   {"ensembl_id": "ENSG00000113163", key: "ENSG00000113163", value:  "COL4A3BP", text: "COL4A3BP"},
+//   {"ensembl_id": "ENSG00000134900", key: "ENSG00000134900", value:  "TPP2", text: "TPP2"},
+//   {"ensembl_id": "ENSG00000115380", key: "ENSG00000115380", value:  "EFEMP1", text: "EFEMP1"},
+//   {"ensembl_id": "ENSG00000109819", key: "ENSG00000109819", value:  "PPARGC1A", text: "PPARGC1A"},
+//   {"ensembl_id": "ENSG00000175220", key: "ENSG00000175220", value:  "ARHGAP1", text: "ARHGAP1"},
+//   {"ensembl_id": "ENSG00000101146", key: "ENSG00000101146", value:  "RAE1", text: "RAE1"},
+//   {"ensembl_id": "ENSG00000023909", key: "ENSG00000023909", value:  "GCLM", text: "GCLM"},
+//   {"ensembl_id": "ENSG00000001084", key: "ENSG00000001084", value:  "GCLC", text: "GCLC"},
+//   {"ensembl_id": "ENSG00000084073", key: "ENSG00000084073", value:  "ZMPSTE24", text: "ZMPSTE24"},
+//   {"ensembl_id": "ENSG00000175054", key: "ENSG00000175054", value:  "ATR", text: "ATR"},
+//   {"ensembl_id": "ENSG00000100038", key: "ENSG00000100038", value:  "TOP3B", text: "TOP3B"},
+//   {"ensembl_id": "ENSG00000111206", key: "ENSG00000111206", value:  "FOXM1", text: "FOXM1"},
+//   {"ensembl_id": "ENSG00000136936", key: "ENSG00000136936", value:  "XPA", text: "XPA"},
+//   {"ensembl_id": "ENSG00000079246", key: "ENSG00000079246", value:  "XRCC5", text: "XRCC5"},
+//   {"ensembl_id": "ENSG00000122861", key: "ENSG00000122861", value:  "PLAU", text: "PLAU"},
+//   {"ensembl_id": "ENSG00000172818", key: "ENSG00000172818", value: "OVOL1", text: "OVOL1"},
+//   {"ensembl_id": "ENSG00000184588", key: "ENSG00000184588", value: "PDE4B", text: "PDE4B"},
+//   {"ensembl_id": "ENSG00000111252", key: "ENSG00000111252", value: "SH2B3", text: "SH2B3"},
+//   {"ensembl_id": "ENSG00000149809", key: "ENSG00000149809", value: "TM7SF2", text: "TM7SF2"},
+//   {"ensembl_id": "ENSG00000111885", key: "ENSG00000111885", value: "MAN1A1", text: "MAN1A1"},
+//   {"ensembl_id": "ENSG00000116406", key: "ENSG00000116406", value: "EDEM3", text: "EDEM3"},
+//   {"ensembl_id": "ENSG00000088298", key: "ENSG00000088298", value: "EDEM2", text: "EDEM2"},
+//   {"ensembl_id": "ENSG00000115221", key: "ENSG00000115221", value: "ITGB6", text: "ITGB6"},
+//   {"ensembl_id": "ENSG00000158296", key: "ENSG00000158296", value: "SLC13A3", text: "SLC13A3"},
+//   {"ensembl_id": "ENSG00000164707", key: "ENSG00000164707", value: "SLC13A4", text: "SLC13A4"},
+//   {"ensembl_id": "ENSG00000141485", key: "ENSG00000141485", value: "SLC13A5", text: "SLC13A5"},
+//   {"ensembl_id": "ENSG00000112033", key: "ENSG00000112033", value: "PPARD", text: "PPARD"},
+//   {"ensembl_id": "ENSG00000069667", key: "ENSG00000069667", value: "RORA", text: "RORA"},
+//   {"ensembl_id": "ENSG00000126368", key: "ENSG00000126368", value: "NR1D1", text: "NR1D1"},
+//   {"ensembl_id": "ENSG00000126351", key: "ENSG00000126351", value: "THRA", text: "THRA"},
+//   {"ensembl_id": "ENSG00000077092", key: "ENSG00000077092", value: "RARB", text: "RARB"},
+//   {"ensembl_id": "ENSG00000025434", key: "ENSG00000025434", value: "NR1H3", text: "NR1H3"},
+//   {"ensembl_id": "ENSG00000131759", key: "ENSG00000131759", value: "RARA", text: "RARA"},
+//   {"ensembl_id": "ENSG00000143365", key: "ENSG00000143365", value: "RORC", text: "RORC"},
+//   {"ensembl_id": "ENSG00000144852", key: "ENSG00000144852", value: "NR1I2", text: "NR1I2"},
+//   {"ensembl_id": "ENSG00000198963", key: "ENSG00000198963", value: "RORB", text: "RORB"},
+//   {"ensembl_id": "ENSG00000111424", key: "ENSG00000111424", value: "VDR", text: "VDR"},
+//   {"ensembl_id": "ENSG00000124762", key: "ENSG00000124762", value: "CDKN1A", text: "CDKN1A"},
+//   {"ensembl_id": "ENSG00000081800", key: "ENSG00000081800", value: "SLC13A1", text: "SLC13A1"},
+//   {"ensembl_id": "ENSG00000151491", key: "ENSG00000151491", value: "EPS8", text: "EPS8"},
+//   {"ensembl_id": "ENSG00000173175", key: "ENSG00000173175", value: "ADCY5", text: "ADCY5"},
+//   {"ensembl_id": "ENSG00000196591", key: "ENSG00000196591", value: "HDAC2", text: "HDAC2"},
+//   {"ensembl_id": "ENSG00000186951", key: "ENSG00000186951", value: "PPARA", text: "PPARA"},
+//   {"ensembl_id": "ENSG00000064835", key: "ENSG00000064835", value: "POU1F1", text: "POU1F1"},
+//   {"ensembl_id": "ENSG00000112964", key: "ENSG00000112964", value: "GHR", text: "GHR"}
+// ]
 
 const PREDEFINED_GENES = [
   { key: "Pro-Longevity Genes", value: "Pro-Longevity Genes", text: "Pro-Longevity Genes"},
@@ -192,6 +192,7 @@ export default class SearchPage extends React.Component {
       organismList:[],
       columnDefs: columnDefs,
       rowData: [],
+      genes:[],
       gridOptions: {
         rowSelection: 'multiple',
         groupSelectsChildren: true,
@@ -231,6 +232,7 @@ export default class SearchPage extends React.Component {
     this.getHeatmapColumnName.bind(this)
     this.refreshSelectedGenes.bind(this)
     this.onChangeOrganism.bind(this)
+    this.getReferenceOrgGenes.bind(this)
   }
 
   getSamples() {
@@ -317,7 +319,8 @@ export default class SearchPage extends React.Component {
             results.push({
               key: response[i].common_name,
               value: response[i].common_name, 
-              text: response[i].common_name 
+              text: response[i].common_name,
+              id: response[i].id
             })
           }
           
@@ -402,7 +405,38 @@ export default class SearchPage extends React.Component {
     console.log("onChangeOrganism");
     console.log(e, target)
     await this.setState({ selectedOrganism : target.value });
-    // await this.refreshSelectedGenes();
+    // await this.refreshSelectedGenes();ReferenceOrgGenes(target.value[0])
+
+    var id = null;
+    var organisms = this.state.organismList;
+    for(var i = 0; i < organisms.length; i++){
+      if(organisms[i].key == target.value[0]){
+        id =  organisms[i].id;
+        break;
+      }
+    }
+    await this.getReferenceOrgGenes(id)
+  }
+
+  async getReferenceOrgGenes(referenceOrg){
+     fetch("/api/getReferenceOrgGenes?referenceOrg=" + referenceOrg)
+      .then(res => res.json())
+      .then(response => { 
+        console.log("getReferenceOrgGenes", response);
+      
+        var results = [];
+        for(var i = 0; i < response.length; i++){
+          var ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
+          results.push({
+            ensembl_id: ensembl_id,
+            key: ensembl_id, 
+            value:  response[i].symbol,
+            text: response[i].symbol,
+          })
+        }
+
+        this.setState({ genes: results})
+      });
   }
 
   convertSpeciesToEnsemble(species){
@@ -770,7 +804,7 @@ export default class SearchPage extends React.Component {
   }
 
   render() {
-    const { selectedGenesByName, selectedOrganism, organismList } = this.state;
+    const { selectedGenesByName, selectedOrganism, organismList, genes } = this.state;
     return (
       <div className="ui intro">
         <div className="ui main" style={{
@@ -832,7 +866,7 @@ export default class SearchPage extends React.Component {
             search
             selection
             allowAdditions
-            options={GENES}
+            options={genes}
             value={selectedGenesByName}
             onChange={this.onChangeGenes.bind(this)}
           />
