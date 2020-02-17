@@ -110,6 +110,120 @@ const HUMAN = {
   id: 'Homo_sapiens'
 };
 
+
+function getGenesPro() {
+  console.log('getGenesPro');// remove testApi
+  fetch('/api/getGenesPro')
+    .then(res => res.json())
+    .then((response) => {
+      console.log('getGenesPro', response);
+      // this.setState({ rowData : response })
+      GENAGE_GENES_PRO = response;
+    });
+}
+
+function getGenesAnti() {
+  console.log('getGenesAnti');// remove testApi
+  fetch('/api/getGenesAnti')
+    .then(res => res.json())
+    .then((response) => {
+      // this.setState({ rowData : response })
+      GENAGE_GENES_ANTI = response;
+    });
+}
+
+function getEnsembleToName() {
+  console.log('getEnsembleToName');// remove api
+  fetch('/api/getEnsembleToName')
+    .then(res => res.json())
+    .then((response) => {
+      // this.setState({ rowData : response })
+      ENSEMBL_TO_NAME = response;
+      SPECIES_TO_ENSEMBL = _.invertBy(response);
+    });
+}
+
+function getAllXValues() {
+  console.log('getAllXValues');// remove api
+  fetch('/api/getAllXValues')
+    .then(res => res.json())
+    .then((response) => {
+      // this.setState({ rowData : response })
+      ALL_X_VALUES = response;
+    });
+}
+
+function getAllYValues() {
+  console.log('getAllYValues');// remove api
+  fetch('/api/getAllYValues')
+    .then(res => res.json())
+    .then((response) => {
+      // this.setState({ rowData : response })
+      ALL_Y_VALUES = response;
+    });
+}
+
+function getGeneExpression() {
+  console.log('getGeneExpression');// remove api
+  fetch('/api/getGeneExpression')
+    .then(res => res.json())
+    .then((response) => {
+      // this.setState({ rowData : response })
+      GENE_EXPRESSIONS = response;
+      allZValues = response;
+    });
+}
+
+function getHeatmapColumnName(value) {
+  let curr = value;
+  const words = curr.split(' ');
+  for (let y = 0; y < words.length - 1; y++) {
+    words[y] += ' ';
+  }
+  // console.log(words);
+  if (words.length > 1) {
+    curr = `${words[0][0]} `;
+  } else if (words.length == 1) {
+    curr = words[0];
+  }
+  for (let x = 1; x < words.length; x++) {
+    curr += words[x];
+  }
+  return curr;
+}
+function convertSpeciesToEnsemble(species) {
+  const speciesHash = {};
+  const result = [];
+  console.log('convertSpeciesToEnsemble', species);
+  console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
+  for (let i = 0; i < species.length; i++) {
+    const object = {
+      ensembl_id: SPECIES_TO_ENSEMBL[species[i]][0],
+      key: SPECIES_TO_ENSEMBL[species[i]][0],
+      name: species[i],
+      value: species[i],
+      text: species[i]
+    };
+    result.push(object);
+  }
+
+  return result;
+}
+function createEnsembleObjectsFromIds(ids) {
+  const result = [];
+  for (let i = 0; i < ids.length; i++) {
+    const object = {
+      ensembl_id: ids[i],
+      key: ids[i],
+      name: ENSEMBL_TO_NAME[ids[i]],
+      value: ENSEMBL_TO_NAME[ids[i]],
+      text: ENSEMBL_TO_NAME[ids[i]]
+    };
+    result.push(object);
+  }
+  return result;
+}
+
 export default class SearchPage extends React.Component {
   constructor(props) {
     super(props);
@@ -168,100 +282,6 @@ export default class SearchPage extends React.Component {
     this.getReferenceOrgGenes.bind(this);
   }
 
-  getSamples() {
-    console.log('getSamples');
-    fetch('/api/getSamples')
-      .then(res => res.json())
-      .then((response) => {
-        this.setState({ rowData: response });
-        SAMPLES_VALUES = response;
-      });
-  }
-
-  getGenesPro() {
-    console.log('getGenesPro');// remove testApi
-    fetch('/api/getGenesPro')
-      .then(res => res.json())
-      .then((response) => {
-        console.log('getGenesPro', response);
-        // this.setState({ rowData : response })
-        GENAGE_GENES_PRO = response;
-      });
-  }
-
-  getGenesAnti() {
-    console.log('getGenesAnti');// remove testApi
-    fetch('/api/getGenesAnti')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        GENAGE_GENES_ANTI = response;
-      });
-  }
-
-  getEnsembleToName() {
-    console.log('getEnsembleToName');// remove api
-    fetch('/api/getEnsembleToName')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        ENSEMBL_TO_NAME = response;
-        SPECIES_TO_ENSEMBL = _.invertBy(response);
-      });
-  }
-
-  getAllXValues() {
-    console.log('getAllXValues');// remove api
-    fetch('/api/getAllXValues')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        ALL_X_VALUES = response;
-      });
-  }
-
-  getAllYValues() {
-    console.log('getAllYValues');// remove api
-    fetch('/api/getAllYValues')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        ALL_Y_VALUES = response;
-      });
-  }
-
-  getGeneExpression() {
-    console.log('getGeneExpression');// remove api
-    fetch('/api/getGeneExpression')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        GENE_EXPRESSIONS = response;
-        allZValues = response;
-      });
-  }
-
-  getSpecies() {
-    console.log('getSpecies request');// remove api
-    fetch('/api/getSpecies')
-      .then(res => res.json())
-      .then((response) => {
-        this.setState({ species: response });
-        const speciesNames = [];
-        for (let i = 0; i < response.length; i++) {
-          speciesNames.push({
-            key: response[i].common_name,
-            value: response[i].common_name,
-            text: response[i].common_name,
-            id: response[i].id
-          });
-        }
-
-        console.log('getSpecies speciesNames', speciesNames);
-        this.setState({ organismList: speciesNames });
-      });
-  }
-
 
   // getsamplesValues
   componentWillMount() {
@@ -276,64 +296,6 @@ export default class SearchPage extends React.Component {
     this.getReferenceOrgGenes('Homo_sapiens');
   }
 
-  async refreshSelectedGenes() {
-    let selectedGenes = [];
-    const { selectedGenesSymbols } = this.state;
-    const { selectedPredefinedGenes } = this.state;
-    const { selectedGeneIds } = this.state;
-
-    selectedGenes = selectedGenesSymbols;
-    selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
-    selectedGenes = selectedGenes.concat(selectedGeneIds);
-    await this.setState({ selectedGenes });
-    await this.addGenesToDictionary(selectedGenes);
-  }
-
-  async onChangeGenes(e, target) {
-    console.log(e, target);
-    const selected = await this.convertSpeciesToEnsemble(target.value);
-    await this.setState({ selectedGenesSymbols: selected });
-    await this.refreshSelectedGenes();
-    await this.setState({ selectedGenesByName: target.value });
-  }
-
-  async handleChangeTextarea(e, target) {
-    const lines = (e.target.value).split('\n');
-    await this.setState({ selectedGeneIds: this.createEnsembleObjectsFromIds(lines) });
-    await this.refreshSelectedGenes();
-    await this.addSelectedPredefinedGenesToDropdown(await this.state.selectedGeneIds);
-  }
-
-  async addGenesToDictionary(currentSelection) {
-    const oldGeneSelection = this.state.selectedGenes;
-    if (oldGeneSelection == null || oldGeneSelection.length == 0) {
-      await this.setState({ selectedGenes: currentSelection });
-    } else {
-      for (let i = 0; i < currentSelection.length; i++) {
-        console.log(i, currentSelection[i]);
-        if (this.isSelectedGene(currentSelection[i].ensembl_id) == false) {
-          oldGeneSelection.push(currentSelection[i]);
-          await this.setState({ selectedGenes: oldGeneSelection });
-        }
-      }
-      await this.setState({ selectedGenes: oldGeneSelection });
-    }
-  }
-
-  createEnsembleObjectsFromIds(ids) {
-    const result = [];
-    for (let i = 0; i < ids.length; i++) {
-      const object = {
-        ensembl_id: ids[i],
-        key: ids[i],
-        name: ENSEMBL_TO_NAME[ids[i]],
-        value: ENSEMBL_TO_NAME[ids[i]],
-        text: ENSEMBL_TO_NAME[ids[i]]
-      };
-      result.push(object);
-    }
-    return result;
-  }
 
   async onChangeOrganism(e, target) {
     console.log('onChangeOrganism()');
@@ -352,113 +314,14 @@ export default class SearchPage extends React.Component {
     }
   }
 
-  async getReferenceOrgGenes(referenceOrg) {
-    fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
-      .then(res => res.json())
-      .then((response) => {
-        console.log('getReferenceOrgGenes', response);
-
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-          const ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
-          results.push({
-            ensembl_id,
-            key: ensembl_id,
-            value: response[i].symbol,
-            text: response[i].symbol,
-          });
-        }
-
-        this.setState({ genes: results });
-      });
+  async onChangeGenes(e, target) {
+    console.log(e, target);
+    const selected = await this.convertSpeciesToEnsemble(target.value);
+    await this.setState({ selectedGenesSymbols: selected });
+    await this.refreshSelectedGenes();
+    await this.setState({ selectedGenesByName: target.value });
   }
 
-  convertSpeciesToEnsemble(species) {
-    const speciesHash = {};
-    const result = [];
-    console.log('convertSpeciesToEnsemble', species);
-    console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
-    for (let i = 0; i < species.length; i++) {
-      const object = {
-        ensembl_id: SPECIES_TO_ENSEMBL[species[i]][0],
-        key: SPECIES_TO_ENSEMBL[species[i]][0],
-        name: species[i],
-        value: species[i],
-        text: species[i]
-      };
-      result.push(object);
-    }
-
-    return result;
-  }
-
-  async addSelectedPredefinedGenesToDropdown(genesList) {
-    const genesArray = [];
-    const currentSelectedGenes = await this.state.selectedGenesByName;
-
-    const genesHash = {};
-    for (var i = 0; i < currentSelectedGenes.length; i++) {
-      genesHash[currentSelectedGenes[i]] = true;
-    }
-
-    for (var i = 0; i < genesList.length; i++) {
-      if (genesHash[genesList[i].name]) { continue; }
-      genesArray.push(genesList[i].name);
-    }
-
-    const newSelectedGenes = currentSelectedGenes.concat(genesArray);
-    await this.setState({ selectedGenesByName: newSelectedGenes });
-  }
-
-  async onChangePredefinedGenes(e, target) {
-    switch (target.value) {
-      case 'Pro-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_PRO });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_PRO);
-        break;
-      case 'Anti-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_ANTI });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_ANTI);
-        break;
-      default:
-        break;
-    }
-  }
-
-  isSelectedGene(gene) {
-    for (let i = 0; i < this.state.selectedGenes.length; i++) {
-      if (this.state.selectedGenes[i].ensembl_id == gene) { return true; }
-    }
-    return false;
-  }
-
-  isSelectedSample(sample_id) {
-    for (let i = 0; i < this.selectedRows.length; i++) {
-      if (this.selectedRows[i].run == sample_id) { return true; }
-    }
-    return false;
-  }
-
-
-  getHeatmapColumnName(value) {
-    let curr = value;
-    const words = curr.split(' ');
-    for (let y = 0; y < words.length - 1; y++) {
-      words[y] += ' ';
-    }
-    // console.log(words);
-    if (words.length > 1) {
-      curr = `${words[0][0]} `;
-    } else if (words.length == 1) {
-      curr = words[0];
-    }
-    for (let x = 1; x < words.length; x++) {
-      curr += words[x];
-    }
-    return curr;
-  }
 
   onClickShowResults() {
     this.setState({ displayHeatmap: 'block' });
@@ -706,6 +569,86 @@ export default class SearchPage extends React.Component {
     setTimeout(() => this.heatmapRef.current.el.scrollIntoView(), 1000);
   }
 
+  async onChangePredefinedGenes(e, target) {
+    switch (target.value) {
+      case 'Pro-Longevity Genes':
+        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_PRO });
+        await this.refreshSelectedGenes();
+        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_PRO);
+        break;
+      case 'Anti-Longevity Genes':
+        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_ANTI });
+        await this.refreshSelectedGenes();
+        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_ANTI);
+        break;
+      default:
+        break;
+    }
+  }
+
+  async getReferenceOrgGenes(referenceOrg) {
+    fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
+      .then(res => res.json())
+      .then((response) => {
+        console.log('getReferenceOrgGenes', response);
+
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+          const ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
+          results.push({
+            ensembl_id,
+            key: ensembl_id,
+            value: response[i].symbol,
+            text: response[i].symbol,
+          });
+        }
+
+        this.setState({ genes: results });
+      });
+  }
+
+
+  getSamples() {
+    console.log('getSamples');
+    fetch('/api/getSamples')
+      .then(res => res.json())
+      .then((response) => {
+        this.setState({ rowData: response });
+        SAMPLES_VALUES = response;
+      });
+  }
+
+  getSpecies() {
+    console.log('getSpecies request');// remove api
+    fetch('/api/getSpecies')
+      .then(res => res.json())
+      .then((response) => {
+        this.setState({ species: response });
+        const speciesNames = [];
+        for (let i = 0; i < response.length; i++) {
+          speciesNames.push({
+            key: response[i].common_name,
+            value: response[i].common_name,
+            text: response[i].common_name,
+            id: response[i].id
+          });
+        }
+
+        console.log('getSpecies speciesNames', speciesNames);
+        this.setState({ organismList: speciesNames });
+      });
+  }
+
+  onGridReady = (params) => {
+    this.api = params.api;
+    this.columnApi = params.columnApi;
+  }
+
+
+  clearFilter() {
+    this.api.setFilterModel(null);
+  }
+
   quickFilterChange(e) {
     // console.log(e.target.value)
     this.setState({ quickFilterValue: e.target.value || '' });
@@ -716,13 +659,74 @@ export default class SearchPage extends React.Component {
     }
   }
 
-  clearFilter() {
-    this.api.setFilterModel(null);
+  async addSelectedPredefinedGenesToDropdown(genesList) {
+    const genesArray = [];
+    const currentSelectedGenes = await this.state.selectedGenesByName;
+
+    const genesHash = {};
+    for (var i = 0; i < currentSelectedGenes.length; i++) {
+      genesHash[currentSelectedGenes[i]] = true;
+    }
+
+    for (var i = 0; i < genesList.length; i++) {
+      if (genesHash[genesList[i].name]) { continue; }
+      genesArray.push(genesList[i].name);
+    }
+
+    const newSelectedGenes = currentSelectedGenes.concat(genesArray);
+    await this.setState({ selectedGenesByName: newSelectedGenes });
   }
 
-  onGridReady = (params) => {
-    this.api = params.api;
-    this.columnApi = params.columnApi;
+
+  isSelectedGene(gene) {
+    for (let i = 0; i < this.state.selectedGenes.length; i++) {
+      if (this.state.selectedGenes[i].ensembl_id == gene) { return true; }
+    }
+    return false;
+  }
+
+  isSelectedSample(sample_id) {
+    for (let i = 0; i < this.selectedRows.length; i++) {
+      if (this.selectedRows[i].run == sample_id) { return true; }
+    }
+    return false;
+  }
+
+  async refreshSelectedGenes() {
+    let selectedGenes = [];
+    const { selectedGenesSymbols } = this.state;
+    const { selectedPredefinedGenes } = this.state;
+    const { selectedGeneIds } = this.state;
+
+    selectedGenes = selectedGenesSymbols;
+    selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
+    selectedGenes = selectedGenes.concat(selectedGeneIds);
+    await this.setState({ selectedGenes });
+    await this.addGenesToDictionary(selectedGenes);
+  }
+
+
+  async handleChangeTextarea(e, target) {
+    const lines = (e.target.value).split('\n');
+    await this.setState({ selectedGeneIds: createEnsembleObjectsFromIds(lines) });
+    await this.refreshSelectedGenes();
+    await this.addSelectedPredefinedGenesToDropdown(await this.state.selectedGeneIds);
+  }
+
+  async addGenesToDictionary(currentSelection) {
+    const oldGeneSelection = this.state.selectedGenes;
+    if (oldGeneSelection == null || oldGeneSelection.length == 0) {
+      await this.setState({ selectedGenes: currentSelection });
+    } else {
+      for (let i = 0; i < currentSelection.length; i++) {
+        console.log(i, currentSelection[i]);
+        if (this.isSelectedGene(currentSelection[i].ensembl_id) == false) {
+          oldGeneSelection.push(currentSelection[i]);
+          await this.setState({ selectedGenes: oldGeneSelection });
+        }
+      }
+      await this.setState({ selectedGenes: oldGeneSelection });
+    }
   }
 
   render() {
