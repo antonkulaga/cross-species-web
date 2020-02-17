@@ -86,12 +86,13 @@ app.get('/api/getGeneExpression', async (req, res, next) => {
 
 app.get('/api/getSpeciesNames', async (req, res, next) => {
   const result = await querySpeciesNames();
-  console.log(result);
+  console.log('/api/getSpeciesNames');
   res.send(result);
 });
 
 app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
-  const referenceOrg = req.query.referenceOrg || 'http://aging-research.group/resource/Homo_sapiens';
+  const referenceOrg = req.query.referenceOrg || 'Homo_sapiens';
+  console.log('/api/getReferenceOrgGenes', referenceOrg);
   const result = await queryReferenceOrgGenes(referenceOrg);
   console.log(result);
   res.send(result);
@@ -113,7 +114,7 @@ app.post('/api/getOrthologyAll', async (req, res, next) => {
 
 app.get('/api/getSamples', async (req, res, next) => {
   const result = await querySamples();
-  console.log(result);
+  console.log('/api/getSamples');
   res.send(result);
 });
 
@@ -243,11 +244,22 @@ async function queryOrthology(genes, orthologyTypes) {
 }
 
 async function queryReferenceOrgGenes(referenceOrg) {
-  console.log(referenceOrg);
+  
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
   const payload = new graphdb.query.GetQueryPayload()
-    .setQuery(`SELECT ?gene ?symbol WHERE { values ?species { <${referenceOrg}> } . \n ?gene <http://www.w3.org/2000/01/rdf-schema#label> ?symbol . \n ?species <http://aging-research.group/resource/has_gene> ?gene .}`)
+    .setQuery(`
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX : <http://aging-research.group/resource/>
+      
+      SELECT ?species ?gene ?symbol WHERE { 
+          values ?species { :${referenceOrg} } . #put your species of interest instead of Homo_sapiens   
+          ?gene rdfs:label ?symbol .
+          ?species :has_gene ?gene .
+      }
+    `)
     .setQueryType(graphdb.query.QueryType.SELECT)
     .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
     // .setLimit(100);
@@ -291,7 +303,7 @@ async function querySpeciesNames() {
       // the bindings stream converted to data objects with the registered parser
       // console.log('@@', bindings.common_name.id);
       speciesNames.push({
-        id: bindings.species.id,
+        id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
         common_name: bindings.common_name.id.replace(/"/g, '')
       });
     });
