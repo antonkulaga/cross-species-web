@@ -21,8 +21,6 @@ const config = new RepositoryClientConfig(['http://10.40.3.21:7200/repositories/
 }, '', readTimeout, writeTimeout);
 const repository = new RDFRepositoryClient(config);
 
-
-const samplesPath = './src/server/data/samples_values.json';
 const genesProPath = './src/server/data/genage_genes_pro.json';
 const genesAntiPath = './src/server/data/genage_genes_anti.json';
 const ensemblToNamePath = './src/server/data/ensemblToName.json';
@@ -31,6 +29,9 @@ const allYValuesPath = './src/server/data/allYValues.json';
 const genesExpressionPath = './src/server/data/geneExpressions.json';
 
 const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/'.length;
+const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/'.length;
+const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/'.length;
+const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/'.length;
 const ORTHOLOGY_TYPES = [
   'ens:ortholog_one2one',
   'ens:ortholog_one2many',
@@ -52,12 +53,6 @@ async function readFile(path) {
 app.use(express.static('dist'));
 
 app.get('/api/getUsername', (req, res) => res.send({ username: os.userInfo().username }));
-
-app.get('/api/getSamples', async (req, res, next) => {
-  console.log('getSamples app');
-  const samples = await readFile(samplesPath);
-  res.send(samples);
-});
 
 app.get('/api/getGenesPro', async (req, res, next) => {
   const result = await readFile(genesProPath);
@@ -115,6 +110,90 @@ app.post('/api/getOrthologyAll', async (req, res, next) => {
   console.log(result);
   res.send(result);
 });
+
+app.get('/api/getSamples', async (req, res, next) => {
+  const result = await querySamples();
+  console.log(result);
+  res.send(result);
+});
+
+async function querySamples() {
+  repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
+
+  const payload = new graphdb.query.GetQueryPayload()
+    .setQuery(`
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX samples:<http://aging-research.group/samples/>
+      PREFIX : <http://aging-research.group/resource/>
+      
+      SELECT * WHERE
+      {
+          ?bioproject rdf:type samples:Bioproject . #gets all bioprojects
+          ?bioproject samples:has_series ?series .
+          ?series samples:has_run ?run . #gets sequencing runs from experimental series
+          ?run samples:has_organism ?organism . #species
+          ?run samples:has_sample_name ?sample_name .
+          ?run samples:has_characteristics ?characterists .    
+          ?run samples:has_sequencer ?sequencer .    
+          ?run samples:has_age ?age .
+          ?run samples:has_sex ?sex .
+          ?run samples:has_tumor ?tumor .    
+          ?run samples:has_source ?source .    
+          ?run samples:has_study ?study .
+          ?run samples:has_study_title ?study_title .            
+          ?run samples:has_salmon_version ?salmon_version .
+          ?run samples:has_library_layout ?library_layout .
+          ?run samples:has_library_selection ?library_selection .
+          ?run samples:has_library_strategy ?library_strategy .
+          ?run samples:has_libType ?lib_type .
+          ?run samples:has_numBootstraps ?bootstrap .
+          ?run samples:has_modified ?modified .
+          ?run samples:has_protocol ?protocol .
+      } ORDER BY ?organism ?bioproject ?series ?run
+    `)
+    .setQueryType(graphdb.query.QueryType.SELECT)
+    .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
+    // .setLimit(100);
+
+  return repository.query(payload).then(stream => new Promise((resolve, reject) => {
+    const samples = [];
+    stream.on('data', (bindings) => {
+      // the bindings stream converted to data objects with the registered parser
+      // console.log('@@', bindings);
+      samples.push({
+        study_title: bindings.study_title.id,
+        library_layout: bindings.library_layout.id,
+        study: bindings.study.id,
+        organism: bindings.organism.id.slice(LAB_RESOURCE_PREFIX),
+        sex: bindings.sex.id.replace(/"/g, ''),
+        run: bindings.run.id.slice(SRA_PREFIX),
+        characterists: bindings.characterists.id,
+        source: bindings.source.id.replace(/"/g, ''),
+        bootstrap: bindings.bootstrap.id,
+        library_strategy: bindings.library_strategy.id,
+        lib_type: bindings.lib_type.id,
+        sequencer: bindings.sequencer.id.slice(LAB_RESOURCE_PREFIX),
+        bioproject: bindings.bioproject.id.slice(BIOPROJECT_PREFIX),
+        protocol: bindings.protocol.id,
+        series: bindings.series.id,
+        tumor: bindings.tumor.id,
+        modified: bindings.modified.id,
+        salmon_version: bindings.salmon_version.id,
+        library_selection: bindings.library_selection.id,
+        age: bindings.age.id,
+        sample_name: bindings.sample_name.id
+      });
+    });
+    stream.on('end', () => {
+      // handle end of the stream
+      resolve(samples);
+    });
+  }));
+}
+
 
 async function queryOrthology(genes, orthologyTypes) {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());

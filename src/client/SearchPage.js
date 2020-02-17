@@ -66,13 +66,13 @@ const columnDefs = [
       }
   },
   // {headerName: 'Species latin', field: 'organism',  rowGroupIndex: 0},
-  {
-      headerName: 'Max lifespan',
-      field: 'maximum_longevity',
-      filterParams: {
-          filterOptions:['contains']
-      }
-  },
+  // {
+  //     headerName: 'Max lifespan',
+  //     field: 'maximum_longevity',
+  //     filterParams: {
+  //         filterOptions:['contains']
+  //     }
+  // },
   {
       headerName: 'Tissue',
       field: 'source',
@@ -237,7 +237,7 @@ export default class SearchPage extends React.Component {
 
   getSamples() {
     console.log("getSamples");
-    fetch("/getSamples")
+    fetch("/api/getSamples")
         .then(res => res.json())
         .then(response => {
           this.setState({ rowData : response })
