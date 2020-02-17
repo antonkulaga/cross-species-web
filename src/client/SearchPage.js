@@ -115,6 +115,7 @@ export default class SearchPage extends React.Component {
     super(props);
     this.heatmapRef = React.createRef();
     this.state = {
+      species: [],
       selectedGenes: [],
       selectedGenesByName: [],
       selectedGenesSymbols: [],
@@ -240,15 +241,15 @@ export default class SearchPage extends React.Component {
       });
   }
 
-  getSpeciesNames() {
-    console.log('getSpeciesNames request');// remove api
-    fetch('/api/getSpeciesNames')
+  getSpecies() {
+    console.log('getSpecies request');// remove api
+    fetch('/api/getSpecies')
       .then(res => res.json())
       .then((response) => {
-        // this.setState({ rowData : response })
-        const results = [];
+        this.setState({ species: response });
+        const speciesNames = [];
         for (let i = 0; i < response.length; i++) {
-          results.push({
+          speciesNames.push({
             key: response[i].common_name,
             value: response[i].common_name,
             text: response[i].common_name,
@@ -256,8 +257,8 @@ export default class SearchPage extends React.Component {
           });
         }
 
-        console.log('getSpeciesNames results', results);
-        this.setState({ organismList: results });
+        console.log('getSpecies speciesNames', speciesNames);
+        this.setState({ organismList: speciesNames });
       });
   }
 
@@ -271,7 +272,7 @@ export default class SearchPage extends React.Component {
     this.getAllXValues();
     this.getAllYValues();
     this.getGeneExpression();
-    this.getSpeciesNames();
+    this.getSpecies();
     this.getReferenceOrgGenes('Homo_sapiens');
   }
 
@@ -341,10 +342,10 @@ export default class SearchPage extends React.Component {
     // await this.refreshSelectedGenes();ReferenceOrgGenes(target.value[0])
 
     const organisms = this.state.organismList;
-    console.log(organisms,target)
+    console.log(organisms,target);
     for (let i = 0; i < organisms.length; i++) {
       if (organisms[i].value === target.value) {
-        console.log(organisms[i], target.value)
+        console.log(organisms[i], target.value);
         this.getReferenceOrgGenes(organisms[i].id);
         break;
       }

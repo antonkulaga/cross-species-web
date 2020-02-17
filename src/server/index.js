@@ -84,9 +84,9 @@ app.get('/api/getGeneExpression', async (req, res, next) => {
   res.send(result);
 });
 
-app.get('/api/getSpeciesNames', async (req, res, next) => {
-  const result = await querySpeciesNames();
-  console.log('/api/getSpeciesNames');
+app.get('/api/getSpecies', async (req, res, next) => {
+  const result = await querySpecies();
+  console.log('/api/getSpecies');
   res.send(result);
 });
 
@@ -99,14 +99,14 @@ app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
 });
 
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
-  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]')//, "ENSG00000139990", "ENSG00000073921"]');
-  const result = await queryOrthology(genes, ORTHOLOGY_TYPES.slice(0,1))
+  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
+  const result = await queryOrthology(genes, ORTHOLOGY_TYPES.slice(0, 1));
   console.log(result);
   res.send(result);
 });
 
 app.post('/api/getOrthologyAll', async (req, res, next) => {
-  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]')//, "ENSG00000139990", "ENSG00000073921"]');
+  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
   const result = await queryOrthology(genes, ORTHOLOGY_TYPES);
   console.log(result);
   res.send(result);
@@ -244,7 +244,6 @@ async function queryOrthology(genes, orthologyTypes) {
 }
 
 async function queryReferenceOrgGenes(referenceOrg) {
-  
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
   const payload = new graphdb.query.GetQueryPayload()
@@ -281,7 +280,11 @@ async function queryReferenceOrgGenes(referenceOrg) {
   }));
 }
 
-async function querySpeciesNames() {
+function getNumberFromRDF(str) {
+  return str.split('^^')[0].replace(/"/g, '');
+}
+
+async function querySpecies() {
   // const payload = new GetStatementsPayload()
   //   .setResponseType(RDFMimeType.RDF_JSON)
   //   .setSubject('?species')
@@ -292,7 +295,25 @@ async function querySpeciesNames() {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
   const payload = new graphdb.query.GetQueryPayload()
-    .setQuery('SELECT ?species ?common_name WHERE { ?species <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://aging-research.group/resource/Species> . \n ?species <http://aging-research.group/resource/has_common_name> ?common_name .}')
+    // .setQuery('SELECT ?species ?common_name WHERE { ?species <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://aging-research.group/resource/Species> . \n ?species <http://aging-research.group/resource/has_common_name> ?common_name .}')
+    .setQuery(`
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX : <http://aging-research.group/resource/>
+      
+      SELECT * WHERE {     
+            ?species :has_common_name ?common_name .
+            ?species :has_ensembl_url ?ensembl_url .
+            ?species :is_animal_class ?animal_class .
+            ?species :has_lifespan ?lifespan .
+            ?species :has_mass_g ?mass_g .
+            ?species :has_metabolic_rate ?metabolic_rate .
+            ?species :has_taxon ?taxon . 
+            ?species :has_temperature_kelvin ?temperature_kelvin .
+          ?species rdf:type :Species .
+      }
+    `)
     .setQueryType(graphdb.query.QueryType.SELECT)
     .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
     // .setLimit(100);
@@ -301,10 +322,17 @@ async function querySpeciesNames() {
     const speciesNames = [];
     stream.on('data', (bindings) => {
       // the bindings stream converted to data objects with the registered parser
-      // console.log('@@', bindings.common_name.id);
+      console.log('@@', bindings);
       speciesNames.push({
         id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
-        common_name: bindings.common_name.id.replace(/"/g, '')
+        common_name: bindings.common_name.id.replace(/"/g, ''),
+        mass_g: getNumberFromRDF(bindings.mass_g.id),
+        ensembl_url: bindings.ensembl_url.id,
+        lifespan: getNumberFromRDF(bindings.lifespan.id),
+        metabolic_rate: getNumberFromRDF(bindings.metabolic_rate.id),
+        temperature_kelvin: getNumberFromRDF(bindings.temperature_kelvin.id),
+        animal_class: bindings.animal_class.id,
+        taxon: bindings.taxon.id.slice('http://rdf.ebi.ac.uk/resource/ensembl/taxon#'.length)
       });
     });
     stream.on('end', () => {
