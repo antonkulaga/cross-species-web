@@ -94,7 +94,7 @@ app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
   const referenceOrg = req.query.referenceOrg || 'Homo_sapiens';
   console.log('/api/getReferenceOrgGenes', referenceOrg);
   const result = await queryReferenceOrgGenes(referenceOrg);
-  console.log(result);
+  // console.log(result);
   res.send(result);
 });
 
@@ -322,7 +322,7 @@ async function querySpecies() {
     const speciesNames = [];
     stream.on('data', (bindings) => {
       // the bindings stream converted to data objects with the registered parser
-      console.log('@@', bindings);
+      // console.log('@@', bindings);
       speciesNames.push({
         id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
         common_name: bindings.common_name.id.replace(/"/g, ''),

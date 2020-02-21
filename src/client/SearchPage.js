@@ -1,3 +1,5 @@
+/* eslint-disable react/sort-comp */
+/* eslint-disable class-methods-use-this */
 /* eslint-disable react/destructuring-assignment */
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 import React from 'react';
@@ -63,22 +65,31 @@ const columnDefs = [
     field: 'organism',
     filterParams: {
       filterOptions: ['contains']
+    },
+    minWidth: 200
+  },
+  {
+    headerName: 'Common name',
+    field: 'common_name',
+    filterParams: {
+      filterOptions: ['contains']
+    },
+    minWidth: 200
+  },
+  {
+    headerName: 'Max lifespan',
+    field: 'lifespan',
+    filterParams: {
+      filterOptions: ['contains']
     }
   },
-  // {headerName: 'Species latin', field: 'organism',  rowGroupIndex: 0},
-  // {
-  //     headerName: 'Max lifespan',
-  //     field: 'maximum_longevity',
-  //     filterParams: {
-  //         filterOptions:['contains']
-  //     }
-  // },
   {
     headerName: 'Tissue',
     field: 'source',
     filterParams: {
       filterOptions: ['contains']
-    }
+    },
+    minWidth: 150
   },
   {
     headerName: 'Sex',
@@ -89,7 +100,53 @@ const columnDefs = [
   },
   {
     headerName: 'Sequencer',
-    field: 'sequencer'
+    field: 'sequencer',
+    filterParams: {
+      filterOptions: ['contains']
+    },
+    minWidth: 200
+  },
+  {
+    headerName: 'Mass (g)',
+    field: 'mass_g',
+    filterParams: {
+      filterOptions: ['contains']
+    }
+  },
+  // {
+  //   headerName: 'Metabolic rate',
+  //   field: 'mass_gmetabolic_rate',
+  //   filterParams: {
+  //     filterOptions: ['contains']
+  //   }
+  // },
+  {
+    headerName: 'Temp (°C)',
+    field: 'temperature_celsius',
+    filterParams: {
+      filterOptions: ['contains']
+    }
+  },
+  {
+    headerName: 'Animal class',
+    field: 'animal_class',
+    filterParams: {
+      filterOptions: ['contains']
+    }
+  },
+  {
+    headerName: 'Taxon',
+    field: 'taxon',
+    filterParams: {
+      filterOptions: ['contains']
+    }
+  },
+  {
+    headerName: 'Ensembl URL',
+    field: 'ensembl_url',
+    filterParams: {
+      filterOptions: ['contains']
+    }
   }
 ];
 
@@ -168,14 +225,15 @@ export default class SearchPage extends React.Component {
     this.getReferenceOrgGenes.bind(this);
   }
 
-  getSamples() {
-    console.log('getSamples');
-    fetch('/api/getSamples')
-      .then(res => res.json())
-      .then((response) => {
-        this.setState({ rowData: response });
-        SAMPLES_VALUES = response;
-      });
+  componentWillMount() {
+    this.getSamplesAndSpecies();
+    this.getGenesPro();
+    this.getGenesAnti();
+    this.getEnsembleToName();
+    this.getAllXValues();
+    this.getAllYValues();
+    this.getGeneExpression();
+    this.getReferenceOrgGenes('Homo_sapiens');
   }
 
   getGenesPro() {
@@ -241,39 +299,46 @@ export default class SearchPage extends React.Component {
       });
   }
 
-  getSpecies() {
-    console.log('getSpecies request');// remove api
-    fetch('/api/getSpecies')
+  getSamplesAndSpecies() {
+    console.log('getSamplesAndSpecies request');// remove api
+    fetch('/api/getSamples')
       .then(res => res.json())
-      .then((response) => {
-        this.setState({ species: response });
-        const speciesNames = [];
-        for (let i = 0; i < response.length; i++) {
-          speciesNames.push({
-            key: response[i].common_name,
-            value: response[i].common_name,
-            text: response[i].common_name,
-            id: response[i].id
+      .then((samples) => {
+        console.log('samples', samples);// remove api
+        fetch('/api/getSpecies')
+          .then(res => res.json())
+          .then((species) => {
+            console.log('species:', species);
+            this.setState({ species });
+            const speciesNames = [];
+            for (let i = 0; i < species.length; i++) {
+              speciesNames.push({
+                key: species[i].common_name,
+                value: species[i].common_name,
+                text: species[i].common_name,
+                id: species[i].id
+              });
+              for (let j = 0; j < samples.length; j++) {
+                if (samples[j].organism === species[i].id) {
+                  samples[j].lifespan = species[i].lifespan;
+                  samples[j].common_name = species[i].common_name;
+                  samples[j].mass_g = species[i].mass_g;
+                  samples[j].ensembl_url = species[i].ensembl_url;
+                  samples[j].metabolic_rate = species[i].metabolic_rate;
+                  samples[j].temperature_celsius = parseFloat(species[i].temperature_kelvin)
+                                                   - 273.15;
+                  samples[j].animal_class = species[i].animal_class;
+                  samples[j].taxon = species[i].taxon;
+                }
+              }
+            }
+            console.log('speciesNames', speciesNames);
+            console.log('samples', samples);
+            this.setState({ organismList: speciesNames });
+            this.setState({ rowData: samples });
+            SAMPLES_VALUES = samples;
           });
-        }
-
-        console.log('getSpecies speciesNames', speciesNames);
-        this.setState({ organismList: speciesNames });
       });
-  }
-
-
-  // getsamplesValues
-  componentWillMount() {
-    this.getSamples();
-    this.getGenesPro();
-    this.getGenesAnti();
-    this.getEnsembleToName();
-    this.getAllXValues();
-    this.getAllYValues();
-    this.getGeneExpression();
-    this.getSpecies();
-    this.getReferenceOrgGenes('Homo_sapiens');
   }
 
   async refreshSelectedGenes() {
@@ -310,7 +375,7 @@ export default class SearchPage extends React.Component {
       await this.setState({ selectedGenes: currentSelection });
     } else {
       for (let i = 0; i < currentSelection.length; i++) {
-        console.log(i, currentSelection[i]);
+        // console.log(i, currentSelection[i]);
         if (this.isSelectedGene(currentSelection[i].ensembl_id) == false) {
           oldGeneSelection.push(currentSelection[i]);
           await this.setState({ selectedGenes: oldGeneSelection });
@@ -342,7 +407,7 @@ export default class SearchPage extends React.Component {
     // await this.refreshSelectedGenes();ReferenceOrgGenes(target.value[0])
 
     const organisms = this.state.organismList;
-    console.log(organisms,target);
+    console.log(organisms, target);
     for (let i = 0; i < organisms.length; i++) {
       if (organisms[i].value === target.value) {
         console.log(organisms[i], target.value);
@@ -369,15 +434,15 @@ export default class SearchPage extends React.Component {
           });
         }
 
-        this.setState({ genes: results });
+        this.setState({ genes: results.slice(0, 100) });
       });
   }
 
   convertSpeciesToEnsemble(species) {
     const speciesHash = {};
     const result = [];
-    console.log('convertSpeciesToEnsemble', species);
-    console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
+    // console.log('convertSpeciesToEnsemble', species);
+    // console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
     for (let i = 0; i < species.length; i++) {
       const object = {
         ensembl_id: SPECIES_TO_ENSEMBL[species[i]][0],
@@ -720,9 +785,19 @@ export default class SearchPage extends React.Component {
     this.api.setFilterModel(null);
   }
 
+  autoSizeAll(skipHeader = false) {
+    const allColumnIds = [];
+    this.columnApi.getAllColumns().forEach((column) => {
+      allColumnIds.push(column.colId);
+    });
+
+    this.columnApi.autoSizeColumns(allColumnIds, skipHeader);
+  }
+
   onGridReady = (params) => {
     this.api = params.api;
     this.columnApi = params.columnApi;
+    this.autoSizeAll();
   }
 
   render() {
@@ -794,7 +869,6 @@ export default class SearchPage extends React.Component {
             multiple
             search
             selection
-            allowAdditions
             options={genes}
             value={selectedGenesByName}
             onChange={this.onChangeGenes.bind(this)}
