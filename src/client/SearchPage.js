@@ -434,7 +434,7 @@ export default class SearchPage extends React.Component {
           });
         }
 
-        this.setState({ genes: results.slice(0, 100) });
+        this.setState({ genes: results.slice(0, 200) });
       });
   }
 
