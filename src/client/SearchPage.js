@@ -269,7 +269,19 @@ export default class SearchPage extends React.Component {
       .then(res => res.json())
       .then((response) => {
         // this.setState({ rowData : response })
-        GENAGE_GENES_ANTI = response;
+
+         var results = [];
+        for(var i = 0; i < response.length; i++){
+          results.push({
+            ensembl_id: response[i].ensembl_id,
+            key: response[i].ensembl_id,
+            value: response[i].name,
+            text: response[i].name,
+            label: response[i].name
+          });
+        }
+        GENAGE_GENES_ANTI = results;
+        console.log('getGenesAnti', results);
       });
   }
 
@@ -855,7 +867,6 @@ export default class SearchPage extends React.Component {
     const {
       selectedGenesByName, selectedOrganism, organismList, genes
     } = this.state;
-    var that = this;
     return (
       <div className="ui intro">
         <div
