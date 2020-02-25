@@ -99,20 +99,23 @@ app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
 });
 
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
-  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
-  const result = await queryOrthology(genes, ORTHOLOGY_TYPES.slice(0, 1));
-  console.log('/api/getOrthologyOne2One', genes, result);
-  const response = {};
-  genes.forEach((gene) => {
-    console.log(result[gene]);
-    response[gene] = result[gene];
-  });
-  res.send(response);
+  const genes = JSON.parse(req.query.genes);// , "ENSG00000139990", "ENSG00000073921"]');
+  const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
+  const result = await queryOrthology(genes, species, ORTHOLOGY_TYPES.slice(0, 1));
+  console.log('/api/getOrthologyOne2One', genes, species, result);
+  // const response = {};
+  // genes.forEach((gene) => {
+  //   console.log(result[gene]);
+  //   response[gene] = result[gene];
+  // });
+  // res.send(response);
+  res.send(result);
 });
 
 app.post('/api/getOrthologyAll', async (req, res, next) => {
   const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
-  const result = await queryOrthology(genes, ORTHOLOGY_TYPES);
+  const species = JSON.parse(req.query.species || '["Homo_sapiens"]');// , "ENSG00000139990", "ENSG00000073921"]');
+  const result = await queryOrthology(genes, species, ORTHOLOGY_TYPES);
   console.log(result);
   res.send(result);
 });
@@ -200,44 +203,66 @@ async function querySamples() {
   }));
 }
 
-async function queryOrthology(genes, orthologyTypes) {
+async function queryOrthology(genes, species, orthologyTypes) {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
-
+  
+  /** old query
+   *PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX owl: <http://www.w3.org/2002/07/owl#>
+    PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+    PREFIX samples:<http://aging-research.group/samples/>
+    PREFIX : <http://aging-research.group/resource/>
+    
+    SELECT * WHERE
+    {
+        values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
+        values ?selected_genes { ens:${genes.join(' ens:')} } . #put reference genes selected by the user
+        GRAPH ?confidence {
+          values ?orthology { ${orthologyTypes.join(' ')} }
+          ?selected_genes ?orthology ?ortholog .         
+      }
+        ?target_species :has_gene ?ortholog .
+        ?ortholog rdfs:label ?ortholog_symbol
+    }
+   */
+  const query = `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+  PREFIX : <http://aging-research.group/resource/>
+  
+  SELECT ?selected_genes ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_gene   WHERE { 
+      values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
+      values ?selected_genes { ens:${genes.join(' ens:')} }
+      ?selected_species :has_gene ?selected_genes .    
+      GRAPH <http://rdf.ebi.ac.uk/resource/ensembl/confidence/high> {    
+          values ?orthology { ${orthologyTypes.join(' ')} }
+          ?selected_genes ?orthology ?ortholog .   
+      }
+    ?ortholog rdfs:label ?ortholog_gene .
+      ?target_species :has_gene ?ortholog .
+      ?target_species :has_common_name ?common_name .
+  } ORDER BY ?selected_genes ?ortholog ?species`;
+  // console.log(query)
   const payload = new graphdb.query.GetQueryPayload()
-    .setQuery(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-              PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-              PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
-              PREFIX : <http://aging-research.group/resource/>
-              
-              SELECT ?selected_genes ?selected_species ?orthology ?ortholog ?species  ?common_name ?ortholog_gene   WHERE { 
-                  values ?selected_genes { ens:${genes.join(' ens:')} }
-                  ?selected_species :has_gene ?selected_genes .    
-                  GRAPH <http://rdf.ebi.ac.uk/resource/ensembl/confidence/high> {    
-                      values ?orthology { ${orthologyTypes.join(' ')} }
-                      ?selected_genes ?orthology ?ortholog .   
-                  }
-                ?ortholog rdfs:label ?ortholog_gene .
-                  ?species :has_gene ?ortholog .
-                  ?species :has_common_name ?common_name .
-              } ORDER BY ?selected_genes ?ortholog ?species`)
+    .setQuery(query)
     .setQueryType(graphdb.query.QueryType.SELECT)
     .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
     // .setLimit(100);
 
   return repository.query(payload).then(stream => new Promise((resolve, reject) => {
-    const orthology = [];
+    const orthology = {};
     stream.on('data', (bindings) => {
       // the bindings stream converted to data objects with the registered parser
-      // console.log('@@', bindings);
       if (!orthology[bindings.selected_genes.id.slice(RDF_PREFIX)]) {
         orthology[bindings.selected_genes.id.slice(RDF_PREFIX)] = [];
       }
       orthology[bindings.selected_genes.id.slice(RDF_PREFIX)].push({
         ortholog_id: bindings.ortholog.id.slice(RDF_PREFIX),
-        ortholog_species: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
+        ortholog_species: bindings.target_species.id.slice(LAB_RESOURCE_PREFIX),
         orthology: bindings.orthology.id.slice(RDF_PREFIX),
-        ortholog_symbol: bindings.ortholog_gene.id,
-        ortholog_common_name: bindings.common_name.id
+        ortholog_symbol: bindings.ortholog_gene.id.replace(/"/g, ''),
+        ortholog_common_name: bindings.common_name.id.replace(/"/g, '')
       });
     });
     stream.on('end', () => {
