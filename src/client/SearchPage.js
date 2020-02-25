@@ -186,6 +186,7 @@ export default class SearchPage extends React.Component {
       rowData: [],
       genes: [],
       allGenes: [],
+      lastSearchGenes: 'default',
       gridOptions: {
         rowSelection: 'multiple',
         groupSelectsChildren: true,
@@ -394,23 +395,25 @@ export default class SearchPage extends React.Component {
     // console.log("onSearchGenes", values.state.search);
     // console.log(this.state.genes);
     const { lastSearchGenes } = this.state;
-    if (values.state.search.length > 2 && lastSearchGenes != values.state.search) {
-      console.log('XXXXXX');
+    if (values.state.search.length >= 1 && lastSearchGenes != values.state.search) {
+      // console.log("XXXXXX");
+      this.setState({ lastSearchGenes: values.state.search });
       const { allGenes } = this.state;
       const filteredGenes = [];
 
       for (let i = 0; i < allGenes.length; i++) {
         const curr = allGenes[i];
 
-        if ((curr.text).indexOf(values.state.search) != -1) {
+        if ((curr.text).indexOf(values.state.search) == 0) {
           filteredGenes.push(curr);
         }
       }
 
       if (filteredGenes.length >= 1) {
-        this.setState({ genes: filteredGenes });
+        this.setState({ genes: filteredGenes.slice(0, 50) });
       }
-      this.setState({ lastSearchGenes: values.state.search });
+    } else {
+      // console.log("same search", values.state.search);
     }
   }
 
@@ -477,18 +480,22 @@ export default class SearchPage extends React.Component {
         console.log('getReferenceOrgGenes', response);
 
         const results = [];
+        const hash = [];
         for (let i = 0; i < response.length; i++) {
           const ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
-          results.push({
-            ensembl_id,
-            key: ensembl_id,
-            value: response[i].symbol,
-            text: response[i].symbol,
-            label: response[i].symbol
-          });
+          if (hash[response[i].symbol] == null) {
+            results.push({
+              ensembl_id,
+              key: ensembl_id,
+              value: response[i].symbol,
+              text: response[i].symbol,
+              label: response[i].symbol
+            });
+            hash[response[i].symbol] = true;
+          }
         }
         this.setState({ allGenes: results });
-        this.setState({ genes: results.slice(0, 200) });
+        this.setState({ genes: results.slice(0, 30) });
       });
   }
 
