@@ -24,9 +24,9 @@ const repository = new RDFRepositoryClient(config);
 const genesProPath = './src/server/data/genage_genes_pro.json';
 const genesAntiPath = './src/server/data/genage_genes_anti.json';
 const ensemblToNamePath = './src/server/data/ensemblToName.json';
-const allXValuesPath = './src/server/data/allXValues.json';
-const allYValuesPath = './src/server/data/allYValues.json';
-const genesExpressionPath = './src/server/data/geneExpressions.json';
+// const allXValuesPath = './src/server/data/allXValues.json';
+// const allYValuesPath = './src/server/data/allYValues.json';
+// const genesExpressionPath = './src/server/data/geneExpressions.json';
 
 const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/'.length;
 const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/'.length;
@@ -101,8 +101,13 @@ app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
   const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
   const result = await queryOrthology(genes, ORTHOLOGY_TYPES.slice(0, 1));
-  console.log(result);
-  res.send(result);
+  console.log('/api/getOrthologyOne2One', genes, result);
+  const response = {};
+  genes.forEach((gene) => {
+    console.log(result[gene]);
+    response[gene] = result[gene];
+  });
+  res.send(response);
 });
 
 app.post('/api/getOrthologyAll', async (req, res, next) => {
@@ -195,7 +200,6 @@ async function querySamples() {
   }));
 }
 
-
 async function queryOrthology(genes, orthologyTypes) {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
@@ -230,8 +234,8 @@ async function queryOrthology(genes, orthologyTypes) {
       }
       orthology[bindings.selected_genes.id.slice(RDF_PREFIX)].push({
         ortholog_id: bindings.ortholog.id.slice(RDF_PREFIX),
-        ortholog_species: bindings.species.id,
-        orthology: bindings.orthology.id,
+        ortholog_species: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
+        orthology: bindings.orthology.id.slice(RDF_PREFIX),
         ortholog_symbol: bindings.ortholog_gene.id,
         ortholog_common_name: bindings.common_name.id
       });
@@ -318,28 +322,30 @@ async function querySpecies() {
     .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
     // .setLimit(100);
 
-  return repository.query(payload).then(stream => new Promise((resolve, reject) => {
-    const speciesNames = [];
-    stream.on('data', (bindings) => {
-      // the bindings stream converted to data objects with the registered parser
-      // console.log('@@', bindings);
-      speciesNames.push({
-        id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
-        common_name: bindings.common_name.id.replace(/"/g, ''),
-        mass_g: getNumberFromRDF(bindings.mass_g.id),
-        ensembl_url: bindings.ensembl_url.id,
-        lifespan: getNumberFromRDF(bindings.lifespan.id),
-        metabolic_rate: getNumberFromRDF(bindings.metabolic_rate.id),
-        temperature_kelvin: getNumberFromRDF(bindings.temperature_kelvin.id),
-        animal_class: bindings.animal_class.id,
-        taxon: bindings.taxon.id.slice('http://rdf.ebi.ac.uk/resource/ensembl/taxon#'.length)
+  return repository.query(payload)
+    .then(stream => new Promise((resolve, reject) => {
+      const speciesNames = [];
+      stream.on('data', (bindings) => {
+        // the bindings stream converted to data objects with the registered parser
+        // console.log('@@', bindings);
+        speciesNames.push({
+          id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
+          common_name: bindings.common_name.id.replace(/"/g, ''),
+          mass_g: getNumberFromRDF(bindings.mass_g.id),
+          ensembl_url: bindings.ensembl_url.id,
+          lifespan: getNumberFromRDF(bindings.lifespan.id),
+          metabolic_rate: getNumberFromRDF(bindings.metabolic_rate.id),
+          temperature_kelvin: getNumberFromRDF(bindings.temperature_kelvin.id),
+          animal_class: bindings.animal_class.id,
+          taxon: bindings.taxon.id.slice('http://rdf.ebi.ac.uk/resource/ensembl/taxon#'.length)
+        });
       });
-    });
-    stream.on('end', () => {
-      // handle end of the stream
-      resolve(speciesNames);
-    });
-  }));
+      stream.on('end', () => {
+        // handle end of the stream
+        resolve(speciesNames);
+      });
+    }))
+    .catch(err => console.error(err))
 
   // return repository.get(payload)
   //   .then(data =>
@@ -348,6 +354,5 @@ async function querySpecies() {
   //   )
   //   .catch(error => console.error(error))
 }
-
 
 app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
