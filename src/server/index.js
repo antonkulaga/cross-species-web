@@ -5,6 +5,7 @@ const os = require('os');
 const fs = require('fs');
 const Promise = require('bluebird');
 const graphdb = require('graphdb');
+const bodyParser = require('body-parser');
 
 const { RDFMimeType } = graphdb.http;
 const { RepositoryClientConfig, RDFRepositoryClient } = graphdb.repository;
@@ -51,6 +52,10 @@ async function readFile(path) {
 }
 
 app.use(express.static('dist'));
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
 
 app.get('/api/getUsername', (req, res) => res.send({ username: os.userInfo().username }));
 
@@ -99,16 +104,16 @@ app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
 });
 
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
-  const genes = JSON.parse(req.query.genes);// , "ENSG00000139990", "ENSG00000073921"]');
-  const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
+  console.log(req.body);
+  const { genes, samples } = req.body;
+  // const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
+  let species = {};
+  samples.forEach((sample) => {
+    species[sample.organism] = true;
+  });
+  species = Object.keys(species);
   const result = await queryOrthology(genes, species, ORTHOLOGY_TYPES.slice(0, 1));
-  console.log('/api/getOrthologyOne2One', genes, species, result);
-  // const response = {};
-  // genes.forEach((gene) => {
-  //   console.log(result[gene]);
-  //   response[gene] = result[gene];
-  // });
-  // res.send(response);
+  console.log('/api/getOrthologyOne2One');//, genes, species, result);
   res.send(result);
 });
 
@@ -173,27 +178,27 @@ async function querySamples() {
       // the bindings stream converted to data objects with the registered parser
       // console.log('@@', bindings);
       samples.push({
-        study_title: bindings.study_title.id,
-        library_layout: bindings.library_layout.id,
-        study: bindings.study.id,
+        // study_title: bindings.study_title.id,
+        // library_layout: bindings.library_layout.id,
+        // study: bindings.study.id,
         organism: bindings.organism.id.slice(LAB_RESOURCE_PREFIX),
         sex: bindings.sex.id.replace(/"/g, ''),
         run: bindings.run.id.slice(SRA_PREFIX),
-        characterists: bindings.characterists.id,
+        // characterists: bindings.characterists.id,
         source: bindings.source.id.replace(/"/g, ''),
-        bootstrap: bindings.bootstrap.id,
-        library_strategy: bindings.library_strategy.id,
-        lib_type: bindings.lib_type.id,
+        // bootstrap: bindings.bootstrap.id,
+        // library_strategy: bindings.library_strategy.id,
+        // lib_type: bindings.lib_type.id,
         sequencer: bindings.sequencer.id.slice(LAB_RESOURCE_PREFIX),
         bioproject: bindings.bioproject.id.slice(BIOPROJECT_PREFIX),
-        protocol: bindings.protocol.id,
-        series: bindings.series.id,
-        tumor: bindings.tumor.id,
-        modified: bindings.modified.id,
-        salmon_version: bindings.salmon_version.id,
-        library_selection: bindings.library_selection.id,
-        age: bindings.age.id,
-        sample_name: bindings.sample_name.id
+        // protocol: bindings.protocol.id,
+        // series: bindings.series.id,
+        // tumor: bindings.tumor.id,
+        // modified: bindings.modified.id,
+        // salmon_version: bindings.salmon_version.id,
+        // library_selection: bindings.library_selection.id,
+        // age: bindings.age.id,
+        // sample_name: bindings.sample_name.id
       });
     });
     stream.on('end', () => {
@@ -206,26 +211,6 @@ async function querySamples() {
 async function queryOrthology(genes, species, orthologyTypes) {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
   
-  /** old query
-   *PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX owl: <http://www.w3.org/2002/07/owl#>
-    PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
-    PREFIX samples:<http://aging-research.group/samples/>
-    PREFIX : <http://aging-research.group/resource/>
-    
-    SELECT * WHERE
-    {
-        values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
-        values ?selected_genes { ens:${genes.join(' ens:')} } . #put reference genes selected by the user
-        GRAPH ?confidence {
-          values ?orthology { ${orthologyTypes.join(' ')} }
-          ?selected_genes ?orthology ?ortholog .         
-      }
-        ?target_species :has_gene ?ortholog .
-        ?ortholog rdfs:label ?ortholog_symbol
-    }
-   */
   const query = `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
   PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>

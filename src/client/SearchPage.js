@@ -17,8 +17,7 @@ import _ from 'lodash';
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
-import Select from "react-dropdown-select";
-
+import Select from 'react-dropdown-select';
 
 
 // import SAMPLES_VALUES from './data/samples_values.json'
@@ -246,10 +245,9 @@ export default class SearchPage extends React.Component {
     fetch('/api/getGenesPro')
       .then(res => res.json())
       .then((response) => {
-        
         // this.setState({ rowData : response })
-        var results = [];
-        for(var i = 0; i < response.length; i++){
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
           results.push({
             ensembl_id: response[i].ensembl_id,
             key: response[i].ensembl_id,
@@ -270,8 +268,8 @@ export default class SearchPage extends React.Component {
       .then((response) => {
         // this.setState({ rowData : response })
 
-         var results = [];
-        for(var i = 0; i < response.length; i++){
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
           results.push({
             ensembl_id: response[i].ensembl_id,
             key: response[i].ensembl_id,
@@ -293,8 +291,7 @@ export default class SearchPage extends React.Component {
         // this.setState({ rowData : response })
         ENSEMBL_TO_NAME = response;
         SPECIES_TO_ENSEMBL = _.invertBy(response);
-        console.log("SPECIES_TO_ENSEMBL", SPECIES_TO_ENSEMBL);
-
+        console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
       });
   }
 
@@ -385,7 +382,7 @@ export default class SearchPage extends React.Component {
   }
 
   async onChangeGenes(values) {
-    console.log("onChangeGenes", values);
+    console.log('onChangeGenes', values);
     const selected = await this.convertSpeciesToEnsemble(values);
     await this.setState({ selectedGenesSymbols: selected });
     await this.refreshSelectedGenes();
@@ -393,29 +390,28 @@ export default class SearchPage extends React.Component {
   }
 
 
-  onSearchGenes(values){
-    console.log("onSearchGenes", values.state.search);
+  onSearchGenes(values) {
+    // console.log("onSearchGenes", values.state.search);
     // console.log(this.state.genes);
-    var lastSearchGenes = this.state.lastSearchGenes ;
-    if(values.state.search.length > 2 && lastSearchGenes != values.state.search){
-      console.log("XXXXXX");
-      var allGenes = this.state.allGenes;
-      var filteredGenes = [];
+    const { lastSearchGenes } = this.state;
+    if (values.state.search.length > 2 && lastSearchGenes != values.state.search) {
+      console.log('XXXXXX');
+      const { allGenes } = this.state;
+      const filteredGenes = [];
 
-      for(var i = 0; i < allGenes.length; i++){
-        var curr = allGenes[i];
+      for (let i = 0; i < allGenes.length; i++) {
+        const curr = allGenes[i];
 
-        if((curr.text).indexOf(values.state.search) != -1){
+        if ((curr.text).indexOf(values.state.search) != -1) {
           filteredGenes.push(curr);
         }
       }
 
-      if(filteredGenes.length >= 1){
+      if (filteredGenes.length >= 1) {
         this.setState({ genes: filteredGenes });
       }
-      this.setState({ lastSearchGenes: values.state.search })
+      this.setState({ lastSearchGenes: values.state.search });
     }
-    
   }
 
   async handleChangeTextarea(e, target) {
@@ -517,10 +513,10 @@ export default class SearchPage extends React.Component {
   }
 
   async addSelectedPredefinedGenesToDropdown(genesList) {
-    console.log("addSelectedPredefinedGenesToDropdown", genesList);
+    console.log('addSelectedPredefinedGenesToDropdown', genesList);
     const genesArray = [];
     const currentSelectedGenes = await this.state.selectedGenesByName;
-    console.log("addSelectedPredefinedGenesToDropdown current", currentSelectedGenes);
+    console.log('addSelectedPredefinedGenesToDropdown current', currentSelectedGenes);
 
     const genesHash = {};
     for (var i = 0; i < currentSelectedGenes.length; i++) {
@@ -534,7 +530,7 @@ export default class SearchPage extends React.Component {
 
     const newSelectedGenes = currentSelectedGenes.concat(genesArray);
 
-    console.log("addSelectedPredefinedGenesToDropdown finish", newSelectedGenes);
+    console.log('addSelectedPredefinedGenesToDropdown finish', newSelectedGenes);
     await this.setState({ selectedGenesByName: newSelectedGenes });
   }
 
@@ -588,7 +584,26 @@ export default class SearchPage extends React.Component {
     return curr;
   }
 
+  async getOrthology() {
+    const selectedSamples = this.api.getSelectedRows();
+    let orthology = await fetch('/api/getOrthologyOne2One', {
+      method: 'post',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        genes: this.state.selectedGenes.map(gene => gene.ensembl_id),
+        samples: selectedSamples
+      })
+    });
+    orthology = await orthology.json();
+    console.log(orthology);
+  }
+
   onClickShowResults() {
+    this.getOrthology();
+    return;
     this.setState({ displayHeatmap: 'block' });
 
     const xValues = [];
@@ -926,15 +941,16 @@ export default class SearchPage extends React.Component {
           />
 
           <h3 className="ui header">Choose genes or gene sets</h3>
-  
-          <Select 
-           placeholder="Search gene symbols"
-           multi
-           options={genes}
-           name="select"
-           values={selectedGenesByName}
-           searchFn={this.onSearchGenes.bind(this)}
-           onChange={this.onChangeGenes.bind(this)} />
+
+          <Select
+            placeholder="Search gene symbols"
+            multi
+            options={genes}
+            name="select"
+            values={selectedGenesByName}
+            searchFn={this.onSearchGenes.bind(this)}
+            onChange={this.onChangeGenes.bind(this)}
+          />
 
 
           <span>or choose a predefined list:</span>
