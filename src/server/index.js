@@ -131,6 +131,49 @@ app.get('/api/getSamples', async (req, res, next) => {
   res.send(result);
 });
 
+app.post('/api/getExpressions', async (req, res, next) => {
+  console.log(req.body);
+  const { runs, genes } = req.body;
+  const result = await queryExpressions(runs, genes);
+  console.log('/api/getExpressions');//, genes, species, result);
+  res.send(result);
+});
+
+async function queryExpressions(runs, genes) {
+  repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
+
+  const query = `PREFIX samples:<http://aging-research.group/samples/>
+    PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
+
+    SELECT * WHERE
+    {
+      values ?run { sra:${runs.join(' sra:')} }
+      values ?expression { samples:has_${genes.join('_expression samples:has_')}_expression } .
+      ?run ?expression ?tpm .
+    }`;
+  console.log(query)
+  const payload = new graphdb.query.GetQueryPayload()
+    .setQuery(query)
+    .setQueryType(graphdb.query.QueryType.SELECT)
+    .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
+    // .setLimit(100);
+
+  return repository.query(payload).then(stream => new Promise((resolve, reject) => {
+    const expressions = [];
+    stream.on('data', (bindings) => {
+      expressions.push({
+        run: bindings.run.id.slice('https://www.ncbi.nlm.nih.gov/sra/'.length),
+        gene: bindings.expression.id.split('_')[1],
+        tpm: getNumberFromRDF(bindings.tpm.id)
+      })
+    });
+    stream.on('end', () => {
+      // handle end of the stream
+      resolve(expressions);
+    });
+  }));
+}
+
 async function querySamples() {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
