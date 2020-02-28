@@ -39,13 +39,7 @@ let ENSEMBL_TO_NAME = [];
 let ALL_X_VALUES = [];
 let ALL_Y_VALUES = [];
 let GENE_EXPRESSIONS = [];
-let allZValues = GENE_EXPRESSIONS
-
-  .map(row => row.map(x =>
-  // TODO: parseInt?
-  // if(!x) return 0;
-    Math.log(x + 1)// TODO: divide / Math.log(10);
-  ));
+let allZValues = [];
 
 let SPECIES_TO_ENSEMBL = [];
 
@@ -175,6 +169,7 @@ export default class SearchPage extends React.Component {
     this.heatmapRef = React.createRef();
     this.state = {
       species: [],
+      data: null,
       selectedGenes: [],
       selectedGenesByName: [],
       selectedGenesSymbols: [],
@@ -228,6 +223,7 @@ export default class SearchPage extends React.Component {
     this.refreshSelectedGenes.bind(this);
     this.onChangeOrganism.bind(this);
     this.getReferenceOrgGenes.bind(this);
+    this.renderHeatmap.bind(this);
   }
 
   componentWillMount() {
@@ -235,9 +231,8 @@ export default class SearchPage extends React.Component {
     this.getGenesPro();
     this.getGenesAnti();
     this.getEnsembleToName();
-    this.getAllXValues();
-    this.getAllYValues();
-    this.getGeneExpression();
+    // this.getAllXValues();
+    // this.getAllYValues();
     this.getReferenceOrgGenes('Homo_sapiens');
   }
 
@@ -296,36 +291,82 @@ export default class SearchPage extends React.Component {
       });
   }
 
-  getAllXValues() {
-    console.log('getAllXValues');// remove api
-    fetch('/api/getAllXValues')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        ALL_X_VALUES = response;
-      });
+  // getAllXValues() {
+  //   console.log('getAllXValues');// remove api
+  //   fetch('/api/getAllXValues')
+  //     .then(res => res.json())
+  //     .then((response) => {
+  //       // this.setState({ rowData : response })
+  //       // ALL_X_VALUES = response;
+  //     });
+  // }
+
+  // getAllYValues() {
+  //   console.log('getAllYValues');// remove api
+  //   fetch('/api/getAllYValues')
+  //     .then(res => res.json())
+  //     .then((response) => {
+  //       // this.setState({ rowData : response })
+  //       // ALL_Y_VALUES = response;
+  //     });
+  // }
+
+  async getGeneExpression(runs, genes) {
+    console.log('getExpressions');// remove api
+    
+    let response = await fetch('/api/getExpressions', {
+      method: 'post',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        runs,
+        genes
+      })
+    });
+
+    GENE_EXPRESSIONS = await response.json();
+    // allZValues = GENE_EXPRESSIONS;
+    console.log("getGeneExpression", GENE_EXPRESSIONS); 
+
+    var allYValues = [];
+    var allXValues = []
+    var hashYValues = [];
+    var hashXValues = [];
+    var allXValues = [];
+
+    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
+      if(hashYValues[GENE_EXPRESSIONS[i].gene] == null){
+        allYValues.push(GENE_EXPRESSIONS[i].gene);
+        hashYValues[GENE_EXPRESSIONS[i].gene] = true;
+      }
+    }
+
+    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
+      if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
+        allXValues.push(GENE_EXPRESSIONS[i].run);
+        hashXValues[GENE_EXPRESSIONS[i].run] = true;
+      }
+    }
+
+    for(var i = 0; i < genes.length; i++){
+      allZValues[i] = [];
+      for(var j = i; j < GENE_EXPRESSIONS.length; j += genes.length){ 
+        console.log(j, GENE_EXPRESSIONS[j].tpm);
+        allZValues[i].push(GENE_EXPRESSIONS[j].tpm);
+      }
+    }
+    console.log("allZValues", allZValues);
+    ALL_X_VALUES = allXValues; ALL_Y_VALUES = allYValues;
+
+    this.renderHeatmap();
+    // console.log("getGeneExpression", GENE_EXPRESSIONS);
+
+    // setTimeout(() =>  this.renderHeatmap(), 2000);
+
   }
 
-  getAllYValues() {
-    console.log('getAllYValues');// remove api
-    fetch('/api/getAllYValues')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        ALL_Y_VALUES = response;
-      });
-  }
-
-  getGeneExpression() {
-    console.log('getGeneExpression');// remove api
-    fetch('/api/getGeneExpression')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ rowData : response })
-        GENE_EXPRESSIONS = response;
-        allZValues = response;
-      });
-  }
 
   getSamplesAndSpecies() {
     console.log('getSamplesAndSpecies request');// remove api
@@ -608,11 +649,7 @@ export default class SearchPage extends React.Component {
     console.log(orthology);
   }
 
-  onClickShowResults() {
-    this.getOrthology();
-    return;
-    this.setState({ displayHeatmap: 'block' });
-
+  renderHeatmap(){
     const xValues = [];
     const xIndices = [];
 
@@ -620,9 +657,6 @@ export default class SearchPage extends React.Component {
     const yIndices = [];
 
     const zValues = [];
-
-    console.log('show results', this.state.selectedGenes);
-    this.selectedRows = this.api.getSelectedRows();
 
     this.layout = {
       // title: 'Heatmap with selected genes and samples',
@@ -652,51 +686,17 @@ export default class SearchPage extends React.Component {
 
 
     for (var i = 0; i < ALL_X_VALUES.length; i++) {
-      if (!this.isSelectedSample(ALL_X_VALUES[i])) { continue; }
+      // if (!this.isSelectedSample(ALL_X_VALUES[i])) { continue; }
 
       // xValues.push(ALL_X_VALUES[i]);
       xIndices.push(i);
     }
 
     for (var i = 0; i < ALL_Y_VALUES.length; i++) {
-      if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
+      // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
 
       // yValues.push(ALL_Y_VALUES[i]);
       yIndices.push(i);
-    }
-
-    {
-
-    // for ( var i = 0; i < yValues.length; i++ ) {
-    //     for ( var j = 0; j < xValues.length; j++ ) {
-    //         const currentValue = allZValues[yIndices[i]][xIndices[j]];//TODO: parseInt?
-    //         if (currentValue != 0.0) {
-    //             var textColor = 'white';
-    //         }else{
-    //             var textColor = 'black';
-    //         }
-    //         const result = {
-    //             xref: 'x1',
-    //             yref: 'y1',
-    //             x: xValues[j],
-    //             y: yValues[i],
-    //             text: GENE_EXPRESSIONS[yIndices[i]][xIndices[j]],
-    //             font: {
-    //                 family: 'Arial',
-    //                 size: 5,
-    //                 color: 'rgb(50, 171, 96)'
-    //             },
-    //             showarrow: false,
-    //             font: {
-    //                 color: textColor,
-    //                 size: '12'
-    //             }
-    //         };
-    //         zValues.push(currentValue);
-    //         console.log(i, j,yValues[i], xValues[j], currentValue,GENE_EXPRESSIONS[yIndices[i]][xIndices[j]])
-    //         this.layout.annotations.push(result);
-    //     }
-    // }
     }
 
     const speciesHash = {};
@@ -712,7 +712,7 @@ export default class SearchPage extends React.Component {
         speciesHash[ALL_X_VALUES[i]] = ALL_X_VALUES[i];
       }
     }
-    // console.log("speciesHash", speciesHash);
+    console.log("speciesHash", speciesHash);
 
     // sort ALL_X_VALUES by maximum lifespan descending
     const maximumLifesSpanBySpecies = {};
@@ -741,16 +741,16 @@ export default class SearchPage extends React.Component {
     let alreadyUsedSample = {};
 
     for (var i = 0; i < ALL_Y_VALUES.length; i++) {
-      if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
+      // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
 
       for (var j = 0; j < ALL_X_VALUES.length; j++) {
-        if (!this.isSelectedSample(ALL_X_VALUES[j])) { continue; }
+        // if (!this.isSelectedSample(ALL_X_VALUES[j])) { continue; }
 
-        if (alreadyUsedSample[ALL_X_VALUES[j]] != null) {
-          continue;
-        } else {
-          alreadyUsedSample[ALL_X_VALUES[j]] = 1;
-        }
+        // if (alreadyUsedSample[ALL_X_VALUES[j]] != null) {
+        //   continue;
+        // } else {
+        //   alreadyUsedSample[ALL_X_VALUES[j]] = 1;
+        // }
 
         // console.log(i, j)
         const currentValue = allZValues[i][j];// TODO: parseInt?
@@ -766,7 +766,7 @@ export default class SearchPage extends React.Component {
           // x: ALL_X_VALUES[j],
 
           y: ENSEMBL_TO_NAME[ALL_Y_VALUES[i]],
-          text: parseFloat(GENE_EXPRESSIONS[i][j]).toFixed(2),
+          text: parseFloat(allZValues[i][j]).toFixed(2),
           // font: {
           //     family: 'Arial',
           //     size: 5,
@@ -783,6 +783,7 @@ export default class SearchPage extends React.Component {
         zValues.push(allZValues[i][j]);
         this.layout.annotations.push(result);
       }
+
       alreadyUsedSample = {};
     }
 
@@ -796,24 +797,6 @@ export default class SearchPage extends React.Component {
     );
     console.log(logColors);
 
-    // this.layout.marker = {
-    // color: logColors,
-    // showscale: false,
-    // cmin: 0,
-    // cmax: Math.log(zValues.reduce((x,y) => {if(x<y) return y; return x;})),
-    // colorscale = [[0, 'rgb(166,206,227, 0.5)'],
-    //               [0.05, 'rgb(31,120,180,0.5)'],
-    //               [0.2, 'rgb(178,223,138,0.5)'],
-    //               [0.5, 'rgb(51,160,44,0.5)'],
-    //               [factor, 'rgb(251,154,153,0.5)'],
-    //               [factor, 'rgb(227,26,28,0.5)'],
-    //               [1, 'rgb(227,26,28,0.5)']
-    //              ],
-    // colorbar: {
-    //     tickvals: [0,50,100,150,200,250,300],
-    //     ticks: 'outside'
-    // }
-    // }
     const maxVal = parseInt(
       Math.exp(
         zValues.reduce((x, y) => {
@@ -829,7 +812,22 @@ export default class SearchPage extends React.Component {
     }
     console.log(maxVal, tickVals);
 
-    this.data = [{
+    // this.data = [{
+    //   x: xValues,
+    //   y: yValues,
+    //   z: zValues,
+
+    //   colorscale: 'RdBu',
+    //   // color: logColors,
+    //   showscale: false,
+    //   type: 'heatmap',
+    //   // colorbar: {
+    //   //     tickvals: tickVals,
+    //   //     ticks: 'outside'
+    //   // }
+    // }];
+
+    this.setState({data: [{
       x: xValues,
       y: yValues,
       z: zValues,
@@ -842,18 +840,46 @@ export default class SearchPage extends React.Component {
       //     tickvals: tickVals,
       //     ticks: 'outside'
       // }
-    }];
+    }]})
 
-    // console.log(xValues.length, yValues.length, zValues.length);
-    // console.log(data,this.layout,xValues,yValues,zValues)
-    // console.log(xIndices, yIndices)
+    console.log(xValues.length, yValues.length, zValues.length);
+    console.log(this.state.data,this.layout,xValues,yValues,zValues)
+    console.log(xIndices, yIndices)
     // const heatmapElement = document.getElementById("heatmap");
     console.log(this.heatmapRef.current.el);
-    // scrollIntoViewIfNeeded(this.myheatmap.el, {
+    // scrollIntoViewIfNeeded(this.myheatmap.el, {    
     //     scrollMode: 'if-needed',
     //     behavior: 'smooth'
     // });
-    setTimeout(() => this.heatmapRef.current.el.scrollIntoView(), 1000);
+    setTimeout(() => this.heatmapRef.current.el.scrollIntoView(), 3000);
+
+  }
+
+  async onClickShowResults() {
+    // this.getOrthology();
+
+    this.setState({ displayHeatmap: 'block' });
+
+   
+    // console.log('show results', this.state.selectedGenes);
+    this.selectedRows = this.api.getSelectedRows();
+
+    console.log("show results selected genes", this.state.selectedGenes);
+    console.log("show results selected runs", this.api.getSelectedRows());
+
+    var selectedGenes = this.state.selectedGenes;
+    var selectedRows = this.api.getSelectedRows();
+    var runs = [];
+    var genes = [];
+    for(var i = 0; i < selectedRows.length; i++){
+      runs.push(selectedRows[i].run);
+    }
+
+    for(var i = 0; i< selectedGenes.length; i++){
+      genes.push(selectedGenes[i].key);
+    }
+
+    await this.getGeneExpression(runs, genes);     
   }
 
   quickFilterChange(e) {
@@ -1018,7 +1044,7 @@ export default class SearchPage extends React.Component {
 
           <Plotly
             ref={this.heatmapRef}
-            data={this.data}
+            data={this.state.data}
             layout={this.layout}
             style={{
               display: this.state.displayHeatmap,
