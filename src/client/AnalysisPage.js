@@ -1,6 +1,6 @@
 import React from 'react'
 
-import './App.css';
+import './app.css';
 
 export default class SearchPage extends React.Component {
 

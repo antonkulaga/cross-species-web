@@ -1,7 +1,7 @@
 import React from 'react'
 import { Menu } from 'semantic-ui-react'
 
-import './App.css';
+import './app.css';
 
 import SearchPage from './SearchPage'
 import AnalysisPage from './AnalysisPage'

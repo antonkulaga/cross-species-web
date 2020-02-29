@@ -43,7 +43,7 @@ let allZValues = [];
 
 let SPECIES_TO_ENSEMBL = [];
 
-const columnDefs = [
+const samplesColumnDefs = [
   {
     headerName: 'Sample',
     field: 'run',
@@ -146,6 +146,40 @@ const columnDefs = [
   }
 ];
 
+const samplesGridOptions = {
+  rowSelection: 'multiple',
+  groupSelectsChildren: true,
+  suppressRowClickSelection: true,
+  suppressAggFuncInHeader: true,
+  defaultColDef: {
+    sortable: true,
+    resizable: true,
+    filter: true
+  },
+  debug: true,
+  animateRows: true,
+  floatingFilter: true
+};
+
+const orthologyGridOptions = {
+  suppressRowClickSelection: true,
+  suppressAggFuncInHeader: true,
+  defaultColDef: {
+    sortable: true,
+    resizable: true,
+    filter: true
+  },
+  debug: true,
+  // floatingFilter: true
+};
+
+const baseOrthologyColumnDefs = [
+  {
+    headerName: 'Selected gene',
+    field: 'selected_gene'
+  }
+];
+
 const PREDEFINED_GENES = [
   { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
   { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
@@ -177,38 +211,17 @@ export default class SearchPage extends React.Component {
       selectedGeneIds: [],
       selectedOrganism: HUMAN.value,
       organismList: [],
-      columnDefs,
-      rowData: [],
+      samplesRowData: [],
       genes: [],
       allGenes: [],
       lastSearchGenes: 'default',
-      gridOptions: {
-        rowSelection: 'multiple',
-        groupSelectsChildren: true,
-        suppressRowClickSelection: true,
-        suppressAggFuncInHeader: true,
-        defaultColDef: {
-          sortable: true,
-          resizable: true,
-          filter: true
-        },
-        debug: true,
-        // autoGroupColumnDef: {headerName: "Species", field: "organism", width: 200,
-        //     cellRenderer:'agGroupCellRenderer',
-        //     cellRendererParams: {
-        //         checkbox: function(params) {
-        //             return params.node.group === true;
-        //         }
-        //     }
-        // },
-        // onRowSelected: onRowSelected,
-        // onSelectionChanged: onSelectionChanged,
-
-        animateRows: true,
-        floatingFilter: true
-      },
       quickFilterValue: '',
-      displayHeatmap: 'none'
+      displayHeatmap: 'none',
+      orthologyColumnDefs: [{
+        headerName: 'Selected gene',
+        field: 'selected_gene'
+      }],
+      orthologyData: []
     };
 
     this.convertSpeciesToEnsemble.bind(this);
@@ -241,7 +254,7 @@ export default class SearchPage extends React.Component {
     fetch('/api/getGenesPro')
       .then(res => res.json())
       .then((response) => {
-        // this.setState({ rowData : response })
+        // this.setState({ samplesRowData : response })
         const results = [];
         for (let i = 0; i < response.length; i++) {
           results.push({
@@ -262,7 +275,7 @@ export default class SearchPage extends React.Component {
     fetch('/api/getGenesAnti')
       .then(res => res.json())
       .then((response) => {
-        // this.setState({ rowData : response })
+        // this.setState({ samplesRowData : response })
 
         const results = [];
         for (let i = 0; i < response.length; i++) {
@@ -284,7 +297,7 @@ export default class SearchPage extends React.Component {
     fetch('/api/getEnsembleToName')
       .then(res => res.json())
       .then((response) => {
-        // this.setState({ rowData : response })
+        // this.setState({ samplesRowData : response })
         ENSEMBL_TO_NAME = response;
         SPECIES_TO_ENSEMBL = _.invertBy(response);
         console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
@@ -404,7 +417,7 @@ export default class SearchPage extends React.Component {
             console.log('speciesNames', speciesNames);
             console.log('samples', samples);
             this.setState({ organismList: speciesNames });
-            this.setState({ rowData: samples });
+            this.setState({ samplesRowData: samples });
             SAMPLES_VALUES = samples;
           });
       });
@@ -613,7 +626,6 @@ export default class SearchPage extends React.Component {
     return false;
   }
 
-
   getHeatmapColumnName(value) {
     let curr = value;
     const words = curr.split(' ');
@@ -633,8 +645,24 @@ export default class SearchPage extends React.Component {
   }
 
   async getOrthology() {
-    const selectedSamples = this.api.getSelectedRows();
-    let orthology = await fetch('/api/getOrthologyOne2One', {
+    const selectedSamples = this.samplesGridApi.getSelectedRows();
+    
+    let selectedSpecies = {};
+    selectedSamples.forEach((sample) => {
+      selectedSpecies[sample.organism] = true;
+    });
+    selectedSpecies = Object.keys(selectedSpecies);
+
+    await this.setState({
+      orthologyColumnDefs: baseOrthologyColumnDefs.concat(
+        selectedSpecies.map(species => ({
+          headerName: species,
+          field: species
+        }))
+      )
+    });
+
+    let orthologyResponse = await fetch('/api/getOrthologyOne2One', {
       method: 'post',
       headers: {
         Accept: 'application/json',
@@ -645,8 +673,22 @@ export default class SearchPage extends React.Component {
         samples: selectedSamples
       })
     });
-    orthology = await orthology.json();
-    console.log(orthology);
+    orthologyResponse = await orthologyResponse.json();
+
+    await this.setState({
+      orthologyData: Object.keys(orthologyResponse).map((geneId) => {
+        const row = {};
+        row.selected_gene = geneId;
+        orthologyResponse[geneId].forEach((ortholog) => {
+          row[ortholog.ortholog_species] = ortholog.ortholog_id;
+        });
+        return row;
+      })
+    });
+
+    this.setState({
+      showOrthology: true
+    });
   }
 
   renderHeatmap(){
@@ -797,20 +839,20 @@ export default class SearchPage extends React.Component {
     );
     console.log(logColors);
 
-    const maxVal = parseInt(
-      Math.exp(
-        zValues.reduce((x, y) => {
-          if (x < y) { return y; }
-          return x;
-        })
-      ) - 1
-    );
-    // const minVal = zValues.reduce((x,y) => {if(x>y) return Math.exp(y)-1; return Math.exp(x)-1;})
-    const tickVals = [0];
-    for (let i = 1; i < 5; i++) {
-      tickVals.push(tickVals[i - 1] + maxVal / 5);
-    }
-    console.log(maxVal, tickVals);
+    // const maxVal = parseInt(
+    //   Math.exp(
+    //     zValues.reduce((x, y) => {
+    //       if (x < y) { return y; }
+    //       return x;
+    //     })
+    //   ) - 1
+    // );
+    // // const minVal = zValues.reduce((x,y) => {if(x>y) return Math.exp(y)-1; return Math.exp(x)-1;})
+    // const tickVals = [0];
+    // for (let i = 1; i < 5; i++) {
+    //   tickVals.push(tickVals[i - 1] + maxVal / 5);
+    // }
+    // console.log(maxVal, tickVals);
 
     // this.data = [{
     //   x: xValues,
@@ -856,19 +898,19 @@ export default class SearchPage extends React.Component {
   }
 
   async onClickShowResults() {
-    // this.getOrthology();
+    this.getOrthology();
 
     this.setState({ displayHeatmap: 'block' });
 
    
     // console.log('show results', this.state.selectedGenes);
-    this.selectedRows = this.api.getSelectedRows();
+    this.selectedRows = this.samplesGridApi.getSelectedRows();
 
     console.log("show results selected genes", this.state.selectedGenes);
-    console.log("show results selected runs", this.api.getSelectedRows());
+    console.log("show results selected runs", this.samplesGridApi.getSelectedRows());
 
     var selectedGenes = this.state.selectedGenes;
-    var selectedRows = this.api.getSelectedRows();
+    var selectedRows = this.samplesGridApi.getSelectedRows();
     var runs = [];
     var genes = [];
     for(var i = 0; i < selectedRows.length; i++){
@@ -885,7 +927,7 @@ export default class SearchPage extends React.Component {
   quickFilterChange(e) {
     // console.log(e.target.value)
     this.setState({ quickFilterValue: e.target.value || '' });
-    this.api.setQuickFilter(this.state.quickFilterValue);
+    this.samplesGridApi.setQuickFilter(this.state.quickFilterValue);
 
     if (!e.target.value) {
       this.clearFilter();
@@ -893,22 +935,51 @@ export default class SearchPage extends React.Component {
   }
 
   clearFilter() {
-    this.api.setFilterModel(null);
+    this.samplesGridApi.setFilterModel(null);
   }
 
-  autoSizeAll(skipHeader = false) {
+  autoSizeAll(columnApi, skipHeader = false) {
     const allColumnIds = [];
-    this.columnApi.getAllColumns().forEach((column) => {
+    columnApi.getAllColumns().forEach((column) => {
       allColumnIds.push(column.colId);
     });
 
-    this.columnApi.autoSizeColumns(allColumnIds, skipHeader);
+    columnApi.autoSizeColumns(allColumnIds, skipHeader);
   }
 
-  onGridReady = (params) => {
-    this.api = params.api;
-    this.columnApi = params.columnApi;
-    this.autoSizeAll();
+  onSamplesGridReady = (params) => {
+    this.samplesGridApi = params.api;
+    this.samplesColumnApi = params.columnApi;
+    this.autoSizeAll(this.samplesColumnApi);
+  }
+
+  onOrthologyGridReady = (params) => {
+    // this.samplesGridApi = params.api;
+    // this.samplesColumnApi = params.columnApi;
+    this.autoSizeAll(params.columnApi);
+  }
+
+  renderOrthology = () => {
+    if (this.state.showOrthology === true) return (
+      <div id="OrthologyGrid" style={{ marginTop: '72px' }}>
+        <h3 className="ui header">Orthology table</h3>
+        <div
+          className="ag-theme-balham"
+          style={{
+            height: '300px'
+          }}
+        >
+          <AgGridReact
+            onGridReady={this.onOrthologyGridReady}
+            rowData={this.state.orthologyData}
+            columnDefs={this.state.orthologyColumnDefs}
+            gridOptions={orthologyGridOptions}
+          />
+        </div>
+      </div>
+    );
+    
+    return false;
   }
 
   render() {
@@ -953,10 +1024,10 @@ export default class SearchPage extends React.Component {
                 }}
               >
                 <AgGridReact
-                  onGridReady={this.onGridReady}
-                  rowData={this.state.rowData}
-                  columnDefs={this.state.columnDefs}
-                  gridOptions={this.state.gridOptions}
+                  onGridReady={this.onSamplesGridReady}
+                  rowData={this.state.samplesRowData}
+                  columnDefs={samplesColumnDefs}
+                  gridOptions={samplesGridOptions}
                 />
               </div>
             </div>
@@ -1041,6 +1112,8 @@ export default class SearchPage extends React.Component {
           >
             Show results
           </Button>
+
+          { this.renderOrthology() }
 
           <Plotly
             ref={this.heatmapRef}

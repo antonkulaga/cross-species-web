@@ -90,8 +90,8 @@ app.get('/api/getGeneExpression', async (req, res, next) => {
 });
 
 app.get('/api/getSpecies', async (req, res, next) => {
-  const result = await querySpecies();
   console.log('/api/getSpecies');
+  const result = await querySpecies();
   res.send(result);
 });
 
@@ -132,7 +132,7 @@ app.get('/api/getSamples', async (req, res, next) => {
 });
 
 app.post('/api/getExpressions', async (req, res, next) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { runs, genes } = req.body;
   const result = await queryExpressions(runs, genes);
   console.log('/api/getExpressions');//, genes, species, result);
@@ -151,7 +151,7 @@ async function queryExpressions(runs, genes) {
       values ?expression { samples:has_${genes.join('_expression samples:has_')}_expression } .
       ?run ?expression ?tpm .
     }`;
-  console.log(query)
+  // console.log(query)
   const payload = new graphdb.query.GetQueryPayload()
     .setQuery(query)
     .setQueryType(graphdb.query.QueryType.SELECT)
