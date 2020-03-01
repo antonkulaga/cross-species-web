@@ -40,6 +40,7 @@ let ALL_X_VALUES = [];
 let ALL_Y_VALUES = [];
 let GENE_EXPRESSIONS = [];
 let allZValues = [];
+let hashString = {};
 
 let SPECIES_TO_ENSEMBL = [];
 
@@ -325,6 +326,7 @@ export default class SearchPage extends React.Component {
   // }
 
   async getGeneExpression(runs, genes) {
+
     console.log('getExpressions');// remove api
     
     let response = await fetch('/api/getExpressions', {
@@ -349,6 +351,7 @@ export default class SearchPage extends React.Component {
     var hashXValues = [];
     var allXValues = [];
 
+
     for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
       if(hashYValues[GENE_EXPRESSIONS[i].gene] == null){
         allYValues.push(GENE_EXPRESSIONS[i].gene);
@@ -360,6 +363,16 @@ export default class SearchPage extends React.Component {
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
         allXValues.push(GENE_EXPRESSIONS[i].run);
         hashXValues[GENE_EXPRESSIONS[i].run] = true;
+        
+      }
+
+      if(hashString[GENE_EXPRESSIONS[i].run] == null){
+        hashString[GENE_EXPRESSIONS[i].run] = [];
+        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
+        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
+      } else {
+        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
+        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
       }
     }
 
@@ -374,10 +387,6 @@ export default class SearchPage extends React.Component {
     ALL_X_VALUES = allXValues; ALL_Y_VALUES = allYValues;
 
     this.renderHeatmap();
-    // console.log("getGeneExpression", GENE_EXPRESSIONS);
-
-    // setTimeout(() =>  this.renderHeatmap(), 2000);
-
   }
 
 
@@ -686,6 +695,7 @@ export default class SearchPage extends React.Component {
       })
     });
 
+
     this.setState({
       showOrthology: true
     });
@@ -757,33 +767,40 @@ export default class SearchPage extends React.Component {
     console.log("speciesHash", speciesHash);
 
     // sort ALL_X_VALUES by maximum lifespan descending
-    const maximumLifesSpanBySpecies = {};
-    for (var i = 0; i < this.selectedRows.length; i++) {
-      maximumLifesSpanBySpecies[this.selectedRows[i].run] = this.selectedRows[i].maximum_longevity;
-    }
-    for (var i = 0; i < ALL_X_VALUES.length - 1; i++) {
-      for (var j = i + 1; j < ALL_X_VALUES.length; j++) {
-        if (maximumLifesSpanBySpecies[ALL_X_VALUES[i]] == null) {
-          maximumLifesSpanBySpecies[ALL_X_VALUES[i]] = 0;
-        }
+    // const maximumLifesSpanBySpecies = {};
+    // for (var i = 0; i < this.selectedRows.length; i++) {
+    //   maximumLifesSpanBySpecies[this.selectedRows[i].run] = this.selectedRows[i].maximum_longevity;
+    // }
+    // for (var i = 0; i < ALL_X_VALUES.length - 1; i++) {
+    //   for (var j = i + 1; j < ALL_X_VALUES.length; j++) {
+    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[i]] == null) {
+    //       maximumLifesSpanBySpecies[ALL_X_VALUES[i]] = 0;
+    //     }
 
-        if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] == null) {
-          maximumLifesSpanBySpecies[ALL_X_VALUES[j]] = 0;
-        }
+    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] == null) {
+    //       maximumLifesSpanBySpecies[ALL_X_VALUES[j]] = 0;
+    //     }
 
-        if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] > maximumLifesSpanBySpecies[ALL_X_VALUES[i]]) {
-          const aux = ALL_X_VALUES[j];
-          ALL_X_VALUES[j] = ALL_X_VALUES[i];
-          ALL_X_VALUES[i] = aux;
-        }
-      }
-    }
-
+    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] > maximumLifesSpanBySpecies[ALL_X_VALUES[i]]) {
+    //       const aux = ALL_X_VALUES[j];
+    //       ALL_X_VALUES[j] = ALL_X_VALUES[i];
+    //       ALL_X_VALUES[i] = aux;
+    //     }
+    //   }
+    // }  
+    console.log("allYValues", ALL_Y_VALUES);
     console.log(ALL_Y_VALUES.length, ALL_X_VALUES.length);
     let alreadyUsedSample = {};
-
+    let alreadyUsedGene = {}
+    let hash = {};
     for (var i = 0; i < ALL_Y_VALUES.length; i++) {
+      hash[i] = [];
       // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
+      if(alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] != null){
+        continue;
+      } else {
+        alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] = 1;
+      }
 
       for (var j = 0; j < ALL_X_VALUES.length; j++) {
         // if (!this.isSelectedSample(ALL_X_VALUES[j])) { continue; }
@@ -795,6 +812,16 @@ export default class SearchPage extends React.Component {
         // }
 
         // console.log(i, j)
+        if(hash[i][j] != null){
+          continue;
+        } else {
+          hash[i].push(1);
+        }
+
+        if(ALL_Y_VALUES[i] == "ENSG00000126603"){
+          console.log(i, "ALL Y ENSG00000126603" + "at " + j);
+        }
+
         const currentValue = allZValues[i][j];// TODO: parseInt?
         if (currentValue != 0.0) {
           var textColor = 'white';
@@ -808,7 +835,8 @@ export default class SearchPage extends React.Component {
           // x: ALL_X_VALUES[j],
 
           y: ENSEMBL_TO_NAME[ALL_Y_VALUES[i]],
-          text: parseFloat(allZValues[i][j]).toFixed(2),
+          text: parseFloat(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]).toFixed(2),
+
           // font: {
           //     family: 'Arial',
           //     size: 5,
@@ -822,7 +850,7 @@ export default class SearchPage extends React.Component {
         };
         xValues.push(`${speciesHash[ALL_X_VALUES[j]]}, ${ALL_X_VALUES[j]}`);
         yValues.push(ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]);
-        zValues.push(allZValues[i][j]);
+        zValues.push(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]);
         this.layout.annotations.push(result);
       }
 
@@ -898,12 +926,14 @@ export default class SearchPage extends React.Component {
   }
 
   async onClickShowResults() {
+
     this.getOrthology();
 
     this.setState({ displayHeatmap: 'block' });
 
    
     // console.log('show results', this.state.selectedGenes);
+
     this.selectedRows = this.samplesGridApi.getSelectedRows();
 
     console.log("show results selected genes", this.state.selectedGenes);
