@@ -206,6 +206,8 @@ export default class SearchPage extends React.Component {
       species: [],
       data: null,
       selectedGenes: [],
+      genesFromOrthology: [],
+      runsFromOrthology: [],
       selectedGenesByName: [],
       selectedGenesSymbols: [],
       selectedPredefinedGenes: [],
@@ -327,7 +329,10 @@ export default class SearchPage extends React.Component {
 
   async getGeneExpression(runs, genes) {
 
-    console.log('getExpressions');// remove api
+    console.log('getExpressions runs and gense', JSON.stringify({
+        runs,
+        genes
+      }));
     
     let response = await fetch('/api/getExpressions', {
       method: 'post',
@@ -343,7 +348,7 @@ export default class SearchPage extends React.Component {
 
     GENE_EXPRESSIONS = await response.json();
     // allZValues = GENE_EXPRESSIONS;
-    console.log("getGeneExpression", GENE_EXPRESSIONS); 
+    console.log("getGeneExpression",  JSON.stringify(GENE_EXPRESSIONS)); 
 
     var allYValues = [];
     var allXValues = []
@@ -359,7 +364,7 @@ export default class SearchPage extends React.Component {
       }
     }
 
-    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
+    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){ 
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
         allXValues.push(GENE_EXPRESSIONS[i].run);
         hashXValues[GENE_EXPRESSIONS[i].run] = true;
@@ -379,7 +384,7 @@ export default class SearchPage extends React.Component {
     for(var i = 0; i < genes.length; i++){
       allZValues[i] = [];
       for(var j = i; j < GENE_EXPRESSIONS.length; j += genes.length){ 
-        console.log(j, GENE_EXPRESSIONS[j].tpm);
+        // console.log(j, GENE_EXPRESSIONS[j].tpm);
         allZValues[i].push(GENE_EXPRESSIONS[j].tpm);
       }
     }
@@ -433,6 +438,7 @@ export default class SearchPage extends React.Component {
   }
 
   async refreshSelectedGenes() {
+    console.log("refreshSelectedGenes");
     let selectedGenes = [];
     const { selectedGenesSymbols } = this.state;
     const { selectedPredefinedGenes } = this.state;
@@ -441,7 +447,18 @@ export default class SearchPage extends React.Component {
     selectedGenes = selectedGenesSymbols;
     selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
     selectedGenes = selectedGenes.concat(selectedGeneIds);
-    await this.setState({ selectedGenes });
+    var filteredGenes = [];
+    var hashGenes = [];
+    for(var i = 0; i < selectedGenes.length; i++){
+      if(hashGenes[selectedGenes[i].key] == null){
+        hashGenes[selectedGenes[i].key] = 1;
+      } else {
+        continue;
+      }
+      filteredGenes.push(selectedGenes[i]);
+    }
+    console.log("filteredGenes", filteredGenes)
+    await this.setState({ selectedGenes: filteredGenes });
     await this.addGenesToDictionary(selectedGenes);
   }
 
@@ -656,15 +673,18 @@ export default class SearchPage extends React.Component {
   async getOrthology() {
     const selectedSamples = this.samplesGridApi.getSelectedRows();
     
-    let selectedSpecies = {};
+    this.speciesToSRR = {};
     selectedSamples.forEach((sample) => {
-      selectedSpecies[sample.organism] = true;
+      if(!this.speciesToSRR[sample.organism])
+        this.speciesToSRR[sample.organism] = [];
+      else
+        this.speciesToSRR[sample.organism].push(sample.run);
     });
-    selectedSpecies = Object.keys(selectedSpecies);
+    this.selectedSpecies = Object.keys(this.speciesToSRR);
 
     await this.setState({
       orthologyColumnDefs: baseOrthologyColumnDefs.concat(
-        selectedSpecies.map(species => ({
+        this.selectedSpecies.map(species => ({
           headerName: species,
           field: species
         }))
@@ -683,7 +703,25 @@ export default class SearchPage extends React.Component {
       })
     });
     orthologyResponse = await orthologyResponse.json();
-    console.log(orthologyResponse);
+
+    console.log("orthologyResponse", orthologyResponse);
+
+    var genes = [];
+    var runs = [];
+    for(var key in orthologyResponse) {
+      var array = orthologyResponse[key];
+
+      for(var i = 0; i < array.length; i++){
+        genes.push(array[i].ortholog_id);
+        runs.push(array[i].ortholog_species);
+        ENSEMBL_TO_NAME[array[i].ortholog_id] = array[i].ortholog_symbol;
+      }
+    } 
+    
+    await this.setState({ genesFromOrthology: genes, runsFromOrthology: runs });
+    console.log("genesFromOrthology", genes);
+    console.log("runsFromOrthology", runs);
+
 
     await this.setState({
       orthologyData: Object.keys(orthologyResponse).map((geneId) => {
@@ -802,11 +840,11 @@ export default class SearchPage extends React.Component {
     for (var i = 0; i < ALL_Y_VALUES.length; i++) {
       hash[i] = [];
       // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
-      if(alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] != null){
-        continue;
-      } else {
-        alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] = 1;
-      }
+      // if(alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] != null){
+      //   continue;
+      // } else {
+      //   alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] = 1;
+      // }
 
       for (var j = 0; j < ALL_X_VALUES.length; j++) {
         // if (!this.isSelectedSample(ALL_X_VALUES[j])) { continue; }
@@ -817,16 +855,13 @@ export default class SearchPage extends React.Component {
         //   alreadyUsedSample[ALL_X_VALUES[j]] = 1;
         // }
 
-        // console.log(i, j)
-        if(hash[i][j] != null){
-          continue;
-        } else {
-          hash[i].push(1);
-        }
+        // // console.log(i, j)
+        // if(hash[i][j] != null){
+        //   continue;
+        // } else {
+        //   hash[i].push(1);
+        // }
 
-        if(ALL_Y_VALUES[i] == "ENSG00000126603"){
-          console.log(i, "ALL Y ENSG00000126603" + "at " + j);
-        }
 
         const currentValue = allZValues[i][j];// TODO: parseInt?
         if (currentValue != 0.0) {
@@ -866,12 +901,12 @@ export default class SearchPage extends React.Component {
     this.layout.width = Math.max(500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
-    const logColors = zValues.map(x =>
-    // TODO: parseInt?
-    // if(!x) return 0;
-      Math.log(x + 1)// TODO: divide / Math.log(10);
-    );
-    console.log(logColors);
+    // const logColors = zValues.map(x =>
+    // // TODO: parseInt?
+    // // if(!x) return 0;
+    //   Math.log(x + 1)// TODO: divide / Math.log(10);
+    // );
+    // console.log(logColors);
 
     // const maxVal = parseInt(
     //   Math.exp(
@@ -932,11 +967,13 @@ export default class SearchPage extends React.Component {
   }
 
   async onClickShowResults() {
+   
 
-    this.getOrthology();
+     //filter selectedGenes  
+
+    await this.getOrthology();
 
     this.setState({ displayHeatmap: 'block' });
-
    
     // console.log('show results', this.state.selectedGenes);
 
@@ -949,14 +986,14 @@ export default class SearchPage extends React.Component {
     var selectedRows = this.samplesGridApi.getSelectedRows();
     var runs = [];
     var genes = [];
+    var runsHash = [];
+    var runsFromOrthology = this.state.runsFromOrthology;
+
     for(var i = 0; i < selectedRows.length; i++){
       runs.push(selectedRows[i].run);
     }
 
-    for(var i = 0; i< selectedGenes.length; i++){
-      genes.push(selectedGenes[i].key);
-    }
-
+    genes = this.state.genesFromOrthology;
     await this.getGeneExpression(runs, genes);     
   }
 
