@@ -690,7 +690,12 @@ export default class SearchPage extends React.Component {
         const row = {};
         row.selected_gene = geneId;
         orthologyResponse[geneId].forEach((ortholog) => {
-          row[ortholog.ortholog_species] = ortholog.ortholog_id;
+          if (!row[ortholog.ortholog_species]) {
+            row[ortholog.ortholog_species] = ortholog.ortholog_id;
+          }
+          else {
+            row[ortholog.ortholog_species] += `, ${ortholog.ortholog_id}`;
+          }
         });
         return row;
       })
@@ -702,7 +707,7 @@ export default class SearchPage extends React.Component {
     });
   }
 
-  renderHeatmap(){
+  renderHeatmap() {
     const xValues = [];
     const xIndices = [];
 
