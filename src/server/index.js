@@ -117,6 +117,20 @@ app.post('/api/getOrthologyOne2One', async (req, res, next) => {
   res.send(result);
 });
 
+app.post('/api/getOrthologyOne2Many', async (req, res, next) => {
+  console.log(req.body);
+  const { genes, samples } = req.body;
+  // const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
+  let species = {};
+  samples.forEach((sample) => {
+    species[sample.organism] = true;
+  });
+  species = Object.keys(species);
+  const result = await queryOrthology(genes, species, ORTHOLOGY_TYPES.slice(0, 2));
+  console.log('/api/getOrthologyOne2One');//, genes, species, result);
+  res.send(result);
+});
+
 app.post('/api/getOrthologyAll', async (req, res, next) => {
   const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]');
   const species = JSON.parse(req.query.species || '["Homo_sapiens"]');// , "ENSG00000139990", "ENSG00000073921"]');
@@ -262,12 +276,13 @@ async function queryOrthology(genes, species, orthologyTypes) {
   SELECT ?selected_genes ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_gene   WHERE { 
       values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
       values ?selected_genes { ens:${genes.join(' ens:')} }
-      ?selected_species :has_gene ?selected_genes .    
-      GRAPH <http://rdf.ebi.ac.uk/resource/ensembl/confidence/high> {    
-          values ?orthology { ${orthologyTypes.join(' ')} }
-          ?selected_genes ?orthology ?ortholog .   
-      }
-    ?ortholog rdfs:label ?ortholog_gene .
+      ?selected_species :has_gene ?selected_genes .   
+
+      values ?orthology { ${orthologyTypes.join(' ')} }
+      ?selected_genes ?orthology ?ortholog .   
+
+      OPTIONAL { ?ortholog rdfs:label ?ortholog_gene . }
+
       ?target_species :has_gene ?ortholog .
       ?target_species :has_common_name ?common_name .
   } ORDER BY ?selected_genes ?ortholog ?species`;
@@ -282,6 +297,7 @@ async function queryOrthology(genes, species, orthologyTypes) {
     const orthology = {};
     stream.on('data', (bindings) => {
       // the bindings stream converted to data objects with the registered parser
+      // console.log(bindings)
       if (!orthology[bindings.selected_genes.id.slice(RDF_PREFIX)]) {
         orthology[bindings.selected_genes.id.slice(RDF_PREFIX)] = [];
       }
@@ -289,12 +305,13 @@ async function queryOrthology(genes, species, orthologyTypes) {
         ortholog_id: bindings.ortholog.id.slice(RDF_PREFIX),
         ortholog_species: bindings.target_species.id.slice(LAB_RESOURCE_PREFIX),
         orthology: bindings.orthology.id.slice(RDF_PREFIX),
-        ortholog_symbol: bindings.ortholog_gene.id.replace(/"/g, ''),
+        ortholog_symbol: (bindings.ortholog_gene || {id:''}).id.replace(/"/g, ''),
         ortholog_common_name: bindings.common_name.id.replace(/"/g, '')
       });
     });
     stream.on('end', () => {
       // handle end of the stream
+      console.log(orthology)
       resolve(orthology);
     });
   }));

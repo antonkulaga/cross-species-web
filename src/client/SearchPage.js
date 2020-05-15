@@ -671,7 +671,7 @@ export default class SearchPage extends React.Component {
       )
     });
 
-    let orthologyResponse = await fetch('/api/getOrthologyOne2One', {
+    let orthologyResponse = await fetch('/api/getOrthologyOne2Many', {
       method: 'post',
       headers: {
         Accept: 'application/json',
@@ -683,6 +683,7 @@ export default class SearchPage extends React.Component {
       })
     });
     orthologyResponse = await orthologyResponse.json();
+    console.log(orthologyResponse);
 
     await this.setState({
       orthologyData: Object.keys(orthologyResponse).map((geneId) => {
@@ -916,7 +917,7 @@ export default class SearchPage extends React.Component {
     console.log(this.state.data,this.layout,xValues,yValues,zValues)
     console.log(xIndices, yIndices)
     // const heatmapElement = document.getElementById("heatmap");
-    console.log(this.heatmapRef.current.el);
+    // console.log(this.heatmapRef.current.el);
     // scrollIntoViewIfNeeded(this.myheatmap.el, {    
     //     scrollMode: 'if-needed',
     //     behavior: 'smooth'
