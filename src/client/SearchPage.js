@@ -329,10 +329,7 @@ export default class SearchPage extends React.Component {
 
   async getGeneExpression(runs, genes) {
 
-    console.log('getExpressions runs and gense', JSON.stringify({
-        runs,
-        genes
-      }));
+    console.log('getExpressions runs and gense', runs, genes);
     
     let response = await fetch('/api/getExpressions', {
       method: 'post',
@@ -355,12 +352,11 @@ export default class SearchPage extends React.Component {
     var hashYValues = [];
     var hashXValues = [];
     var allXValues = [];
-
-
+    var hashEnsembleName = [];
     for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
-      if(hashYValues[GENE_EXPRESSIONS[i].gene] == null){
-        allYValues.push(GENE_EXPRESSIONS[i].gene);
-        hashYValues[GENE_EXPRESSIONS[i].gene] = true;
+      if(hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] == null && ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene].length > 1){
+        allYValues.push(ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]);
+        hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] = true;
       }
     }
 
@@ -368,18 +364,59 @@ export default class SearchPage extends React.Component {
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
         allXValues.push(GENE_EXPRESSIONS[i].run);
         hashXValues[GENE_EXPRESSIONS[i].run] = true;
-        
-      }
-
-      if(hashString[GENE_EXPRESSIONS[i].run] == null){
-        hashString[GENE_EXPRESSIONS[i].run] = [];
-        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
-        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
-      } else {
-        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
-        hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
       }
     }
+
+    for(var i = 0; i < allXValues.length; i++){
+      var currentSample = allXValues[i];
+      for(var j = 0; j < allYValues.length; j++) {
+        var currentGene = allYValues[j];
+        var found = false;
+        for(var k = 0; k < GENE_EXPRESSIONS.length; k++){
+          if(GENE_EXPRESSIONS[k].run == currentSample && 
+            ENSEMBL_TO_NAME[GENE_EXPRESSIONS[k].gene] == currentGene){
+             if(hashString[currentSample] == null){
+              hashString[currentSample] = [];
+              hashString[currentSample][currentGene] = [];
+              hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
+            } else {
+              hashString[currentSample][currentGene] = [];
+              hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
+            }
+            found = true;
+          }
+         
+        }
+       if(found == false){
+           if(hashString[currentSample] == null){
+            hashString[currentSample] = [];
+            hashString[currentSample][currentGene] = [];
+            hashString[currentSample][currentGene] = "0";
+          } else {
+            hashString[currentSample][currentGene] = [];
+            hashString[currentSample][currentGene] = "0";
+          }
+        }
+      }  
+    }
+    console.log("hashString", hashString);
+
+    // for(var i = 0; i < GENE_EXPRESSIONS.length; i++){ 
+    //   if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
+    //     allXValues.push(GENE_EXPRESSIONS[i].run);
+    //     hashXValues[GENE_EXPRESSIONS[i].run] = true;
+        
+    //   }
+
+    //   if(hashString[GENE_EXPRESSIONS[i].run] == null){
+    //     hashString[GENE_EXPRESSIONS[i].run] = [];
+    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
+    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
+    //   } else {
+    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].fgene] = [];
+    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
+    //   }
+    // }
 
     for(var i = 0; i < genes.length; i++){
       allZValues[i] = [];
@@ -875,7 +912,7 @@ export default class SearchPage extends React.Component {
           x: `${speciesHash[ALL_X_VALUES[j]]}, ${ALL_X_VALUES[j]}`,
           // x: ALL_X_VALUES[j],
 
-          y: ENSEMBL_TO_NAME[ALL_Y_VALUES[i]],
+          y: ALL_Y_VALUES[i],
           text: parseFloat(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]).toFixed(2),
 
           // font: {
@@ -890,7 +927,7 @@ export default class SearchPage extends React.Component {
           }
         };
         xValues.push(`${speciesHash[ALL_X_VALUES[j]]}, ${ALL_X_VALUES[j]}`);
-        yValues.push(ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]);
+        yValues.push(ALL_Y_VALUES[i]);
         zValues.push(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]);
         this.layout.annotations.push(result);
       }
@@ -898,7 +935,7 @@ export default class SearchPage extends React.Component {
       alreadyUsedSample = {};
     }
 
-    this.layout.width = Math.max(500, 75 * xIndices.length);
+    this.layout.width = Math.max(1500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
     // const logColors = zValues.map(x =>
