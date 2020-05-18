@@ -935,7 +935,7 @@ export default class SearchPage extends React.Component {
       alreadyUsedSample = {};
     }
 
-    this.layout.width = Math.max(1500, 75 * xIndices.length);
+    this.layout.width = Math.max(500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
     // const logColors = zValues.map(x =>
