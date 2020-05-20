@@ -211,6 +211,9 @@ export default class SearchPage extends React.Component {
       selectedGenesByName: [],
       selectedGenesSymbols: [],
       selectedPredefinedGenes: [],
+      genesMap:[],
+      runToSpeciesHash:[],
+      genesMapBySpecies:[],
       selectedGeneIds: [],
       selectedOrganism: HUMAN.value,
       organismList: [],
@@ -353,49 +356,103 @@ export default class SearchPage extends React.Component {
     var hashXValues = [];
     var allXValues = [];
     var hashEnsembleName = [];
-    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
-      if(hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] == null && ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene].length > 1){
-        allYValues.push(ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]);
-        hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] = true;
-      }
-    }
+
+    allYValues = Object.keys(this.state.genesMap);
+
+    console.log("allYValuesAl", allYValues);
+
+
+    // for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
+    //   console.log("ensemble gene name", ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene],GENE_EXPRESSIONS[i].genes );
+    //   if(hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] == null && ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene].length > 1){
+    //     allYValues.push(ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]);
+    //     hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] = true;
+    //   }
+    // }
 
     for(var i = 0; i < GENE_EXPRESSIONS.length; i++){ 
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
         allXValues.push(GENE_EXPRESSIONS[i].run);
-        hashXValues[GENE_EXPRESSIONS[i].run] = true;
+        hashXValues[GENE_EXPRESSIONS[i].run] = true;  
       }
     }
 
+    var speciesByRun = this.state.runToSpeciesHash;
+    var genesMappedBySpecies = this.state.genesMapBySpecies;
+    console.log("speciesByRun", speciesByRun);
+    console.log("genesMappedBySpecies", genesMappedBySpecies);
     for(var i = 0; i < allXValues.length; i++){
       var currentSample = allXValues[i];
       for(var j = 0; j < allYValues.length; j++) {
         var currentGene = allYValues[j];
-        var found = false;
-        for(var k = 0; k < GENE_EXPRESSIONS.length; k++){
-          if(GENE_EXPRESSIONS[k].run == currentSample && 
-            ENSEMBL_TO_NAME[GENE_EXPRESSIONS[k].gene] == currentGene){
-             if(hashString[currentSample] == null){
-              hashString[currentSample] = [];
-              hashString[currentSample][currentGene] = [];
-              hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
-            } else {
-              hashString[currentSample][currentGene] = [];
-              hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
-            }
-            found = true;
+
+        var speciesName = speciesByRun[currentSample];
+        console.log('dsgsdgs',speciesName, currentGene + speciesName);
+        var genesFromOrthologyTable = (genesMappedBySpecies[currentGene + speciesName]);
+        if(genesFromOrthologyTable == null){
+          if( hashString[currentSample] == null){
+             hashString[currentSample] = [];
           }
-         
+          hashString[currentSample][currentGene] = "0.00";
+          continue;
+        } 
+        var genesFromOrthologyTable = genesFromOrthologyTable.split(',');
+        console.log('xxx', genesFromOrthologyTable);
+
+
+        var found = false;
+        for(var k = 0; k < genesFromOrthologyTable.length; k++){
+          for(var y = 0 ; y < GENE_EXPRESSIONS.length; y++){
+            if(GENE_EXPRESSIONS[y].run == currentSample &&
+              GENE_EXPRESSIONS[y].gene == genesFromOrthologyTable[k]){
+              console.log("SSSSSS");
+               if(hashString[currentSample] == null){
+                hashString[currentSample] = [];
+                hashString[currentSample][currentGene] = [];
+                hashString[currentSample][currentGene] = GENE_EXPRESSIONS[y].tpm;
+              } else {  
+                if( hashString[currentSample][currentGene] == null){
+                  hashString[currentSample][currentGene] = [];
+                  hashString[currentSample][currentGene] = GENE_EXPRESSIONS[y].tpm;
+                } else  {
+                 hashString[currentSample][currentGene] = JSON.stringify(parseFloat( hashString[currentSample][currentGene]) 
+                  + parseFloat(GENE_EXPRESSIONS[y].tpm));
+                }
+              }
+              found = true;
+              if(found){
+                allZValues.push(hashString[currentSample][currentGene]);
+              }
+            }
+          }
         }
+
+        // var found = false;
+        // for(var k = 0; k < GENE_EXPRESSIONS.length; k++){
+        //   if(GENE_EXPRESSIONS[k].run == currentSample && 
+        //     ENSEMBL_TO_NAME[GENE_EXPRESSIONS[k].gene] == currentGene){
+        //      if(hashString[currentSample] == null){
+        //       hashString[currentSample] = [];
+        //       hashString[currentSample][currentGene] = [];
+        //       hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
+        //     } else {  
+        //       hashString[currentSample][currentGene] = [];
+        //       hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
+        //     }
+        //     found = true;
+        //   }
+         
+        // }
        if(found == false){
-           if(hashString[currentSample] == null){
+          if(hashString[currentSample] == null){
             hashString[currentSample] = [];
             hashString[currentSample][currentGene] = [];
-            hashString[currentSample][currentGene] = "0";
+            hashString[currentSample][currentGene] = "0.00";
           } else {
             hashString[currentSample][currentGene] = [];
-            hashString[currentSample][currentGene] = "0";
+            hashString[currentSample][currentGene] = "0.00";
           }
+          allZValues.push("0.00");
         }
       }  
     }
@@ -417,14 +474,17 @@ export default class SearchPage extends React.Component {
     //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
     //   }
     // }
+    // var k = 0;
+    // allZValues = [];
+    // for(var i = 0; i < allXValues.length; i++){
+    //   for(var j = 0; j < allYValues.length; j++){ 
+    //     // console.log(j, GENE_EXPRESSIONS[j].tpm);
+    //     // /allZValues[i].push(GENE_EXPRESSIONS[j].tpm);
+    //     console.log(allZValues[k]);
+    //     allZValues.push(hashString[allXValues[i]][allYValues[j]]);
 
-    for(var i = 0; i < genes.length; i++){
-      allZValues[i] = [];
-      for(var j = i; j < GENE_EXPRESSIONS.length; j += genes.length){ 
-        // console.log(j, GENE_EXPRESSIONS[j].tpm);
-        allZValues[i].push(GENE_EXPRESSIONS[j].tpm);
-      }
-    }
+    //   }
+    // }
     console.log("allZValues", allZValues);
     ALL_X_VALUES = allXValues; ALL_Y_VALUES = allYValues;
 
@@ -444,6 +504,7 @@ export default class SearchPage extends React.Component {
             console.log('species:', species);
             this.setState({ species });
             const speciesNames = [];
+            const runToSpeciesHash = [];
             for (let i = 0; i < species.length; i++) {
               speciesNames.push({
                 key: species[i].common_name,
@@ -451,6 +512,7 @@ export default class SearchPage extends React.Component {
                 text: species[i].common_name,
                 id: species[i].id
               });
+
               for (let j = 0; j < samples.length; j++) {
                 if (samples[j].organism === species[i].id) {
                   samples[j].lifespan = species[i].lifespan;
@@ -463,12 +525,14 @@ export default class SearchPage extends React.Component {
                   samples[j].animal_class = species[i].animal_class;
                   samples[j].taxon = species[i].taxon;
                 }
+                runToSpeciesHash[samples[j].run] = samples[j].organism;
               }
             }
             console.log('speciesNames', speciesNames);
             console.log('samples', samples);
             this.setState({ organismList: speciesNames });
             this.setState({ samplesRowData: samples });
+            this.setState({ runToSpeciesHash })
             SAMPLES_VALUES = samples;
           });
       });
@@ -759,7 +823,8 @@ export default class SearchPage extends React.Component {
     console.log("genesFromOrthology", genes);
     console.log("runsFromOrthology", runs);
 
-
+    var genesMap = [];
+    var genesMapBySpecies = [];
     await this.setState({
       orthologyData: Object.keys(orthologyResponse).map((geneId) => {
         const row = {};
@@ -767,9 +832,13 @@ export default class SearchPage extends React.Component {
         orthologyResponse[geneId].forEach((ortholog) => {
           if (!row[ortholog.ortholog_species]) {
             row[ortholog.ortholog_species] = ortholog.ortholog_id;
+            genesMap[geneId] = ortholog.ortholog_id;
+            genesMapBySpecies[geneId + ortholog.ortholog_species] = ortholog.ortholog_id;
           }
           else {
             row[ortholog.ortholog_species] += `, ${ortholog.ortholog_id}`;
+            genesMap[geneId] +=`,${ortholog.ortholog_id}`;
+            genesMapBySpecies[geneId + ortholog.ortholog_species] += `,${ortholog.ortholog_id}`
           }
         });
         return row;
@@ -778,7 +847,9 @@ export default class SearchPage extends React.Component {
 
 
     this.setState({
-      showOrthology: true
+      showOrthology: true,
+      genesMap: genesMap,
+      genesMapBySpecies: genesMapBySpecies
     });
   }
 
@@ -900,19 +971,19 @@ export default class SearchPage extends React.Component {
         // }
 
 
-        const currentValue = allZValues[i][j];// TODO: parseInt?
-        if (currentValue != 0.0) {
+        const currentValue = parseFloat(allZValues[i][j]);// TODO: parseInt?
+        // if (currentValue != 0.0) {
           var textColor = 'white';
-        } else {
-          var textColor = 'black';
-        }
+        // } else {
+        //   var textColor = 'black';
+        // }
         const result = {
           xref: 'x1',
           yref: 'y1',
           x: `${speciesHash[ALL_X_VALUES[j]]}, ${ALL_X_VALUES[j]}`,
           // x: ALL_X_VALUES[j],
 
-          y: ALL_Y_VALUES[i],
+          y: ENSEMBL_TO_NAME[ALL_Y_VALUES[i]],
           text: parseFloat(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]).toFixed(2),
 
           // font: {
@@ -927,7 +998,7 @@ export default class SearchPage extends React.Component {
           }
         };
         xValues.push(`${speciesHash[ALL_X_VALUES[j]]}, ${ALL_X_VALUES[j]}`);
-        yValues.push(ALL_Y_VALUES[i]);
+        yValues.push(ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]);
         zValues.push(hashString[ALL_X_VALUES[j]][ALL_Y_VALUES[i]]);
         this.layout.annotations.push(result);
       }
