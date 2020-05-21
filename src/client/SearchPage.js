@@ -574,18 +574,19 @@ export default class SearchPage extends React.Component {
 
   onSearchGenes(values) {
     // console.log("onSearchGenes", values.state.search);
+    var searchTxt = (values.state.search).toUpperCase();
     // console.log(this.state.genes);
     const { lastSearchGenes } = this.state;
-    if (values.state.search.length >= 1 && lastSearchGenes != values.state.search) {
+    if (searchTxt.length >= 1 && lastSearchGenes != searchTxt) {
       // console.log("XXXXXX");
-      this.setState({ lastSearchGenes: values.state.search });
+      this.setState({ lastSearchGenes: searchTxt });
       const { allGenes } = this.state;
       const filteredGenes = [];
 
       for (let i = 0; i < allGenes.length; i++) {
         const curr = allGenes[i];
 
-        if ((curr.text).indexOf(values.state.search) == 0) {
+        if ((curr.text).indexOf(searchTxt) == 0) {
           filteredGenes.push(curr);
         }
       }
@@ -594,7 +595,7 @@ export default class SearchPage extends React.Component {
         this.setState({ genes: filteredGenes.slice(0, 50) });
       }
     } else {
-      // console.log("same search", values.state.search);
+      // console.log("same search", searchTxt);
     }
   }
 

@@ -53,6 +53,8 @@ async function readFile(path) {
 
 app.use(express.static('dist'));
 
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
@@ -118,7 +120,7 @@ app.post('/api/getOrthologyOne2One', async (req, res, next) => {
 });
 
 app.post('/api/getOrthologyOne2Many', async (req, res, next) => {
-  console.log(req.body);
+  console.log("/api/getOrthologyOne2Many", req.body);
   const { genes, samples } = req.body;
   // const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
   let species = {};
