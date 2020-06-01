@@ -377,17 +377,17 @@ async function querySpecies() {
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
       PREFIX : <http://aging-research.group/resource/>
-      
+
       SELECT * WHERE {     
             ?species :has_common_name ?common_name .
             ?species :has_ensembl_url ?ensembl_url .
             ?species :is_animal_class ?animal_class .
             ?species :has_lifespan ?lifespan .
-            ?species :has_mass_g ?mass_g .
-            ?species :has_metabolic_rate ?metabolic_rate .
+            OPTIONAL { ?species :has_mass_g ?mass_g . }
+            OPTIONAL { ?species :has_metabolic_rate ?metabolic_rate . }
             ?species :has_taxon ?taxon . 
-            ?species :has_temperature_kelvin ?temperature_kelvin .
-          ?species rdf:type :Species .
+            OPTIONAL { ?species :has_temperature_kelvin ?temperature_kelvin . }
+            ?species rdf:type :Species .
       }
     `)
     .setQueryType(graphdb.query.QueryType.SELECT)
@@ -399,15 +399,15 @@ async function querySpecies() {
       const speciesNames = [];
       stream.on('data', (bindings) => {
         // the bindings stream converted to data objects with the registered parser
-        // console.log('@@', bindings);
+        console.log('@@', bindings);
         speciesNames.push({
           id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
           common_name: bindings.common_name.id.replace(/"/g, ''),
-          mass_g: getNumberFromRDF(bindings.mass_g.id),
+          mass_g:bindings.mass_g? getNumberFromRDF(bindings.mass_g.id) : '',
           ensembl_url: bindings.ensembl_url.id,
           lifespan: getNumberFromRDF(bindings.lifespan.id),
-          metabolic_rate: getNumberFromRDF(bindings.metabolic_rate.id),
-          temperature_kelvin: getNumberFromRDF(bindings.temperature_kelvin.id),
+          metabolic_rate: bindings.metabolic_rate ? getNumberFromRDF(bindings.metabolic_rate.id) : '',
+          temperature_kelvin: bindings.temperature_kelvin ? getNumberFromRDF(bindings.temperature_kelvin.id) : '',
           animal_class: bindings.animal_class.id,
           taxon: bindings.taxon.id.slice('http://rdf.ebi.ac.uk/resource/ensembl/taxon#'.length)
         });
