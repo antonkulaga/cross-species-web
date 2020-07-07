@@ -194,38 +194,39 @@ async function querySamples() {
   repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
 
   const payload = new graphdb.query.GetQueryPayload()
-    .setQuery(`
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX owl: <http://www.w3.org/2002/07/owl#>
-      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
-      PREFIX samples:<http://aging-research.group/samples/>
-      PREFIX : <http://aging-research.group/resource/>
-      
-      SELECT * WHERE
-      {
-          ?bioproject rdf:type samples:Bioproject . #gets all bioprojects
-          ?bioproject samples:has_series ?series .
-          ?series samples:has_run ?run . #gets sequencing runs from experimental series
-          ?run samples:has_organism ?organism . #species
-          ?run samples:has_sample_name ?sample_name .
-          ?run samples:has_characteristics ?characterists .    
-          ?run samples:has_sequencer ?sequencer .    
-          ?run samples:has_age ?age .
-          ?run samples:has_sex ?sex .
-          ?run samples:has_tumor ?tumor .    
-          ?run samples:has_source ?source .    
-          ?run samples:has_study ?study .
-          ?run samples:has_study_title ?study_title .            
-          ?run samples:has_salmon_version ?salmon_version .
-          ?run samples:has_library_layout ?library_layout .
-          ?run samples:has_library_selection ?library_selection .
-          ?run samples:has_library_strategy ?library_strategy .
-          ?run samples:has_libType ?lib_type .
-          ?run samples:has_numBootstraps ?bootstrap .
-          ?run samples:has_modified ?modified .
-          ?run samples:has_protocol ?protocol .
-      } ORDER BY ?organism ?bioproject ?series ?run
+    .setQuery(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX owl: <http://www.w3.org/2002/07/owl#>
+    PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+    PREFIX samples:<http://aging-research.group/samples/>
+    PREFIX ncbi: <https://www.ncbi.nlm.nih.gov/>
+    PREFIX : <http://aging-research.group/resource/>
+    
+    SELECT * WHERE
+    {
+        ?bioproject rdf:type samples:Bioproject . #gets all bioprojects
+        ?bioproject samples:has_series ?series .
+        ?series samples:has_run ?run . #gets sequencing runs from experimental series
+        ?run samples:has_organism ?organism . #species
+        ?run samples:used_in_project :Cross-species . #defines the project
+        ?run samples:of_tissue ?tissue . #gets tissue
+        ?run samples:has_sample_name ?sample_name .
+        ?run samples:has_characteristics ?characterists .    
+        ?run samples:has_sequencer ?sequencer .    
+        ?run samples:has_age ?age .
+        ?run samples:has_sex ?sex .
+        ?run samples:has_tumor ?tumor .    
+        ?run samples:has_source ?source .    
+        ?run samples:has_study ?study .
+        ?run samples:has_study_title ?study_title .            
+        ?run samples:has_salmon_version ?salmon_version .
+        ?run samples:has_library_layout ?library_layout .
+        ?run samples:has_library_selection ?library_selection .
+        ?run samples:has_library_strategy ?library_strategy .
+        ?run samples:has_libType ?lib_type .
+        ?run samples:has_numBootstraps ?bootstrap .
+        ?run samples:has_protocol ?protocol .
+    } ORDER BY ?organism ?bioproject ?series ?run
     `)
     .setQueryType(graphdb.query.QueryType.SELECT)
     .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
