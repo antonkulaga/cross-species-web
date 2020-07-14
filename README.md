@@ -1,20 +1,45 @@
 # cross-species-web 
 
 ## How to run 
-1. Run `npm install` to install all dependencies.
-2. Run `npm dev` to start the app in dev mode or `npm start` to start it in production.
-   
-### Issues
-1. By default the server is on port 8080 and the client on port 8081 but you can specify
-`PORT=8082` `npm start` or any other value instead of 8082
-2. By default the host is `0.0.0.0` but you can specify `HOST=localhost` `npm start`
-3. Try `npm start-dev` or starting the server and client separately `npm server` / `npm client`
+
+### with yarn ###
+
+1. Run `yarn install` to install all dependencies.
+2. Run `yarn run`, then select dev to start the app in development mode
+
+### with docker container ###
+
+```bash
+bin/run-docker.sh
+```
+
+## Installing dependencies ##
+
+### Linux ###
+
+The project depends on nodejs and yarn. Note: official software sources of Linux distributions rely on outdated versions of node and yarn
+The easiest way to install latest nodejs is using https://github.com/nvm-sh/nvm
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+nvm install v14.5.0
+```
+To install yarn:
+```bash
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt update && sudo apt install --no-install-recommends yarn
+```
 
 ## Docker container ##
-Building docker container is done by running:
+Building docker container is done by running build bash script from the root folder of the project:
 ```bash
 bin/build-docker.sh
 ```
+or alternatively you can:
+```bash
+docker build -t quay.io/comp-bio-aging/cross_species_web:latest -f docker/Dockerfile .
+```
+
 Running docker container:
 ```bash
 bin/run-docker.sh

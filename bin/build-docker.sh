@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -t quay.io/comp-bio-aging/cross_species_web .
+docker build -t quay.io/comp-bio-aging/cross_species_web:latest -f docker/Dockerfile .
