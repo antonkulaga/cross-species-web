@@ -19,6 +19,8 @@ import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
 import Select from 'react-dropdown-select';
 
+import Loader from 'react-loader-spinner';
+
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -204,6 +206,7 @@ export default class SearchPage extends React.Component {
     this.heatmapRef = React.createRef();
     this.state = {
       species: [],
+      showLoader: false,
       data: null,
       selectedGenes: [],
       genesFromOrthology: [],
@@ -489,6 +492,7 @@ export default class SearchPage extends React.Component {
     ALL_X_VALUES = allXValues; ALL_Y_VALUES = allYValues;
 
     this.renderHeatmap();
+    this.setState({showLoader: false});
   }
 
 
@@ -536,6 +540,7 @@ export default class SearchPage extends React.Component {
             SAMPLES_VALUES = samples;
           });
       });
+
   }
 
   async refreshSelectedGenes() {
@@ -1079,8 +1084,14 @@ export default class SearchPage extends React.Component {
    
 
      //filter selectedGenes  
+         this.setState({showLoader: false})
 
+    this.setState({showLoader: true})
+    this.forceUpdate();
     await this.getOrthology();
+
+    console.log("click show results", this.state.showLoader);
+
 
     this.setState({ displayHeatmap: 'block' });
    
@@ -1170,6 +1181,18 @@ export default class SearchPage extends React.Component {
     } = this.state;
     return (
       <div className="ui intro">
+         {this.state.showLoader && <Loader
+               type="ThreeDots"
+               color="#00BFFF"
+               height={200}
+               width={200}
+               timeout={1000000} 
+               style={ { position: "fixed",
+               top: "50%", 
+               left: "50%",
+               transform: "translate(-50%, -50%)" }}
+
+            />}
         <div
           className="ui main"
           style={{
@@ -1177,6 +1200,8 @@ export default class SearchPage extends React.Component {
           }}
         >
           {/* <SamplesGrid /> */}
+
+
           <div id="SamplesGrid">
             <h3 className="ui header">Select samples</h3>
             <div style={{ marginBottom: '5px' }}>
@@ -1296,7 +1321,7 @@ export default class SearchPage extends React.Component {
           </Button>
 
           { this.renderOrthology() }
-
+        
           <Plotly
             ref={this.heatmapRef}
             data={this.state.data}
@@ -1309,6 +1334,8 @@ export default class SearchPage extends React.Component {
           {/* ref={(el) => { this.heatmapRef = el; }} */}
 
         </div>
+
+
       </div>
     );
   }
