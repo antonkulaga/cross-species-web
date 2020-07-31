@@ -249,13 +249,13 @@ export default class SearchPage extends React.Component {
   }
 
   componentWillMount() {
+    this.getReferenceOrgGenes('Homo_sapiens');
     this.getSamplesAndSpecies();
     this.getGenesPro();
     this.getGenesAnti();
     this.getEnsembleToName();
     // this.getAllXValues();
     // this.getAllYValues();
-    this.getReferenceOrgGenes('Homo_sapiens');
   }
 
   getGenesPro() {
@@ -678,6 +678,8 @@ export default class SearchPage extends React.Component {
   }
 
   async getReferenceOrgGenes(referenceOrg) {
+    this.setState({showLoader: true})
+    this.forceUpdate();
     fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
       .then(res => res.json())
       .then((response) => {
@@ -700,6 +702,8 @@ export default class SearchPage extends React.Component {
         }
         this.setState({ allGenes: results });
         this.setState({ genes: results.slice(0, 30) });
+        this.setState({ showLoader: false })
+
       });
   }
 

@@ -39,6 +39,8 @@ const ORTHOLOGY_TYPES = [
   'ens:ortholog_many2many'
 ];
 
+var cachedHumanGenes = null;
+
 const app = express();
 
 async function readFile(path) {
@@ -100,9 +102,19 @@ app.get('/api/getSpecies', async (req, res, next) => {
 app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
   const referenceOrg = req.query.referenceOrg || 'Homo_sapiens';
   console.log('/api/getReferenceOrgGenes', referenceOrg);
-  const result = await queryReferenceOrgGenes(referenceOrg);
-  // console.log(result);
-  res.send(result);
+  if(referenceOrg == "Homo_sapiens" && cachedHumanGenes != null){
+    const result = cachedHumanGenes;
+    console.log("has cache");
+    res.send(result);
+  } else {
+    const result = await queryReferenceOrgGenes(referenceOrg);
+    if(referenceOrg == "Homo_sapiens" && cachedHumanGenes == null){
+      cachedHumanGenes = result;
+      console.log("no cache");
+    }
+    // console.log(result);
+    res.send(result);
+  }
 });
 
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
