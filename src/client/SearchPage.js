@@ -536,10 +536,14 @@ export default class SearchPage extends React.Component {
             console.log('speciesNames', speciesNames);
             console.log('samples', samples);
 
+            for(var i = 0; i < samples.length; i++){
+              samples[i].lifespan = parseFloat(samples[i].lifespan);
+            }
+
             for (var i = 0; i < samples.length - 1; i++) {
               for (var j = i + 1; j < samples.length; j++) {
               
-                if (parseFloat(samples[j].lifespan) > parseFloat(samples[i].lifespan)) {
+                if (samples[j].lifespan > samples[i].lifespan) {
                   const aux = samples[j];
                   samples[j] = samples[i];
                   samples[i] = aux;
