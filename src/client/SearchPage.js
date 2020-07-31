@@ -1104,6 +1104,7 @@ export default class SearchPage extends React.Component {
 
   async onClickShowResults() {
    
+    //check if all data are selected
 
      //filter selectedGenes  
          this.setState({showLoader: false})
@@ -1123,6 +1124,19 @@ export default class SearchPage extends React.Component {
 
     console.log("show results selected genes", this.state.selectedGenes);
     console.log("show results selected runs", this.samplesGridApi.getSelectedRows());
+    if((this.samplesGridApi.getSelectedRows()).length == 0){
+      alert("Please select samples!");
+      this.setState({showLoader: false})
+
+      return;
+    }
+
+     if((this.state.selectedGenes).length == 0){
+      alert("Please select genes!");
+      this.setState({showLoader: false})
+      return;
+    }
+
 
     var selectedGenes = this.state.selectedGenes;
     var selectedRows = this.samplesGridApi.getSelectedRows();
