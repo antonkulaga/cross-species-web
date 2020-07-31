@@ -532,8 +532,21 @@ export default class SearchPage extends React.Component {
                 runToSpeciesHash[samples[j].run] = samples[j].organism;
               }
             }
+
             console.log('speciesNames', speciesNames);
             console.log('samples', samples);
+
+            for (var i = 0; i < samples.length - 1; i++) {
+              for (var j = i + 1; j < samples.length; j++) {
+              
+                if (parseFloat(samples[j].lifespan) > parseFloat(samples[i].lifespan)) {
+                  const aux = samples[j];
+                  samples[j] = samples[i];
+                  samples[i] = aux;
+                }
+              }
+            }  
+
             this.setState({ organismList: speciesNames });
             this.setState({ samplesRowData: samples });
             this.setState({ runToSpeciesHash })
@@ -929,6 +942,7 @@ export default class SearchPage extends React.Component {
     // for (var i = 0; i < this.selectedRows.length; i++) {
     //   maximumLifesSpanBySpecies[this.selectedRows[i].run] = this.selectedRows[i].maximum_longevity;
     // }
+
     // for (var i = 0; i < ALL_X_VALUES.length - 1; i++) {
     //   for (var j = i + 1; j < ALL_X_VALUES.length; j++) {
     //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[i]] == null) {
