@@ -20,7 +20,7 @@ import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
 import Select from 'react-dropdown-select';
 
 import Loader from 'react-loader-spinner';
-
+import CsvDownload from 'react-json-to-csv';
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -239,6 +239,7 @@ export default class SearchPage extends React.Component {
     this.onChangeGenes.bind(this);
     this.onSearchGenes.bind(this);
     this.onClickShowResults.bind(this);
+    this.onClickExportHeatmap.bind(this);
     this.isSelectedGene.bind(this);
     this.isSelectedSample.bind(this);
     this.getHeatmapColumnName.bind(this);
@@ -1102,6 +1103,10 @@ export default class SearchPage extends React.Component {
 
   }
 
+  async onClickExportHeatmap(){
+    alert("export heatmap");
+  }
+
   async onClickShowResults() {
    
     //check if all data are selected
@@ -1357,7 +1362,8 @@ export default class SearchPage extends React.Component {
           </Button>
 
           { this.renderOrthology() }
-        
+         
+          <CsvDownload data={this.state.data} />
           <Plotly
             ref={this.heatmapRef}
             data={this.state.data}
