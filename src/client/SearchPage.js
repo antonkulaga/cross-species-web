@@ -899,6 +899,9 @@ export default class SearchPage extends React.Component {
         t: 250,
         b: 50
       },
+       legend : {
+        orientation: 'h' | 'v'
+    },
       autosize: true,
       xaxis: {
         side: 'top',
@@ -1200,7 +1203,7 @@ export default class SearchPage extends React.Component {
         <div
           className="ag-theme-balham"
           style={{
-            height: '300px'
+            height: '300px',
           }}
         >
           <AgGridReact
@@ -1363,16 +1366,19 @@ export default class SearchPage extends React.Component {
 
           { this.renderOrthology() }
          
-          <CsvDownload data={this.state.data} />
-          <Plotly
-            ref={this.heatmapRef}
-            data={this.state.data}
-            layout={this.layout}
-            style={{
-              display: this.state.displayHeatmap,
-              overflow: 'scroll'
-            }}
-          />
+          {this.state.data != null && <CsvDownload data={this.state.data} />}
+
+            <Plotly
+              ref={this.heatmapRef}
+              data={this.state.data}
+              layout={this.layout}
+              style={{
+                display: 'flex',
+                overflow: 'scroll',
+                flex:1,
+          justifyContent:'center', alignItems:'center'
+              }}
+            />
           {/* ref={(el) => { this.heatmapRef = el; }} */}
 
         </div>
