@@ -179,7 +179,10 @@ const orthologyGridOptions = {
 const baseOrthologyColumnDefs = [
   {
     headerName: 'Selected gene',
-    field: 'selected_gene'
+    field: 'selected_gene',
+      cellRenderer: function(params) {
+        return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value + 'target=_blank>'+ params.value+'</a>'
+      }
   }
 ];
 
@@ -816,7 +819,10 @@ export default class SearchPage extends React.Component {
       orthologyColumnDefs: baseOrthologyColumnDefs.concat(
         this.selectedSpecies.map(species => ({
           headerName: species,
-          field: species
+          field: species,
+            cellRenderer: function(params) {
+                return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value + 'target="_blank">'+ params.value+'</a>'
+            }
         }))
       )
     });
