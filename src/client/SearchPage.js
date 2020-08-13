@@ -239,6 +239,7 @@ export default class SearchPage extends React.Component {
     this.onChangeGenes.bind(this);
     this.onSearchGenes.bind(this);
     this.onClickShowResults.bind(this);
+    this.onClearAllFilters.bind(this);
     this.onClickExportHeatmap.bind(this);
     this.isSelectedGene.bind(this);
     this.isSelectedSample.bind(this);
@@ -1110,6 +1111,14 @@ export default class SearchPage extends React.Component {
     alert("export heatmap");
   }
 
+  async onClearAllFilters(){
+    this.samplesGridApi.setRowData(this.state.samplesRowData)
+    this.setState({ quickFilterValue: ''});
+    this.samplesGridApi.setQuickFilter('');
+    this.samplesGridApi.setFilterModel(null);
+    this.samplesGridApi.onFilterChanged();
+  }
+
   async onClickShowResults() {
    
     //check if all data are selected
@@ -1176,7 +1185,8 @@ export default class SearchPage extends React.Component {
   }
 
   clearFilter() {
-    // this.samplesGridApi.setFilterModel(null);
+    this.samplesGridApi.setFilterModel(null);
+    this.samplesGridApi.onFilterChanged();
   }
 
   autoSizeAll(columnApi, skipHeader = false) {
@@ -1249,10 +1259,11 @@ export default class SearchPage extends React.Component {
         >
           {/* <SamplesGrid /> */}
 
-
+         
           <div id="SamplesGrid">
             <h3 className="ui header">Select samples</h3>
             <div style={{ marginBottom: '5px' }}>
+           
               <div className="ui input" style={{ width: '100%' }}>
                 {/* <i className="search icon"></i> */}
                 <input
@@ -1263,6 +1274,12 @@ export default class SearchPage extends React.Component {
                   placeholder="filter everything..."
                 />
                 {/* <div className="ui teal button">Search</div> */}
+                  <Button
+            onClick={this.onClearAllFilters.bind(this)}
+            positive
+          >
+            Clear all filters
+          </Button>
               </div>
               {/* <button onclick="filterLung()">Filter all species by lung</button> */}
               {/* <button onclick="filterRbieti()">Filter all tissues by species rbieti</button>
