@@ -181,7 +181,7 @@ const baseOrthologyColumnDefs = [
     headerName: 'Selected gene',
     field: 'selected_gene',
       cellRenderer: function(params) {
-        return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value + 'target=_blank>'+ params.value+'</a>'
+        return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
       }
   }
 ];
@@ -821,7 +821,7 @@ export default class SearchPage extends React.Component {
           headerName: species,
           field: species,
             cellRenderer: function(params) {
-                return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value + 'target="_blank">'+ params.value+'</a>'
+                return '<a href="https://www.ensembl.org/'+ species +'/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
             }
         }))
       )
