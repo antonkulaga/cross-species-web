@@ -1162,17 +1162,21 @@ export default class SearchPage extends React.Component {
   }
 
   quickFilterChange(e) {
-    // console.log(e.target.value)
+    console.log('quickFilterChangee',e.target.value)
     this.setState({ quickFilterValue: e.target.value || '' });
     this.samplesGridApi.setQuickFilter(this.state.quickFilterValue);
 
-    if (!e.target.value) {
+    if (!e.target.value 
+      || (e.target.value && e.target.value <=0) 
+      || e.target.value == "" ) {
+      console.log("reset quickFilter");
       this.clearFilter();
+      this.samplesGridApi.setRowData(this.state.samplesRowData)
     }
   }
 
   clearFilter() {
-    this.samplesGridApi.setFilterModel(null);
+    // this.samplesGridApi.setFilterModel(null);
   }
 
   autoSizeAll(columnApi, skipHeader = false) {
@@ -1376,7 +1380,8 @@ export default class SearchPage extends React.Component {
                 display: 'flex',
                 overflow: 'scroll',
                 flex:1,
-          justifyContent:'center', alignItems:'center'
+                justifyContent:'center',
+                alignItems:'center'
               }}
             />
           {/* ref={(el) => { this.heatmapRef = el; }} */}
