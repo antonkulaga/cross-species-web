@@ -1,7 +1,6 @@
 FROM quay.io/comp-bio-aging/base
 
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-RUN your_command_that_install_without_sudo
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
