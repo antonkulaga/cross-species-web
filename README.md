@@ -5,14 +5,35 @@
 ### with yarn ###
 
 1. Run `yarn install` to install all dependencies.
-2. Run `yarn run`, then select dev to start the app in development mode
+2. Run `yarn dev`
 
-### with docker container ###
+## locally
+```bash
+PORT=8084 HOST=localhost yarn dev
+```
+## remotely
+```bash
+PORT=8084 HOST=0.0.0.0 yarn dev
+```
+
+## with docker container ###
 
 ```bash
 bin/run-docker.sh
 ```
 
+## Troubleshooting
+Try to run the server and client separately.
+
+Choose PORT and HOST
+
+```bash
+yarn server
+```
+and in another terminal
+```bash
+yarn client
+```
 ## Installing dependencies ##
 
 ### Linux ###
