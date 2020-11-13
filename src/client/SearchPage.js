@@ -37,6 +37,7 @@ import CsvDownload from 'react-json-to-csv';
 let SAMPLES_VALUES = [];
 let GENAGE_GENES_PRO = [];
 let GENAGE_GENES_ANTI = [];
+let YSPECIES_GENES_PRO = [];
 let ENSEMBL_TO_NAME = [];
 let ALL_X_VALUES = [];
 let ALL_Y_VALUES = [];
@@ -187,6 +188,7 @@ const baseOrthologyColumnDefs = [
 ];
 
 const PREDEFINED_GENES = [
+  { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
   { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
   { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
   { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
@@ -257,6 +259,7 @@ export default class SearchPage extends React.Component {
     this.getReferenceOrgGenes('Homo_sapiens');
     this.getSamplesAndSpecies();
     this.getGenesPro();
+    this.getYspeciesGenesPro();
     this.getGenesAnti();
     this.getEnsembleToName();
     // this.getAllXValues();
@@ -280,6 +283,27 @@ export default class SearchPage extends React.Component {
           });
         }
         GENAGE_GENES_PRO = results;
+        console.log('getGenesPro', results);
+      });
+  }
+
+  getYspeciesGenesPro() {
+    console.log('getYspeciesGenesPro');// remove testApi
+    fetch('/api/getYspeciesGenesPro')
+      .then(res => res.json())
+      .then((response) => {
+        // this.setState({ samplesRowData : response })
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+          results.push({
+            ensembl_id: response[i].ensembl_id,
+            key: response[i].ensembl_id,
+            value: response[i].name,
+            text: response[i].name,
+            label: response[i].name
+          });
+        }
+        YSPECIES_GENES_PRO = results;
         console.log('getGenesPro', results);
       });
   }
@@ -760,6 +784,11 @@ export default class SearchPage extends React.Component {
         await this.setState({ selectedPredefinedGenes: GENAGE_GENES_PRO });
         await this.refreshSelectedGenes();
         await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_PRO);
+        break;
+      case 'Yspecies Pro-Longevity Genes':
+        await this.setState({ selectedPredefinedGenes: YSPECIES_GENES_PRO });
+        await this.refreshSelectedGenes();
+        await this.addSelectedPredefinedGenesToDropdown(YSPECIES_GENES_PRO);
         break;
       case 'Anti-Longevity Genes':
         await this.setState({ selectedPredefinedGenes: GENAGE_GENES_ANTI });
