@@ -1,7 +1,0 @@
-md5: 0d6053f7ab7ad2714ca766658b909cf2
-outs:
-- md5: f03da0199626bfc75ccbff0b730b1066
-  path: samples_index.parquet
-  cache: true
-  metric: false
-  persist: false
