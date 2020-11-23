@@ -13,7 +13,11 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 
 import _ from 'lodash';
+// import math from 'mathjs';
+import { create, all } from 'mathjs'
 
+const config = { }
+const math = create(all, config)
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
@@ -45,6 +49,8 @@ let allZValues = [];
 let hashString = {};
 
 let SPECIES_TO_ENSEMBL = [];
+
+const COLOR_RANGE_STD_DEVIATIONS = 3;
 
 const samplesColumnDefs = [
   {
@@ -201,6 +207,22 @@ const HUMAN = {
   text: 'Human',
   id: 'Homo_sapiens'
 };
+
+function std(values){
+  var squareDiffs = values.map(function(value){
+    var diff = value - average(values);
+    var sqrDiff = diff * diff;
+    return sqrDiff;
+  });
+  
+  var avgSquareDiff = average(squareDiffs);
+
+  return Math.sqrt(avgSquareDiff);
+}
+
+function average(values) {
+  return values.reduce((a, b) => (a + b)) / values.length;
+}
 
 export default class SearchPage extends React.Component {
   constructor(props) {
@@ -435,7 +457,7 @@ export default class SearchPage extends React.Component {
         var currentGene = allYValues[j];
 
         var speciesName = speciesByRun[currentSample];
-        console.log('dsgsdgs',speciesName, currentGene + speciesName);
+        // console.log('dsgsdgs',speciesName, currentGene + speciesName);
         var genesFromOrthologyTable = (genesMappedBySpecies[currentGene + speciesName]);
         if(genesFromOrthologyTable == null){
           if( hashString[currentSample] == null){
@@ -445,7 +467,7 @@ export default class SearchPage extends React.Component {
           continue;
         } 
         var genesFromOrthologyTable = genesFromOrthologyTable.split(',');
-        console.log('xxx', genesFromOrthologyTable);
+        // console.log('xxx', genesFromOrthologyTable);
 
 
         var found = false;
@@ -453,7 +475,7 @@ export default class SearchPage extends React.Component {
           for(var y = 0 ; y < GENE_EXPRESSIONS.length; y++){
             if(GENE_EXPRESSIONS[y].run == currentSample &&
               GENE_EXPRESSIONS[y].gene == genesFromOrthologyTable[k]){
-              console.log("SSSSSS");
+              // console.log("SSSSSS");
                if(hashString[currentSample] == null){
                 hashString[currentSample] = [];
                 hashString[currentSample][currentGene] = [];
@@ -1068,6 +1090,47 @@ export default class SearchPage extends React.Component {
     this.layout.width = Math.max(500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
+    // const colorsHash = {}
+    let heatmapColors = zValues.map( x => parseFloat(x) )
+    const std = math.std(heatmapColors)
+    console.log("STD:", std)
+    const mean = math.mean(heatmapColors)
+    const zScores = {}
+    let minColor = heatmapColors[0]
+    let maxColor = heatmapColors[0]
+
+    heatmapColors.forEach((color, idx) => {
+      zScores[color] = (color - mean) / std
+    })
+    console.log("zScores:", zScores)
+
+    const sortedColors = heatmapColors.sort((a,b) => a-b);
+    console.log("sortedColors:", sortedColors)
+
+    sortedColors.some((color,idx) => {
+      // colorsHash[color] = color;
+      if(zScores[color] < -COLOR_RANGE_STD_DEVIATIONS){
+        minColor = sortedColors[idx + 1];
+        console.log("color, minColor",color, minColor)
+      }
+      if(zScores[color] > COLOR_RANGE_STD_DEVIATIONS){
+        maxColor = sortedColors[idx - 1];
+        console.log("color, maxColor", color, maxColor)
+        return true;
+      }
+    })
+    // console.log(zValues.map(x => x/std))
+    // heatmapColors = heatmapColors.map(x => {
+    //   // if(expr < std) return 0;
+    //   return colorsHash[x];
+    // });
+    // heatmapColors = heatmapColors.map(color => {
+    //   if(color < minColor) return minColor
+    //   if(color > maxColor) return maxColor
+    //   return color
+    // })
+    // console.log("heatmapColors:", heatmapColors);
+
     // const logColors = zValues.map(x =>
     // // TODO: parseInt?
     // // if(!x) return 0;
@@ -1110,8 +1173,20 @@ export default class SearchPage extends React.Component {
       y: yValues,
       z: zValues,
 
-      colorscale: 'RdBu',
-      // color: logColors,
+      // colorscale: 'RdBu',
+      colorscale: [
+        ['0.0', 'rgb(0,0,0)'],
+        ['0.05', 'rgb(69,117,180)'],
+        ['0.222222222222', 'rgb(116,173,209)'],
+        ['0.333333333333', 'rgb(171,217,233)'],
+        ['0.444444444444', 'rgb(224,243,248)'],
+        ['0.555555555556', 'rgb(254,224,144)'],
+        ['0.666666666667', 'rgb(253,174,97)'],
+        ['0.777777777778', 'rgb(244,109,67)'],
+        ['0.95', 'rgb(215,48,39)'],
+        ['1.0', 'rgb(255,0,0)']
+      ],
+      // color: heatmapColors,
       showscale: false,
       type: 'heatmap',
       // colorbar: {
