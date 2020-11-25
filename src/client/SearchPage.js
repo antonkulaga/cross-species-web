@@ -1287,18 +1287,7 @@ colorscale: [
     } = this.state;
     return (
       <div className="ui intro">
-         {this.state.showLoader && <Loader
-               type="ThreeDots"
-               color="#00BFFF"
-               height={200}
-               width={200}
-               timeout={1000000} 
-               style={ { position: "fixed",
-               top: "50%", 
-               left: "50%",
-               transform: "translate(-50%, -50%)" }}
 
-            />}
         <div
           className="ui main"
           style={{
@@ -1452,7 +1441,18 @@ colorscale: [
           {/* ref={(el) => { this.heatmapRef = el; }} */}
 
         </div>
+         {this.state.showLoader && <Loader
+               type="ThreeDots"
+               color="#00BFFF"
+               height={200}
+               width={200}
+               timeout={1000000} 
+               style={ { position: "fixed",
+               top: "50%", 
+               left: "50%",
+               transform: "translate(-50%, -50%)" }}
 
+            />}
 
       </div>
     );
