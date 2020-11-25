@@ -1114,12 +1114,25 @@ export default class SearchPage extends React.Component {
     //   // }
     // }];
 
+
+    
+
     this.setState({data: [{
       x: xValues,
       y: yValues,
       z: zValues,
-
-      colorscale: 'RdBu',
+colorscale: [
+        ['0.0', 'rgb(0,0,0)'],
+        ['0.05', 'rgb(69,117,180)'],
+        ['0.222222222222', 'rgb(116,173,209)'],
+        ['0.333333333333', 'rgb(171,217,233)'],
+        ['0.444444444444', 'rgb(224,243,248)'],
+        ['0.555555555556', 'rgb(254,224,144)'],
+        ['0.666666666667', 'rgb(253,174,97)'],
+        ['0.777777777778', 'rgb(244,109,67)'],
+        ['0.95', 'rgb(215,48,39)'],
+        ['1.0', 'rgb(255,0,0)']
+      ],
       // color: logColors,
       showscale: false,
       type: 'heatmap',
@@ -1424,17 +1437,17 @@ export default class SearchPage extends React.Component {
          
           {this.state.data != null && <CsvDownload data={this.state.data} />}
 
-            <Plotly
-              ref={this.heatmapRef}
-              data={this.state.data}
-              layout={this.layout}
-              style={{
-                display: 'flex',
-                overflow: 'scroll',
-                flex:1,
-                justifyContent:'center',
-                alignItems:'center'
-              }}
+            <Plotly 
+              ref={this.heatmapRef} 
+              data={this.state.data}  
+              layout={this.layout}  
+              style={{  
+                display: 'flex',  
+                overflow: 'scroll', 
+                flex:1, 
+                justifyContent:'center',  
+                alignItems:'center' 
+              }}  
             />
           {/* ref={(el) => { this.heatmapRef = el; }} */}
 
