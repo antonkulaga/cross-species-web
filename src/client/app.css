@@ -6,3 +6,7 @@ body {
   text-align: center;
   margin: auto;
 }
+
+#select_reference {
+  max-width: 500px;
+}
