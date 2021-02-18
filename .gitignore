@@ -10,6 +10,8 @@
 
 .yarn
 .yarn/*
+.yarnrc
+yarn.lock
 
 # testing
 /coverage
@@ -30,3 +32,4 @@ yarn-error.log*
 package-lock.json
 .idea
 
+/dist

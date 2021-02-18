@@ -1456,7 +1456,7 @@ export default class SearchPage extends React.Component {
 
                 <div className="ui blue message">
                   <div className="title">Welcome to the Cross-Species DB!</div>
-                  <p> This database contains gene expression data from more than 7 organs of 47 species and allows you to compare expression of orthologous genes.</p>
+                  <p> This database contains gene expression data from more than 7 organs of 47 species and allows you to compare expressions of orthologous genes.</p>
                 </div>
               </div>
             </div>
@@ -1476,18 +1476,20 @@ export default class SearchPage extends React.Component {
                       onChange={this.onChangeOrganism.bind(this)}
                       defaultValue={"Human"}
                   />
-                Reference organism (Human by default) is used a reference point to select your genes of interest.
+                The reference organism (Human by default) is used as a reference point to select your genes of interest.
                 </div>
               </div>
             </div>
             <div className="active step">
               <i className="icon"></i>
               <div className="content">
-                <div className="title"><i className="dna icon"></i> Choose genes:</div>
+                <div className="title" style={{
+                  marginBottom: '12px'
+                }}><i className="dna icon"></i> Choose genes:</div>
 
                 <Tab className="fluid" panes={select_genes_panes}></Tab>
-                Please, choose genes of the reference organism in which are you interested in!
-                You can choose them by sumbol, Ensembl ID or take from one of the predefined lists.
+                Please choose the genes in which you are interested in (of the reference organism)!
+                You can choose them by symbol, Ensembl ID or use one of the predefined lists of genes we've compiled.
 
                 </div>
               </div>

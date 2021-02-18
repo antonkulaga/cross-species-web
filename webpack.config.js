@@ -34,7 +34,7 @@ module.exports = {
   devServer: {
     port: 8082,
     disableHostCheck: true,
-    host: '0.0.0.0',
+    host: (process.env.HOST || '0.0.0.0'),
     open: true,
     proxy: {
       '/api': 'http://' + (process.env.HOST || '0.0.0.0') + ':' + (process.env.PORT || '8080'),
