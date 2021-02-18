@@ -18,7 +18,11 @@ import 'ag-grid-community/dist/styles/ag-theme-material.css';
 
 
 import _ from 'lodash';
+// import math from 'mathjs';
+import { create, all } from 'mathjs'
 
+const config = { }
+const math = create(all, config)
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
@@ -43,6 +47,7 @@ let SAMPLES_VALUES = [];
 let GENAGE_GENES_PRO = [];
 let GENAGE_GENES_ANTI = [];
 let YSPECIES_GENES_PRO = [];
+let YSPECIES_GENES_TOP = [];
 let ENSEMBL_TO_NAME = [];
 let ALL_X_VALUES = [];
 let ALL_Y_VALUES = [];
@@ -51,6 +56,8 @@ let allZValues = [];
 let hashString = {};
 
 let SPECIES_TO_ENSEMBL = [];
+
+const COLOR_RANGE_STD_DEVIATIONS = 3;
 
 const samplesColumnDefs = [
   {
@@ -194,6 +201,7 @@ const baseOrthologyColumnDefs = [
 
 const PREDEFINED_GENES = [
   { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
+  { key: 'Yspecies Top Pro & Anti-Longevity Genes', value: 'Yspecies Top Pro & Anti-Longevity Genes', text: 'Yspecies Top Pro & Anti-Longevity Genes' },
   { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
   { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
   { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
@@ -210,10 +218,21 @@ const HUMAN = {
   id: 'Homo_sapiens'
 };
 
+function std(values){
+  var squareDiffs = values.map(function(value){
+    var diff = value - average(values);
+    var sqrDiff = diff * diff;
+    return sqrDiff;
+  });
+  
+  var avgSquareDiff = average(squareDiffs);
 
+  return Math.sqrt(avgSquareDiff);
+}
 
-//export default TabSelectGenes
-
+function average(values) {
+  return values.reduce((a, b) => (a + b)) / values.length;
+}
 
 export default class SearchPage extends React.Component {
   constructor(props) {
@@ -270,6 +289,7 @@ export default class SearchPage extends React.Component {
     this.getSamplesAndSpecies();
     this.getGenesPro();
     this.getYspeciesGenesPro();
+    this.getYspeciesGenesTop();
     this.getGenesAnti();
     this.getEnsembleToName();
     // this.getAllXValues();
@@ -314,7 +334,28 @@ export default class SearchPage extends React.Component {
           });
         }
         YSPECIES_GENES_PRO = results;
-        console.log('getGenesPro', results);
+        console.log('getYspeciesGenesPro', results);
+      });
+  }
+
+  getYspeciesGenesTop() {
+    console.log('getYspeciesGenesTop');// remove testApi
+    fetch('/api/getYspeciesGenesTop')
+      .then(res => res.json())
+      .then((response) => {
+        // this.setState({ samplesRowData : response })
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+          results.push({
+            ensembl_id: response[i].ensembl_id,
+            key: response[i].ensembl_id,
+            value: response[i].name,
+            text: response[i].name,
+            label: response[i].name
+          });
+        }
+        YSPECIES_GENES_TOP = results;
+        console.log('getYspeciesGenesTop', results);
       });
   }
 
@@ -429,7 +470,7 @@ export default class SearchPage extends React.Component {
         var currentGene = allYValues[j];
 
         var speciesName = speciesByRun[currentSample];
-        console.log('dsgsdgs',speciesName, currentGene + speciesName);
+        // console.log('dsgsdgs',speciesName, currentGene + speciesName);
         var genesFromOrthologyTable = (genesMappedBySpecies[currentGene + speciesName]);
         if(genesFromOrthologyTable == null){
           if( hashString[currentSample] == null){
@@ -439,7 +480,7 @@ export default class SearchPage extends React.Component {
           continue;
         } 
         var genesFromOrthologyTable = genesFromOrthologyTable.split(',');
-        console.log('xxx', genesFromOrthologyTable);
+        // console.log('xxx', genesFromOrthologyTable);
 
 
         var found = false;
@@ -447,7 +488,7 @@ export default class SearchPage extends React.Component {
           for(var y = 0 ; y < GENE_EXPRESSIONS.length; y++){
             if(GENE_EXPRESSIONS[y].run == currentSample &&
               GENE_EXPRESSIONS[y].gene == genesFromOrthologyTable[k]){
-              console.log("SSSSSS");
+              // console.log("SSSSSS");
                if(hashString[currentSample] == null){
                 hashString[currentSample] = [];
                 hashString[currentSample][currentGene] = [];
@@ -800,6 +841,11 @@ export default class SearchPage extends React.Component {
         await this.refreshSelectedGenes();
         await this.addSelectedPredefinedGenesToDropdown(YSPECIES_GENES_PRO);
         break;
+      case 'Yspecies Top Pro & Anti-Longevity Genes':
+        await this.setState({ selectedPredefinedGenes: YSPECIES_GENES_TOP });
+        await this.refreshSelectedGenes();
+        await this.addSelectedPredefinedGenesToDropdown(YSPECIES_GENES_TOP);
+        break;
       case 'Anti-Longevity Genes':
         await this.setState({ selectedPredefinedGenes: GENAGE_GENES_ANTI });
         await this.refreshSelectedGenes();
@@ -1087,6 +1133,47 @@ export default class SearchPage extends React.Component {
     this.layout.width = Math.max(500, 75 * xIndices.length);
     this.layout.height = Math.max(500, 40 * yIndices.length);
 
+    // const colorsHash = {}
+    let heatmapColors = zValues.map( x => parseFloat(x) )
+    const std = math.std(heatmapColors)
+    console.log("STD:", std)
+    const mean = math.mean(heatmapColors)
+    const zScores = {}
+    let minColor = heatmapColors[0]
+    let maxColor = heatmapColors[0]
+
+    heatmapColors.forEach((color, idx) => {
+      zScores[color] = (color - mean) / std
+    })
+    console.log("zScores:", zScores)
+
+    const sortedColors = heatmapColors.sort((a,b) => a-b);
+    console.log("sortedColors:", sortedColors)
+
+    sortedColors.some((color,idx) => {
+      // colorsHash[color] = color;
+      if(zScores[color] < -COLOR_RANGE_STD_DEVIATIONS){
+        minColor = sortedColors[idx + 1];
+        console.log("color, minColor",color, minColor)
+      }
+      if(zScores[color] > COLOR_RANGE_STD_DEVIATIONS){
+        maxColor = sortedColors[idx - 1];
+        console.log("color, maxColor", color, maxColor)
+        return true;
+      }
+    })
+    // console.log(zValues.map(x => x/std))
+    // heatmapColors = heatmapColors.map(x => {
+    //   // if(expr < std) return 0;
+    //   return colorsHash[x];
+    // });
+    // heatmapColors = heatmapColors.map(color => {
+    //   if(color < minColor) return minColor
+    //   if(color > maxColor) return maxColor
+    //   return color
+    // })
+    // console.log("heatmapColors:", heatmapColors);
+
     // const logColors = zValues.map(x =>
     // // TODO: parseInt?
     // // if(!x) return 0;
@@ -1131,7 +1218,9 @@ export default class SearchPage extends React.Component {
       x: xValues,
       y: yValues,
       z: zValues,
-colorscale: [
+
+      // colorscale: 'RdBu',
+      colorscale: [
         ['0.0', 'rgb(0,0,0)'],
         ['0.05', 'rgb(69,117,180)'],
         ['0.222222222222', 'rgb(116,173,209)'],
@@ -1143,7 +1232,7 @@ colorscale: [
         ['0.95', 'rgb(215,48,39)'],
         ['1.0', 'rgb(255,0,0)']
       ],
-      // color: logColors,
+      // color: heatmapColors,
       showscale: false,
       type: 'heatmap',
       // colorbar: {

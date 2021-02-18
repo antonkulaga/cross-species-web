@@ -25,6 +25,7 @@ const repository = new RDFRepositoryClient(config);
 const genesProPath = './src/server/data/genage_genes_pro.json';
 const genesAntiPath = './src/server/data/genage_genes_anti.json';
 const genesYspeciesProPath = './src/server/data/yspecies_pro.json';
+const genesYspeciesTopPath = './src/server/data/yspecies_top_pro_anti.json';
 const ensemblToNamePath = './src/server/data/ensemblToName.json';
 // const allXValuesPath = './src/server/data/allXValues.json';
 // const allYValuesPath = './src/server/data/allYValues.json';
@@ -71,6 +72,10 @@ app.get('/api/getGenesPro', async (req, res, next) => {
 
 app.get('/api/getYspeciesGenesPro', async (req, res, next) => {
   const result = await readFile(genesYspeciesProPath);
+  res.send(result);
+});
+app.get('/api/getYspeciesGenesTop', async (req, res, next) => {
+  const result = await readFile(genesYspeciesTopPath);
   res.send(result);
 });
 
