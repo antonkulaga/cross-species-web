@@ -38,20 +38,14 @@ export default class App extends React.Component {
                                     }}>
                                     <div className="introduction">
                                         <h1 className="ui header">
-                                            Comparative transcriptomics of Longevity
-
-
-                                            <div className="sub header">
-                                                Computational Biology of Aging Group
-                                                <br />
-                                                Institute of Biochemistry, Romanian Academy
-                                            </div>
+                                            <i className="dragon icon"></i>
+                                            Cross-species gene expression database
                                         </h1>
 
                                         <div className="ui hidden divider">
                                         </div>
 
-                                        <Menu stackable className="three item tabs">
+                                        <Menu stackable className="blue inverted three item large tabs">
                                             <Menu.Item
                                                 name='Search'
                                                 data-tab="laur1"

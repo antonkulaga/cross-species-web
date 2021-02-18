@@ -32,11 +32,13 @@ module.exports = {
     extensions: ['*', '.js', '.jsx']
   },
   devServer: {
-    host: (process.env.HOST || '0.0.0.0'),
-    port: 8081,
+    port: 8082,
+    disableHostCheck: true,
+    host: '0.0.0.0',
     open: true,
     proxy: {
-      '/api': 'http://' + (process.env.HOST || '0.0.0.0') + ':' + (process.env.PORT || '8080')
+      '/api': 'http://' + (process.env.HOST || '0.0.0.0') + ':' + (process.env.PORT || '8080'),
+      disableHostCheck: true
     }
   },
   plugins: [

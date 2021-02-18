@@ -3,7 +3,9 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 import React from 'react';
-import { Button, Dropdown } from 'semantic-ui-react';
+import { Button, Dropdown, Tab } from 'semantic-ui-react';
+
+
 import './app.css';
 
 // import SamplesGrid from './SamplesGrid'
@@ -11,6 +13,9 @@ import { AgGridReact } from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
+import 'ag-grid-community/dist/styles/ag-theme-material.css';
+
+
 
 import _ from 'lodash';
 
@@ -204,6 +209,11 @@ const HUMAN = {
   text: 'Human',
   id: 'Homo_sapiens'
 };
+
+
+
+//export default TabSelectGenes
+
 
 export default class SearchPage extends React.Component {
   constructor(props) {
@@ -1203,12 +1213,12 @@ colorscale: [
     }
 
 
-    var selectedGenes = this.state.selectedGenes;
-    var selectedRows = this.samplesGridApi.getSelectedRows();
-    var runs = [];
-    var genes = [];
-    var runsHash = [];
-    var runsFromOrthology = this.state.runsFromOrthology;
+    //let selectedGenes = this.state.selectedGenes;
+    let selectedRows = this.samplesGridApi.getSelectedRows();
+    let runs = [];
+    let genes = [];
+    //var runsHash = [];
+    //var runsFromOrthology = this.state.runsFromOrthology;
 
     for(var i = 0; i < selectedRows.length; i++){
       runs.push(selectedRows[i].run);
@@ -1263,7 +1273,7 @@ colorscale: [
       <div id="OrthologyGrid" style={{ marginTop: '72px' }}>
         <h3 className="ui header">Orthology table</h3>
         <div
-          className="ag-theme-balham"
+          className="ag-theme-material"
           style={{
             height: '300px',
           }}
@@ -1281,7 +1291,61 @@ colorscale: [
     return false;
   }
 
+
   render() {
+    self = this
+
+    const select_genes_panes = [
+        { menuItem: 'By gene names', render: () => <Tab.Pane>
+         <Select id="select"
+                placeholder="Search gene symbols"
+                multi
+                options={genes}
+                name="select"
+                values={selectedGenesByName}
+                searchFn={this.onSearchGenes.bind(self)}
+                onChange={this.onChangeGenes.bind(self)}
+        /> </Tab.Pane>},
+      { menuItem: 'From predefined list', render: () => <Tab.Pane>
+          <span>or choose a predefined list:</span>
+          <Dropdown
+              placeholder="Select predefined list of genes"
+              fluid
+              search
+              selection
+              options={PREDEFINED_GENES}
+              onChange={this.onChangePredefinedGenes.bind(self)}
+          />
+        </Tab.Pane> },
+      { menuItem: 'By Ensembl ID', render: () => <Tab.Pane>
+              <div className="gene-list-wrapper" style={{ marginTop: '10px' }}>
+                <p className="or-spacer has-text-primary">Or paste custom gene ids</p>
+                <div className="field">
+                  {/**/}
+                  {' '}
+                  <div style={{ position: 'relative' }}>
+                    <a className="delete is-small input-clear" />
+                    <div className="control is-clearfix">
+                      <textarea
+                          style={{
+                            width: '400px',
+                            height: '100px'
+                          }}
+                          onChange={this.handleChangeTextarea.bind(this)}
+                          placeholder="Please enter ENSEMBL gene ids..."
+                          name="gene_list"
+                          className="textarea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+        </Tab.Pane> },
+    ]
+
+
     const {
       selectedGenesByName, selectedOrganism, organismList, genes
     } = this.state;
@@ -1296,8 +1360,52 @@ colorscale: [
         >
           {/* <SamplesGrid /> */}
 
+          <div className="ui three top attached steps">
+            <div className="step" id="select_reference">
+              <i className="icon"></i>
+              <div className="content">
+
+                <div className="ui blue message">
+                  <div className="title">Welcome to the Cross-Species DB!</div>
+                  <p> This database contains gene expression data from more than 7 organs of 47 species and allows you to compare expression of orthologous genes.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="step" id="select_reference">
+              <i className="icon"></i>
+              <div className="content">
+                <div className="title">Choose reference organism</div>
+                <div className="description">
+                  <Dropdown
+                      placeholder="Human"
+                      fluid
+                      search
+                      selection
+                      options={organismList}
+                      value={selectedOrganism}
+                      onChange={this.onChangeOrganism.bind(this)}
+                      defaultValue={"Human"}
+                  />
+                Reference organism (Human by default) is used a reference point to select your genes of interest.
+                </div>
+              </div>
+            </div>
+            <div className="active step">
+              <i className="icon"></i>
+              <div className="content">
+                <div className="title"><i className="dna icon"></i> Choose genes:</div>
+
+                <Tab className="fluid" panes={select_genes_panes}></Tab>
+                Please, choose genes of the reference organism in which are you interested in!
+                You can choose them by sumbol, Ensembl ID or take from one of the predefined lists.
+
+                </div>
+              </div>
+            </div>
+
          
-          <div id="SamplesGrid">
+          <div id="SamplesGrid" className="ui segment">
             <h3 className="ui header">Select samples</h3>
             <div style={{ marginBottom: '5px' }}>
            
@@ -1313,7 +1421,7 @@ colorscale: [
                 {/* <div className="ui teal button">Search</div> */}
                   <Button
             onClick={this.onClearAllFilters.bind(this)}
-            positive
+            className="ui blue"
           >
             Clear all filters
           </Button>
@@ -1342,82 +1450,13 @@ colorscale: [
             </div>
           </div>
 
-          <h3 className="ui header">Choose reference organism</h3>
-          <Dropdown
-            placeholder="Human"
-            fluid
-            search
-            selection
-            options={organismList}
-            value={selectedOrganism}
-            onChange={this.onChangeOrganism.bind(this)}
-          />
-
-          <h3 className="ui header">Choose genes or gene sets</h3>
-
-          <Select
-            placeholder="Search gene symbols"
-            multi
-            options={genes}
-            name="select"
-            values={selectedGenesByName}
-            searchFn={this.onSearchGenes.bind(this)}
-            onChange={this.onChangeGenes.bind(this)}
-          />
 
 
-          <span>or choose a predefined list:</span>
-          {/* <div style="width: 50%; display: inline"> */}
-          <Dropdown
-            placeholder="Select predefined list of genes"
-            fluid
-            search
-            selection
-            options={PREDEFINED_GENES}
-            onChange={this.onChangePredefinedGenes.bind(this)}
-          />
-
-
-          <div className="field is-horizontal" style={{ marginTop: '24px' }}>
-
-            <div className="field-body" style={{ marginTop: '10px' }}>
-              <div className="msg-wrapper" />
-            </div>
-          </div>
-          <div className="field is-horizontal">
-            <div className="field-label">
-              <label className="label" />
-            </div>
-            <div className="field-body">
-              <div className="gene-list-wrapper" style={{ marginTop: '10px' }}>
-                <p className="or-spacer has-text-primary">Or paste custom gene ids</p>
-                <div className="field">
-                  {/**/}
-                  {' '}
-                  <div style={{ position: 'relative' }}>
-                    <a className="delete is-small input-clear" />
-                    <div className="control is-clearfix">
-                      <textarea
-                        style={{
-                          width: '400px',
-                          height: '150px'
-                        }}
-                        onChange={this.handleChangeTextarea.bind(this)}
-                        placeholder="Please enter ENSEMBL gene ids..."
-                        name="gene_list"
-                        className="textarea"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* <h3 className="ui header">Results - heatmap</h3> */}
           <Button
             onClick={this.onClickShowResults.bind(this)}
-            positive
+            className="ui blue"
           >
             Show results
           </Button>
