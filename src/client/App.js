@@ -6,6 +6,7 @@ import './app.css';
 import SearchPage from './SearchPage'
 import AnalysisPage from './AnalysisPage'
 import AboutPage from './AboutPage'
+const { matches } = require('z')
 
 export default class App extends React.Component {
     state = {
