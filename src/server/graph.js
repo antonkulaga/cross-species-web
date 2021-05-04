@@ -144,7 +144,7 @@ class GraphRepository{
             });
             stream.on('end', () => {
                 // handle end of the stream
-                console.log(orthology)
+                //console.log(orthology)
                 resolve(orthology);
             });
         }));
@@ -213,7 +213,7 @@ class GraphRepository{
                 const speciesNames = [];
                 stream.on('data', (bindings) => {
                     // the bindings stream converted to data objects with the registered parser
-                    console.log('@@', bindings);
+                    //console.log('@@', bindings);
                     speciesNames.push({
                         id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
                         common_name: bindings.common_name.id.replace(/"/g, ''),
@@ -242,7 +242,7 @@ class GraphRepository{
     }
 
     async queryExpressions(runs, genes) {
-        console.log("QUERY EXPRESSION")
+        console.log("QUERY EXPRESSIONS!")
         const query = `PREFIX samples:<http://aging-research.group/samples/>
     PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
 

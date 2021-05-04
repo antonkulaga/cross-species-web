@@ -8,6 +8,15 @@ import AnalysisPage from './AnalysisPage'
 import AboutPage from './AboutPage'
 const { matches } = require('z')
 
+import { AgGridReact, AgGridColumn } from 'ag-grid-react';
+
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/dist/styles/ag-theme-balham.css';
+import 'ag-grid-community/dist/styles/ag-theme-material.css';
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+
+
+
 export default class App extends React.Component {
     state = {
         activeMenu: 'Search'
@@ -25,6 +34,7 @@ export default class App extends React.Component {
                 return <SearchPage />
         }
     }
+
     render() {
         const { activeMenu } = this.state
         return (

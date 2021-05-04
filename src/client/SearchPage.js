@@ -9,11 +9,12 @@ import { Button, Dropdown, Tab } from 'semantic-ui-react';
 import './app.css';
 
 // import SamplesGrid from './SamplesGrid'
-import { AgGridReact } from 'ag-grid-react';
+import { AgGridReact, AgGridColumn } from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 
 
@@ -283,7 +284,7 @@ export default class SearchPage extends React.Component {
     this.renderHeatmap.bind(this);
   }
 
-  UNSAFE_componentWillMount() { //TODO: refactor me
+  componentDidMount() { //TODO: refactor me
     this.getReferenceOrgGenes('Homo_sapiens');
     this.getSamplesAndSpecies();
     this.getGenesPro();
@@ -1092,7 +1093,7 @@ export default class SearchPage extends React.Component {
         // }
 
 
-        const currentValue = parseFloat(allZValues[i][j]);// TODO: parseInt?
+        //const currentValue = parseFloat(allZValues[i][j]);// TODO: parseInt?
         // if (currentValue != 0.0) {
           let textColor = 'white';
         // } else {
@@ -1377,7 +1378,6 @@ export default class SearchPage extends React.Component {
     return false;
   }
 
-
   render() {
     let self = this
 
@@ -1491,7 +1491,6 @@ export default class SearchPage extends React.Component {
               </div>
             </div>
 
-         
           <div id="SamplesGrid" className="ui segment">
             <h3 className="ui header">Select samples</h3>
             <div style={{ marginBottom: '5px' }}>
