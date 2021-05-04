@@ -63,7 +63,7 @@ const samplesColumnDefs = [
   {
     headerName: 'Sample',
     field: 'run',
-    value: [],
+    //value: [],
     checkboxSelection: true,
     headerCheckboxSelectionFilteredOnly: true,
     headerCheckboxSelection: true,
@@ -219,13 +219,12 @@ const HUMAN = {
 };
 
 function std(values){
-  var squareDiffs = values.map(function(value){
-    var diff = value - average(values);
-    var sqrDiff = diff * diff;
-    return sqrDiff;
+  const squareDiffs = values.map(function(value){
+    const diff = value - average(values);
+    return diff * diff;
   });
   
-  var avgSquareDiff = average(squareDiffs);
+  const avgSquareDiff = average(squareDiffs);
 
   return Math.sqrt(avgSquareDiff);
 }
@@ -284,7 +283,7 @@ export default class SearchPage extends React.Component {
     this.renderHeatmap.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() { //TODO: refactor me
     this.getReferenceOrgGenes('Homo_sapiens');
     this.getSamplesAndSpecies();
     this.getGenesPro();
@@ -415,7 +414,7 @@ export default class SearchPage extends React.Component {
 
   async getGeneExpression(runs, genes) {
 
-    console.log('getExpressions runs and gense', runs, genes);
+    console.log('getExpressions runs and genes', runs, genes);
     
     let response = await fetch('/api/getExpressions', {
       method: 'post',
@@ -433,12 +432,10 @@ export default class SearchPage extends React.Component {
     // allZValues = GENE_EXPRESSIONS;
     console.log("getGeneExpression",  JSON.stringify(GENE_EXPRESSIONS)); 
 
-    var allYValues = [];
-    var allXValues = []
-    var hashYValues = [];
-    var hashXValues = [];
-    var allXValues = [];
-    var hashEnsembleName = [];
+    let allYValues = [];
+    let hashXValues = [];
+    let allXValues = [];
+    let hashEnsembleName = [];
 
     allYValues = Object.keys(this.state.genesMap);
 
@@ -453,25 +450,25 @@ export default class SearchPage extends React.Component {
     //   }
     // }
 
-    for(var i = 0; i < GENE_EXPRESSIONS.length; i++){ 
+    for(let i = 0; i < GENE_EXPRESSIONS.length; i++){
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
         allXValues.push(GENE_EXPRESSIONS[i].run);
         hashXValues[GENE_EXPRESSIONS[i].run] = true;  
       }
     }
 
-    var speciesByRun = this.state.runToSpeciesHash;
-    var genesMappedBySpecies = this.state.genesMapBySpecies;
+    let speciesByRun = this.state.runToSpeciesHash;
+    let genesMappedBySpecies = this.state.genesMapBySpecies;
     console.log("speciesByRun", speciesByRun);
     console.log("genesMappedBySpecies", genesMappedBySpecies);
-    for(var i = 0; i < allXValues.length; i++){
-      var currentSample = allXValues[i];
-      for(var j = 0; j < allYValues.length; j++) {
-        var currentGene = allYValues[j];
+    for(let i = 0; i < allXValues.length; i++){
+      let currentSample = allXValues[i];
+      for(let j = 0; j < allYValues.length; j++) {
+        let currentGene = allYValues[j];
 
-        var speciesName = speciesByRun[currentSample];
+        let speciesName = speciesByRun[currentSample];
         // console.log('dsgsdgs',speciesName, currentGene + speciesName);
-        var genesFromOrthologyTable = (genesMappedBySpecies[currentGene + speciesName]);
+        let genesFromOrthologyTable_raw = (genesMappedBySpecies[currentGene + speciesName]); //renamed to raw to avoid var reassignment
         if(genesFromOrthologyTable == null){
           if( hashString[currentSample] == null){
              hashString[currentSample] = [];
@@ -479,15 +476,15 @@ export default class SearchPage extends React.Component {
           hashString[currentSample][currentGene] = "0.00";
           continue;
         } 
-        var genesFromOrthologyTable = genesFromOrthologyTable.split(',');
+        let genesFromOrthologyTable = genesFromOrthologyTable_raw.split(',');
         // console.log('xxx', genesFromOrthologyTable);
 
 
-        var found = false;
-        for(var k = 0; k < genesFromOrthologyTable.length; k++){
-          for(var y = 0 ; y < GENE_EXPRESSIONS.length; y++){
-            if(GENE_EXPRESSIONS[y].run == currentSample &&
-              GENE_EXPRESSIONS[y].gene == genesFromOrthologyTable[k]){
+        let found = false;
+        for(let k = 0; k < genesFromOrthologyTable.length; k++){
+          for(let y = 0 ; y < GENE_EXPRESSIONS.length; y++){
+            if(GENE_EXPRESSIONS[y].run === currentSample &&
+              GENE_EXPRESSIONS[y].gene === genesFromOrthologyTable[k]){
               // console.log("SSSSSS");
                if(hashString[currentSample] == null){
                 hashString[currentSample] = [];
@@ -526,7 +523,7 @@ export default class SearchPage extends React.Component {
         //   }
          
         // }
-       if(found == false){
+       if(found === false){
           if(hashString[currentSample] == null){
             hashString[currentSample] = [];
             hashString[currentSample][currentGene] = [];
@@ -616,12 +613,12 @@ export default class SearchPage extends React.Component {
             console.log('speciesNames', speciesNames);
             console.log('samples', samples);
 
-            for(var i = 0; i < samples.length; i++){
+            for(let i = 0; i < samples.length; i++){
               samples[i].lifespan = parseFloat(samples[i].lifespan);
             }
 
-            for (var i = 0; i < samples.length - 1; i++) {
-              for (var j = i + 1; j < samples.length; j++) {
+            for (let i = 0; i < samples.length - 1; i++) {
+              for (let j = i + 1; j < samples.length; j++) {
               
                 if (samples[j].lifespan > samples[i].lifespan) {
                   const aux = samples[j];
@@ -650,9 +647,9 @@ export default class SearchPage extends React.Component {
     selectedGenes = selectedGenesSymbols;
     selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
     selectedGenes = selectedGenes.concat(selectedGeneIds);
-    var filteredGenes = [];
-    var hashGenes = [];
-    for(var i = 0; i < selectedGenes.length; i++){
+    let filteredGenes = [];
+    let hashGenes = [];
+    for(let i = 0; i < selectedGenes.length; i++){
       if(hashGenes[selectedGenes[i].key] == null){
         hashGenes[selectedGenes[i].key] = 1;
       } else {
@@ -676,7 +673,7 @@ export default class SearchPage extends React.Component {
 
   onSearchGenes(values) {
     // console.log("onSearchGenes", values.state.search);
-    var searchTxt = (values.state.search).toUpperCase();
+    let searchTxt = (values.state.search).toUpperCase();
     // console.log(this.state.genes);
     const { lastSearchGenes } = this.state;
     if (searchTxt.length >= 1 && lastSearchGenes != searchTxt) {
@@ -688,7 +685,7 @@ export default class SearchPage extends React.Component {
       for (let i = 0; i < allGenes.length; i++) {
         const curr = allGenes[i];
 
-        if ((curr.text).indexOf(searchTxt) == 0) {
+        if ((curr.text).indexOf(searchTxt) === 0) {
           filteredGenes.push(curr);
         }
       }
@@ -710,12 +707,12 @@ export default class SearchPage extends React.Component {
 
   async addGenesToDictionary(currentSelection) {
     const oldGeneSelection = this.state.selectedGenes;
-    if (oldGeneSelection == null || oldGeneSelection.length == 0) {
+    if (oldGeneSelection == null || oldGeneSelection.length === 0) {
       await this.setState({ selectedGenes: currentSelection });
     } else {
       for (let i = 0; i < currentSelection.length; i++) {
         // console.log(i, currentSelection[i]);
-        if (this.isSelectedGene(currentSelection[i].ensembl_id) == false) {
+        if (this.isSelectedGene(currentSelection[i].ensembl_id) === false) {
           oldGeneSelection.push(currentSelection[i]);
           await this.setState({ selectedGenes: oldGeneSelection });
         }
@@ -814,11 +811,11 @@ export default class SearchPage extends React.Component {
     console.log('addSelectedPredefinedGenesToDropdown current', currentSelectedGenes);
 
     const genesHash = {};
-    for (var i = 0; i < currentSelectedGenes.length; i++) {
+    for (let i = 0; i < currentSelectedGenes.length; i++) {
       genesHash[currentSelectedGenes[i]] = true;
     }
 
-    for (var i = 0; i < genesList.length; i++) {
+    for (let i = 0; i < genesList.length; i++) {
       if (genesHash[genesList[i].text]) { continue; }
       genesArray.push(genesList[i]);
     }
@@ -858,14 +855,14 @@ export default class SearchPage extends React.Component {
 
   isSelectedGene(gene) {
     for (let i = 0; i < this.state.selectedGenes.length; i++) {
-      if (this.state.selectedGenes[i].ensembl_id == gene) { return true; }
+      if (this.state.selectedGenes[i].ensembl_id === gene) { return true; }
     }
     return false;
   }
 
   isSelectedSample(sample_id) {
     for (let i = 0; i < this.selectedRows.length; i++) {
-      if (this.selectedRows[i].run == sample_id) { return true; }
+      if (this.selectedRows[i].run === sample_id) { return true; }
     }
     return false;
   }
@@ -879,7 +876,7 @@ export default class SearchPage extends React.Component {
     // console.log(words);
     if (words.length > 1) {
       curr = `${words[0][0]} `;
-    } else if (words.length == 1) {
+    } else if (words.length === 1) {
       curr = words[0];
     }
     for (let x = 1; x < words.length; x++) {
@@ -927,12 +924,12 @@ export default class SearchPage extends React.Component {
 
     console.log("orthologyResponse", orthologyResponse);
 
-    var genes = [];
-    var runs = [];
-    for(var key in orthologyResponse) {
-      var array = orthologyResponse[key];
+    let genes = [];
+    let runs = [];
+    for(let key in orthologyResponse) {
+      let array = orthologyResponse[key];
 
-      for(var i = 0; i < array.length; i++){
+      for(let i = 0; i < array.length; i++){
         genes.push(array[i].ortholog_id);
         runs.push(array[i].ortholog_species);
         ENSEMBL_TO_NAME[array[i].ortholog_id] = array[i].ortholog_symbol;
@@ -943,8 +940,8 @@ export default class SearchPage extends React.Component {
     console.log("genesFromOrthology", genes);
     console.log("runsFromOrthology", runs);
 
-    var genesMap = [];
-    var genesMapBySpecies = [];
+    let genesMap = [];
+    let genesMapBySpecies = [];
     await this.setState({
       orthologyData: Object.keys(orthologyResponse).map((geneId) => {
         const row = {};
@@ -1012,14 +1009,14 @@ export default class SearchPage extends React.Component {
     };
 
 
-    for (var i = 0; i < ALL_X_VALUES.length; i++) {
+    for (let i = 0; i < ALL_X_VALUES.length; i++) {
       // if (!this.isSelectedSample(ALL_X_VALUES[i])) { continue; }
 
       // xValues.push(ALL_X_VALUES[i]);
       xIndices.push(i);
     }
 
-    for (var i = 0; i < ALL_Y_VALUES.length; i++) {
+    for (let i = 0; i < ALL_Y_VALUES.length; i++) {
       // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
 
       // yValues.push(ALL_Y_VALUES[i]);
@@ -1028,9 +1025,9 @@ export default class SearchPage extends React.Component {
 
     const speciesHash = {};
 
-    for (var i = 0; i < ALL_X_VALUES.length; i++) {
-      for (var j = 0; j < SAMPLES_VALUES.length; j++) {
-        if (ALL_X_VALUES[i] == SAMPLES_VALUES[j].run) {
+    for (let i = 0; i < ALL_X_VALUES.length; i++) {
+      for (let j = 0; j < SAMPLES_VALUES.length; j++) {
+        if (ALL_X_VALUES[i] === SAMPLES_VALUES[j].run) {
           // console.log(ALL_X_VALUES[i], SAMPLES_VALUES[j])
           speciesHash[ALL_X_VALUES[i]] = this.getHeatmapColumnName(`${SAMPLES_VALUES[j].organism} ${SAMPLES_VALUES[j].source}`);
         }
@@ -1069,7 +1066,7 @@ export default class SearchPage extends React.Component {
     let alreadyUsedSample = {};
     let alreadyUsedGene = {}
     let hash = {};
-    for (var i = 0; i < ALL_Y_VALUES.length; i++) {
+    for (let i = 0; i < ALL_Y_VALUES.length; i++) {
       hash[i] = [];
       // if (!this.isSelectedGene(ALL_Y_VALUES[i])) { continue; }
       // if(alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] != null){
@@ -1078,7 +1075,7 @@ export default class SearchPage extends React.Component {
       //   alreadyUsedGene[ENSEMBL_TO_NAME[ALL_Y_VALUES[i]]] = 1;
       // }
 
-      for (var j = 0; j < ALL_X_VALUES.length; j++) {
+      for (let j = 0; j < ALL_X_VALUES.length; j++) {
         // if (!this.isSelectedSample(ALL_X_VALUES[j])) { continue; }
 
         // if (alreadyUsedSample[ALL_X_VALUES[j]] != null) {
@@ -1097,7 +1094,7 @@ export default class SearchPage extends React.Component {
 
         const currentValue = parseFloat(allZValues[i][j]);// TODO: parseInt?
         // if (currentValue != 0.0) {
-          var textColor = 'white';
+          let textColor = 'white';
         // } else {
         //   var textColor = 'black';
         // }
@@ -1288,14 +1285,14 @@ export default class SearchPage extends React.Component {
 
     console.log("show results selected genes", this.state.selectedGenes);
     console.log("show results selected runs", this.samplesGridApi.getSelectedRows());
-    if((this.samplesGridApi.getSelectedRows()).length == 0){
+    if((this.samplesGridApi.getSelectedRows()).length === 0){
       alert("Please select samples!");
       this.setState({showLoader: false})
 
       return;
     }
 
-     if((this.state.selectedGenes).length == 0){
+     if((this.state.selectedGenes).length === 0){
       alert("Please select genes!");
       this.setState({showLoader: false})
       return;
@@ -1309,7 +1306,7 @@ export default class SearchPage extends React.Component {
     //var runsHash = [];
     //var runsFromOrthology = this.state.runsFromOrthology;
 
-    for(var i = 0; i < selectedRows.length; i++){
+    for(let i = 0; i < selectedRows.length; i++){
       runs.push(selectedRows[i].run);
     }
 
@@ -1382,7 +1379,7 @@ export default class SearchPage extends React.Component {
 
 
   render() {
-    self = this
+    let self = this
 
     const select_genes_panes = [
         { menuItem: 'By gene names', render: () => <Tab.Pane>
@@ -1474,7 +1471,6 @@ export default class SearchPage extends React.Component {
                       options={organismList}
                       value={selectedOrganism}
                       onChange={this.onChangeOrganism.bind(this)}
-                      defaultValue={"Human"}
                   />
                 The reference organism (Human by default) is used as a reference point to select your genes of interest.
                 </div>

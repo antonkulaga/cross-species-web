@@ -37,6 +37,10 @@ module.exports = {
   },
   devServer: {
     port: 8082,
+    hot: true,
+    inline: true,
+    quiet: false,
+    noInfo: true,
     disableHostCheck: true,
     host: (process.env.HOST || '0.0.0.0'),
     open: true,

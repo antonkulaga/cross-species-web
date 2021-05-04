@@ -7,13 +7,8 @@
 1. Run `yarn install` to install all dependencies.
 2. Run `yarn dev`
 
-## locally
 ```bash
-PORT=8084 HOST=localhost yarn dev
-```
-## remotely
-```bash
-PORT=8084 HOST=0.0.0.0 yarn dev
+HOST=0.0.0.0 yarn dev
 ```
 
 ## with docker container ###
