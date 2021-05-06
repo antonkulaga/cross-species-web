@@ -3,12 +3,11 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 import React from 'react';
-import { Button, Dropdown, Tab } from 'semantic-ui-react';
+import {Button, Dropdown, Tab, Step, StepContent, Header, Icon, Image, Message, Divider} from 'semantic-ui-react';
 
 
 import './app.css';
 
-// import SamplesGrid from './SamplesGrid'
 import { AgGridReact, AgGridColumn } from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
@@ -31,6 +30,8 @@ import Select from 'react-dropdown-select';
 
 import Loader from 'react-loader-spinner';
 import CsvDownload from 'react-json-to-csv';
+import {SamplesGrid} from "./components/SamplesGrid";
+import {SpeciesTable} from "./components/SpeciesTable";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -59,124 +60,6 @@ let hashString = {};
 let SPECIES_TO_ENSEMBL = [];
 
 const COLOR_RANGE_STD_DEVIATIONS = 3;
-
-const samplesColumnDefs = [
-  {
-    headerName: 'Sample',
-    field: 'run',
-    //value: [],
-    checkboxSelection: true,
-    headerCheckboxSelectionFilteredOnly: true,
-    headerCheckboxSelection: true,
-    filterParams: {
-      filterOptions: ['contains']
-    }
-    // width: 130
-  },
-  {
-    headerName: 'Species',
-    field: 'organism',
-    filterParams: {
-      filterOptions: ['contains']
-    },
-    minWidth: 200
-  },
-  {
-    headerName: 'Common name',
-    field: 'common_name',
-    filterParams: {
-      filterOptions: ['contains']
-    },
-    minWidth: 200
-  },
-  {
-    headerName: 'Max lifespan',
-    field: 'lifespan',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  {
-    headerName: 'Tissue',
-    field: 'source',
-    filterParams: {
-      filterOptions: ['contains']
-    },
-    minWidth: 150
-  },
-  {
-    headerName: 'Sex',
-    field: 'sex',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  {
-    headerName: 'Sequencer',
-    field: 'sequencer',
-    filterParams: {
-      filterOptions: ['contains']
-    },
-    minWidth: 200
-  },
-  {
-    headerName: 'Mass (g)',
-    field: 'mass_g',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  // {
-  //   headerName: 'Metabolic rate',
-  //   field: 'mass_gmetabolic_rate',
-  //   filterParams: {
-  //     filterOptions: ['contains']
-  //   }
-  // },
-  {
-    headerName: 'Temp (°C)',
-    field: 'temperature_celsius',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  {
-    headerName: 'Animal class',
-    field: 'animal_class',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  {
-    headerName: 'Taxon',
-    field: 'taxon',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  },
-  {
-    headerName: 'Ensembl URL',
-    field: 'ensembl_url',
-    filterParams: {
-      filterOptions: ['contains']
-    }
-  }
-];
-
-const samplesGridOptions = {
-  rowSelection: 'multiple',
-  groupSelectsChildren: true,
-  suppressRowClickSelection: true,
-  suppressAggFuncInHeader: true,
-  defaultColDef: {
-    sortable: true,
-    resizable: true,
-    filter: true
-  },
-  debug: true,
-  animateRows: true,
-  floatingFilter: true
-};
 
 const orthologyGridOptions = {
   suppressRowClickSelection: true,
@@ -219,20 +102,6 @@ const HUMAN = {
   id: 'Homo_sapiens'
 };
 
-function std(values){
-  const squareDiffs = values.map(function(value){
-    const diff = value - average(values);
-    return diff * diff;
-  });
-  
-  const avgSquareDiff = average(squareDiffs);
-
-  return Math.sqrt(avgSquareDiff);
-}
-
-function average(values) {
-  return values.reduce((a, b) => (a + b)) / values.length;
-}
 
 export default class SearchPage extends React.Component {
   constructor(props) {
@@ -242,11 +111,14 @@ export default class SearchPage extends React.Component {
       species: [],
       showLoader: false,
       data: null,
-      selectedGenes: [],
+      selectedRows: [],
       genesFromOrthology: [],
       runsFromOrthology: [],
+
+      selectedGenes: [],
       selectedGenesByName: [],
       selectedGenesSymbols: [],
+
       selectedPredefinedGenes: [],
       genesMap:[],
       runToSpeciesHash:[],
@@ -273,7 +145,6 @@ export default class SearchPage extends React.Component {
     this.onChangeGenes.bind(this);
     this.onSearchGenes.bind(this);
     this.onClickShowResults.bind(this);
-    this.onClearAllFilters.bind(this);
     this.onClickExportHeatmap.bind(this);
     this.isSelectedGene.bind(this);
     this.isSelectedSample.bind(this);
@@ -393,26 +264,6 @@ export default class SearchPage extends React.Component {
       });
   }
 
-  // getAllXValues() {
-  //   console.log('getAllXValues');// remove api
-  //   fetch('/api/getAllXValues')
-  //     .then(res => res.json())
-  //     .then((response) => {
-  //       // this.setState({ rowData : response })
-  //       // ALL_X_VALUES = response;
-  //     });
-  // }
-
-  // getAllYValues() {
-  //   console.log('getAllYValues');// remove api
-  //   fetch('/api/getAllYValues')
-  //     .then(res => res.json())
-  //     .then((response) => {
-  //       // this.setState({ rowData : response })
-  //       // ALL_Y_VALUES = response;
-  //     });
-  // }
-
   async getGeneExpression(runs, genes) {
 
     console.log('getExpressions runs and genes', runs, genes);
@@ -441,15 +292,6 @@ export default class SearchPage extends React.Component {
     allYValues = Object.keys(this.state.genesMap);
 
     console.log("allYValuesAl", allYValues);
-
-
-    // for(var i = 0; i < GENE_EXPRESSIONS.length; i++){
-    //   console.log("ensemble gene name", ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene],GENE_EXPRESSIONS[i].genes );
-    //   if(hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] == null && ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene].length > 1){
-    //     allYValues.push(ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]);
-    //     hashYValues[ENSEMBL_TO_NAME[GENE_EXPRESSIONS[i].gene]] = true;
-    //   }
-    // }
 
     for(let i = 0; i < GENE_EXPRESSIONS.length; i++){
       if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
@@ -508,22 +350,6 @@ export default class SearchPage extends React.Component {
           }
         }
 
-        // var found = false;
-        // for(var k = 0; k < GENE_EXPRESSIONS.length; k++){
-        //   if(GENE_EXPRESSIONS[k].run == currentSample && 
-        //     ENSEMBL_TO_NAME[GENE_EXPRESSIONS[k].gene] == currentGene){
-        //      if(hashString[currentSample] == null){
-        //       hashString[currentSample] = [];
-        //       hashString[currentSample][currentGene] = [];
-        //       hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
-        //     } else {  
-        //       hashString[currentSample][currentGene] = [];
-        //       hashString[currentSample][currentGene] = GENE_EXPRESSIONS[k].tpm;
-        //     }
-        //     found = true;
-        //   }
-         
-        // }
        if(found === false){
           if(hashString[currentSample] == null){
             hashString[currentSample] = [];
@@ -539,33 +365,6 @@ export default class SearchPage extends React.Component {
     }
     console.log("hashString", hashString);
 
-    // for(var i = 0; i < GENE_EXPRESSIONS.length; i++){ 
-    //   if(hashXValues[GENE_EXPRESSIONS[i].run] == null){
-    //     allXValues.push(GENE_EXPRESSIONS[i].run);
-    //     hashXValues[GENE_EXPRESSIONS[i].run] = true;
-        
-    //   }
-
-    //   if(hashString[GENE_EXPRESSIONS[i].run] == null){
-    //     hashString[GENE_EXPRESSIONS[i].run] = [];
-    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = [];
-    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
-    //   } else {
-    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].fgene] = [];
-    //     hashString[GENE_EXPRESSIONS[i].run][GENE_EXPRESSIONS[i].gene] = GENE_EXPRESSIONS[i].tpm;
-    //   }
-    // }
-    // var k = 0;
-    // allZValues = [];
-    // for(var i = 0; i < allXValues.length; i++){
-    //   for(var j = 0; j < allYValues.length; j++){ 
-    //     // console.log(j, GENE_EXPRESSIONS[j].tpm);
-    //     // /allZValues[i].push(GENE_EXPRESSIONS[j].tpm);
-    //     console.log(allZValues[k]);
-    //     allZValues.push(hashString[allXValues[i]][allYValues[j]]);
-
-    //   }
-    // }
     console.log("allZValues", allZValues);
     ALL_X_VALUES = allXValues; ALL_Y_VALUES = allYValues;
 
@@ -862,8 +661,8 @@ export default class SearchPage extends React.Component {
   }
 
   isSelectedSample(sample_id) {
-    for (let i = 0; i < this.selectedRows.length; i++) {
-      if (this.selectedRows[i].run === sample_id) { return true; }
+    for (let i = 0; i < this.state.selectedRows.length; i++) {
+      if (this.state.selectedRows[i].run === sample_id) { return true; }
     }
     return false;
   }
@@ -887,10 +686,9 @@ export default class SearchPage extends React.Component {
   }
 
   async getOrthology() {
-    const selectedSamples = this.samplesGridApi.getSelectedRows();
-    
+
     this.speciesToSRR = {};
-    selectedSamples.forEach((sample) => {
+    this.state.selectedRows.forEach((sample) => {
       if(!this.speciesToSRR[sample.organism])
         this.speciesToSRR[sample.organism] = [];
       else
@@ -918,7 +716,7 @@ export default class SearchPage extends React.Component {
       },
       body: JSON.stringify({
         genes: this.state.selectedGenes.map(gene => gene.ensembl_id),
-        samples: selectedSamples
+        samples: this.state.selectedRows
       })
     });
     orthologyResponse = await orthologyResponse.json();
@@ -1038,30 +836,6 @@ export default class SearchPage extends React.Component {
       }
     }
     console.log("speciesHash", speciesHash);
-
-    // sort ALL_X_VALUES by maximum lifespan descending
-    // const maximumLifesSpanBySpecies = {};
-    // for (var i = 0; i < this.selectedRows.length; i++) {
-    //   maximumLifesSpanBySpecies[this.selectedRows[i].run] = this.selectedRows[i].maximum_longevity;
-    // }
-
-    // for (var i = 0; i < ALL_X_VALUES.length - 1; i++) {
-    //   for (var j = i + 1; j < ALL_X_VALUES.length; j++) {
-    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[i]] == null) {
-    //       maximumLifesSpanBySpecies[ALL_X_VALUES[i]] = 0;
-    //     }
-
-    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] == null) {
-    //       maximumLifesSpanBySpecies[ALL_X_VALUES[j]] = 0;
-    //     }
-
-    //     if (maximumLifesSpanBySpecies[ALL_X_VALUES[j]] > maximumLifesSpanBySpecies[ALL_X_VALUES[i]]) {
-    //       const aux = ALL_X_VALUES[j];
-    //       ALL_X_VALUES[j] = ALL_X_VALUES[i];
-    //       ALL_X_VALUES[i] = aux;
-    //     }
-    //   }
-    // }  
     console.log("allYValues", ALL_Y_VALUES);
     console.log(ALL_Y_VALUES.length, ALL_X_VALUES.length);
     let alreadyUsedSample = {};
@@ -1160,57 +934,7 @@ export default class SearchPage extends React.Component {
         return true;
       }
     })
-    // console.log(zValues.map(x => x/std))
-    // heatmapColors = heatmapColors.map(x => {
-    //   // if(expr < std) return 0;
-    //   return colorsHash[x];
-    // });
-    // heatmapColors = heatmapColors.map(color => {
-    //   if(color < minColor) return minColor
-    //   if(color > maxColor) return maxColor
-    //   return color
-    // })
-    // console.log("heatmapColors:", heatmapColors);
 
-    // const logColors = zValues.map(x =>
-    // // TODO: parseInt?
-    // // if(!x) return 0;
-    //   Math.log(x + 1)// TODO: divide / Math.log(10);
-    // );
-    // console.log(logColors);
-
-    // const maxVal = parseInt(
-    //   Math.exp(
-    //     zValues.reduce((x, y) => {
-    //       if (x < y) { return y; }
-    //       return x;
-    //     })
-    //   ) - 1
-    // );
-    // // const minVal = zValues.reduce((x,y) => {if(x>y) return Math.exp(y)-1; return Math.exp(x)-1;})
-    // const tickVals = [0];
-    // for (let i = 1; i < 5; i++) {
-    //   tickVals.push(tickVals[i - 1] + maxVal / 5);
-    // }
-    // console.log(maxVal, tickVals);
-
-    // this.data = [{
-    //   x: xValues,
-    //   y: yValues,
-    //   z: zValues,
-
-    //   colorscale: 'RdBu',
-    //   // color: logColors,
-    //   showscale: false,
-    //   type: 'heatmap',
-    //   // colorbar: {
-    //   //     tickvals: tickVals,
-    //   //     ticks: 'outside'
-    //   // }
-    // }];
-
-
-    
 
     this.setState({data: [{
       x: xValues,
@@ -1256,14 +980,6 @@ export default class SearchPage extends React.Component {
     alert("export heatmap");
   }
 
-  async onClearAllFilters(){
-    this.samplesGridApi.setRowData(this.state.samplesRowData)
-    this.setState({ quickFilterValue: ''});
-    this.samplesGridApi.setQuickFilter('');
-    this.samplesGridApi.setFilterModel(null);
-    this.samplesGridApi.onFilterChanged();
-  }
-
   async onClickShowResults() {
    
     //check if all data are selected
@@ -1282,11 +998,9 @@ export default class SearchPage extends React.Component {
    
     // console.log('show results', this.state.selectedGenes);
 
-    this.selectedRows = this.samplesGridApi.getSelectedRows();
-
     console.log("show results selected genes", this.state.selectedGenes);
-    console.log("show results selected runs", this.samplesGridApi.getSelectedRows());
-    if((this.samplesGridApi.getSelectedRows()).length === 0){
+    console.log("show results selected runs", this.state.selectedRows);
+    if(this.state.selectedRows.length === 0){
       alert("Please select samples!");
       this.setState({showLoader: false})
 
@@ -1301,52 +1015,25 @@ export default class SearchPage extends React.Component {
 
 
     //let selectedGenes = this.state.selectedGenes;
-    let selectedRows = this.samplesGridApi.getSelectedRows();
     let runs = [];
     let genes = [];
     //var runsHash = [];
     //var runsFromOrthology = this.state.runsFromOrthology;
 
-    for(let i = 0; i < selectedRows.length; i++){
-      runs.push(selectedRows[i].run);
+    for(let i = 0; i < this.state.selectedRows.length; i++){
+      runs.push(this.state.selectedRows[i].run);
     }
 
     genes = this.state.genesFromOrthology;
     await this.getGeneExpression(runs, genes);     
   }
 
-  quickFilterChange(e) {
-    console.log('quickFilterChangee',e.target.value)
-    this.setState({ quickFilterValue: e.target.value || '' });
-    this.samplesGridApi.setQuickFilter(this.state.quickFilterValue);
-
-    if (!e.target.value 
-      || (e.target.value && e.target.value <=0) 
-      || e.target.value == "" ) {
-      console.log("reset quickFilter");
-      this.clearFilter();
-      this.samplesGridApi.setRowData(this.state.samplesRowData)
-    }
-  }
-
-  clearFilter() {
-    this.samplesGridApi.setFilterModel(null);
-    this.samplesGridApi.onFilterChanged();
-  }
-
   autoSizeAll(columnApi, skipHeader = false) {
     const allColumnIds = [];
     columnApi.getAllColumns().forEach((column) => {
-      allColumnIds.push(column.colId);
+      allColumnIds.push(column.colId); //TODO: clarify with Laurence+Alex why they do this
     });
-
     columnApi.autoSizeColumns(allColumnIds, skipHeader);
-  }
-
-  onSamplesGridReady = (params) => {
-    this.samplesGridApi = params.api;
-    this.samplesColumnApi = params.columnApi;
-    this.autoSizeAll(this.samplesColumnApi);
   }
 
   onOrthologyGridReady = (params) => {
@@ -1435,6 +1122,9 @@ export default class SearchPage extends React.Component {
     const {
       selectedGenesByName, selectedOrganism, organismList, genes
     } = this.state;
+
+
+
     return (
       <div className="ui intro">
 
@@ -1444,25 +1134,45 @@ export default class SearchPage extends React.Component {
             margin: '30px'
           }}
         >
-          {/* <SamplesGrid /> */}
+          <Message color="blue">
+            <Message.Header>
+              Welcome to the Cross-Species DB!
+            </Message.Header>
+            <Message.Content>
+              <p> This database contains gene expression data from more than 7 organs of 47 species and allows you to compare expressions of orthologous genes.</p>
+              <p> Please follow the steps to explore the database and make your own discoveries!</p>
+            </Message.Content>
+          </Message>
+          <Step.Group size="large" fluid ordered vertical>
+            <Step>
+              <Image size="tiny" src="./public/RNA-Seq.png"></Image>
+              <Step.Content style={{ width: `calc(100% - 25px)` }}>
+                <Step.Title><Header>Sample selection</Header></Step.Title>
+                <Step.Description>
 
-          <div className="ui three top attached steps">
-            <div className="step" id="select_reference">
-              <i className="icon"></i>
-              <div className="content">
+                  <Message color='blue' size="small">Choose RNA-Seq samples of different species to compare with each other</Message>
+                  </Step.Description>
+                <SamplesGrid samplesRowData={this.state.samplesRowData} setSelectedRows={(rows) => {self.setState({selectedRows: rows})}}>
 
-                <div className="ui blue message">
-                  <div className="title">Welcome to the Cross-Species DB!</div>
-                  <p> This database contains gene expression data from more than 7 organs of 47 species and allows you to compare expressions of orthologous genes.</p>
-                </div>
-              </div>
-            </div>
+                </SamplesGrid>
+                <Divider horizontal>
+                  <Header as='h4'>
+                    Species in selected samples:
+                  </Header>
+                </Divider>
+                <SpeciesTable selectedRows={this.state.selectedRows}></SpeciesTable>
+              </Step.Content>
+            </Step>
 
-            <div className="step" id="select_reference">
-              <i className="icon"></i>
-              <div className="content">
-                <div className="title">Choose reference organism</div>
-                <div className="description">
+            <Step disabled={this.state.selectedRows.length === 0} >
+              <Icon name='dna' />
+              <Step.Content>
+                <Step.Title><Header>Choose genes</Header></Step.Title>
+                <Step.Description>
+
+                  <Header>
+                    Choose reference organism
+                  </Header>
                   <Dropdown
                       placeholder="Human"
                       fluid
@@ -1472,69 +1182,19 @@ export default class SearchPage extends React.Component {
                       value={selectedOrganism}
                       onChange={this.onChangeOrganism.bind(this)}
                   />
-                The reference organism (Human by default) is used as a reference point to select your genes of interest.
-                </div>
-              </div>
-            </div>
-            <div className="active step">
-              <i className="icon"></i>
-              <div className="content">
-                <div className="title" style={{
-                  marginBottom: '12px'
-                }}><i className="dna icon"></i> Choose genes:</div>
+                  The reference organism (Human by default) is used as a reference point to select your genes of interest.
+                  <Divider horizontal>
+                    <Header as='h4'>
+                      Select genes in the chosen references organism:
+                    </Header>
+                  </Divider>
+                  <Tab className="fluid" panes={select_genes_panes}></Tab>
+                  You can choose them by symbol, Ensembl ID or use one of the predefined lists of genes we've compiled.
+                </Step.Description>
+              </Step.Content>
+            </Step>
+          </Step.Group>
 
-                <Tab className="fluid" panes={select_genes_panes}></Tab>
-                Please choose the genes in which you are interested in (of the reference organism)!
-                You can choose them by symbol, Ensembl ID or use one of the predefined lists of genes we've compiled.
-
-                </div>
-              </div>
-            </div>
-
-          <div id="SamplesGrid" className="ui segment">
-            <h3 className="ui header">Select samples</h3>
-            <div style={{ marginBottom: '5px' }}>
-           
-              <div className="ui input" style={{ width: '100%' }}>
-                {/* <i className="search icon"></i> */}
-                <input
-                  onChange={this.quickFilterChange.bind(this)}
-                  value={this.state.quickFilterValue}
-                  type="text"
-                  id="quickFilter"
-                  placeholder="filter everything..."
-                />
-                {/* <div className="ui teal button">Search</div> */}
-                  <Button
-            onClick={this.onClearAllFilters.bind(this)}
-            className="ui blue"
-          >
-            Clear all filters
-          </Button>
-              </div>
-              {/* <button onclick="filterLung()">Filter all species by lung</button> */}
-              {/* <button onclick="filterRbieti()">Filter all tissues by species rbieti</button>
-                <button onclick="clearFilter()" style="margin-left: 10px;">Clear Filter</button> */}
-            </div>
-
-            <div style={{ height: 'calc(100% - 25px)' }}>
-              <div
-                className="ag-theme-balham"
-                style={
-                {
-                  // width: '600px',//TODO
-                  height: '300px'
-                }}
-              >
-                <AgGridReact
-                  onGridReady={this.onSamplesGridReady}
-                  rowData={this.state.samplesRowData}
-                  columnDefs={samplesColumnDefs}
-                  gridOptions={samplesGridOptions}
-                />
-              </div>
-            </div>
-          </div>
 
 
 
@@ -1543,6 +1203,7 @@ export default class SearchPage extends React.Component {
           <Button
             onClick={this.onClickShowResults.bind(this)}
             className="ui blue"
+            size="massive"
           >
             Show results
           </Button>

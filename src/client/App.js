@@ -1,5 +1,4 @@
-import React from 'react'
-import { Menu } from 'semantic-ui-react'
+import React, { createRef, useState }  from 'react'
 
 import './app.css';
 
@@ -14,88 +13,87 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    Link
+} from "react-router-dom"
+import {
+    Menu,
+    Icon,
+    Divider,
+    Step,
+    Header, Segment
+} from 'semantic-ui-react';
 
 
+export const App = () => {
 
-export default class App extends React.Component {
-    state = {
-        activeMenu: 'Search'
-    }
+    const [hasSamples, setHasSamples] = useState(false)
+    const [hasGenes, setHasGenes] = useState(false)
 
-    handleItemClick = (e, { name }) => this.setState({ activeMenu: name })
-    
-    renderPage(page) {
-        switch(page){
-            case 'Analysis':
-                return <AnalysisPage />
-            case 'About':
-                return <AboutPage />
-            default:
-                return <SearchPage />
-        }
-    }
-
-    render() {
-        const { activeMenu } = this.state
-        return (
+    return (
+        <Router>
             <div className="min-vh-100 w-100 flex flex-column "> {/*items-center justify-center*/}
-                <div className="pusher">
-                    <div className="full height">
-                        <div className="article">
-                            <div className="ui masthead vertical segment"> {/* tab */}
-                                <div className="ui" style={{
-                                        marginLeft: "30px",
-                                        marginRight: "30px"
-                                    }}>
-                                    <div className="introduction">
-                                        <h1 className="ui header">
-                                            <i className="dragon icon"></i>
-                                            Cross-species gene expression database
-                                        </h1>
+                    <div className="ui masthead vertical segment"> {/* tab */}
+                        <div className="ui" style={{
+                                marginLeft: "30px",
+                                marginRight: "30px"
+                            }}>
+                          <Menu color="blue" icon tabular fixed="top">
 
-                                        <div className="ui hidden divider">
-                                        </div>
+                             <Step.Group>
+                                <Step>
+                                    <Step.Content>
+                                        <Step.Title><Link to="#samples">Select RNA-Seq samples</Link></Step.Title>
+                                    </Step.Content>
+                                </Step>
+                                <Step>
+                                    <Step.Content>
+                                        <Step.Title><Link to="#genes">Choose genes</Link></Step.Title>
+                                    </Step.Content>
+                                </Step>
+                                <Step>
+                                    <Step.Content>
+                                        <Step.Title><Link to="#shap">Visualize</Link></Step.Title>
+                                    </Step.Content>
+                                </Step>
+                                <Step>
+                                    <Step.Content>
+                                        <Step.Title><Link to="#analyze">Analyze</Link></Step.Title>
+                                    </Step.Content>
+                                </Step>
 
-                                        <Menu stackable className="blue inverted three item large tabs">
-                                            <Menu.Item
-                                                name='Search'
-                                                data-tab="laur1"
-                                                active={activeMenu === 'Search'}
-                                                onClick={this.handleItemClick}
-                                            >
-                                                Search
-                                            </Menu.Item>
+                            </Step.Group>
 
-                                            <Menu.Item
-                                                name='Analysis'
-                                                data-tab="laur2"
-                                                active={activeMenu === 'Analysis'}
-                                                onClick={this.handleItemClick}
-                                            >
-                                                Analysis
-                                            </Menu.Item>
 
-                                            <Menu.Item
-                                                name='About'
-                                                active={activeMenu === 'About'}
-                                                onClick={this.handleItemClick}
-                                            >
-                                                About
-                                            </Menu.Item>
-                                        </Menu>
-                                    </div>
-                                </div>
-                                
-                                {
-                                    this.renderPage(activeMenu)
-                                }
+                                      <Menu.Menu position='right'>
+                                          <Menu.Item name="Cross-species gene expression database">
+                                              <Header className="ui blue inverted compact segment">
+                                                  <i className="ui dragon icon"> </i>
+                                                  About Cross-species gene expression database
+                                              </Header>
+                                          </Menu.Item>
+
+                                      </Menu.Menu>
+                                    </Menu>
+
                             </div>
-                                
-                            
-                            </div>
+                        </div>
+                <Divider horizontal> </Divider>
+                        <Switch>
+
+                                <Route path="/">
+
+                                        <SearchPage></SearchPage>
+
+                                </Route>
+                        </Switch>
                     </div>
-                </div>
-            </div>
-        )
-    }
+
+        </Router>
+
+    )
 }
+export default App
