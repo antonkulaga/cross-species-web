@@ -154,7 +154,6 @@ export const SamplesGrid = ({samplesRowData, setSelectedRows}) => { //UGLY CALLB
     }
 
 
-
     const onSelectionChanged = () => {
         const rows = samplesGridApi.getSelectedRows()
         setSelectedRows(rows)
@@ -204,6 +203,9 @@ export const SamplesGrid = ({samplesRowData, setSelectedRows}) => { //UGLY CALLB
                 </div>
                 {/* <button onclick="filterLung()">Filter all species by lung</button> */}
                 {/* <button onclick="filterRbieti()">Filter all tissues by species rbieti</button>
+
+                this.state.selectedRows.length === 0
+
                 <button onclick="clearFilter()" style="margin-left: 10px;">Clear Filter</button> */}
             </div>
             <div id="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>

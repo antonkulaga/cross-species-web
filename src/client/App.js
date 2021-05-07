@@ -26,6 +26,7 @@ import {
     Step,
     Header, Segment
 } from 'semantic-ui-react';
+import {DataPage} from "./DataPage";
 
 
 export const App = () => {
@@ -42,56 +43,28 @@ export const App = () => {
                                 marginRight: "30px"
                             }}>
                           <Menu color="blue" icon tabular fixed="top">
+                              <Menu.Menu position='right'>
+                                  <Menu.Item name="Cross-species gene expression database">
+                                      <Header className="ui blue inverted compact segment">
+                                          <i className="ui dragon icon"> </i>
+                                          About Cross-species gene expression database
+                                      </Header>
+                                  </Menu.Item>
+                              </Menu.Menu>
+                          </Menu>
 
-                             <Step.Group>
-                                <Step>
-                                    <Step.Content>
-                                        <Step.Title><Link to="#samples">Select RNA-Seq samples</Link></Step.Title>
-                                    </Step.Content>
-                                </Step>
-                                <Step>
-                                    <Step.Content>
-                                        <Step.Title><Link to="#genes">Choose genes</Link></Step.Title>
-                                    </Step.Content>
-                                </Step>
-                                <Step>
-                                    <Step.Content>
-                                        <Step.Title><Link to="#shap">Visualize</Link></Step.Title>
-                                    </Step.Content>
-                                </Step>
-                                <Step>
-                                    <Step.Content>
-                                        <Step.Title><Link to="#analyze">Analyze</Link></Step.Title>
-                                    </Step.Content>
-                                </Step>
-
-                            </Step.Group>
-
-
-                                      <Menu.Menu position='right'>
-                                          <Menu.Item name="Cross-species gene expression database">
-                                              <Header className="ui blue inverted compact segment">
-                                                  <i className="ui dragon icon"> </i>
-                                                  About Cross-species gene expression database
-                                              </Header>
-                                          </Menu.Item>
-
-                                      </Menu.Menu>
-                                    </Menu>
-
-                            </div>
                         </div>
-                <Divider horizontal> </Divider>
-                        <Switch>
-
-                                <Route path="/">
-
-                                        <SearchPage></SearchPage>
-
-                                </Route>
-                        </Switch>
                     </div>
-
+                <Divider horizontal> </Divider>
+                    <Switch>
+                            <Route path="/">
+                                    <SearchPage></SearchPage>
+                            </Route>
+                            <Route path="/data">
+                                <DataPage></DataPage>
+                            </Route>
+                    </Switch>
+            </div>
         </Router>
 
     )

@@ -32,13 +32,10 @@ import Loader from 'react-loader-spinner';
 import CsvDownload from 'react-json-to-csv';
 import {SamplesGrid} from "./components/SamplesGrid";
 import {SpeciesTable} from "./components/SpeciesTable";
+import OrthologySelection from "./components/OrthologySelection";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
-// import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
-// import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
-
-// import ENSEMBL_TO_NAME from './data/ensemblToName.json'
 
 // import ALL_X_VALUES from './data/allXValues.json'
 // import ALL_Y_VALUES from './data/allYValues.json'
@@ -46,19 +43,11 @@ import {SpeciesTable} from "./components/SpeciesTable";
 // import GENE_EXPRESSIONS from './data/geneExpressions.json'
 
 let SAMPLES_VALUES = [];
-let GENAGE_GENES_PRO = [];
-let GENAGE_GENES_ANTI = [];
-let YSPECIES_GENES_PRO = [];
-let YSPECIES_GENES_TOP = [];
-let ENSEMBL_TO_NAME = [];
 let ALL_X_VALUES = [];
 let ALL_Y_VALUES = [];
 let GENE_EXPRESSIONS = [];
 let allZValues = [];
 let hashString = {};
-
-let SPECIES_TO_ENSEMBL = [];
-
 const COLOR_RANGE_STD_DEVIATIONS = 3;
 
 const orthologyGridOptions = {
@@ -83,25 +72,6 @@ const baseOrthologyColumnDefs = [
   }
 ];
 
-const PREDEFINED_GENES = [
-  { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
-  { key: 'Yspecies Top Pro & Anti-Longevity Genes', value: 'Yspecies Top Pro & Anti-Longevity Genes', text: 'Yspecies Top Pro & Anti-Longevity Genes' },
-  { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
-  { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
-  { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
-  { key: 'Anti-Lifespan Genes', value: 'Anti-Lifespan Genes', text: 'Anti-Lifespan Genes' },
-  { key: 'DNA Repair genes', value: 'DNA Repair genes', text: 'DNA Repair genes' },
-  { key: 'Autophagy genes', value: 'Autophagy genes', text: 'Autophagy genes' },
-  { key: 'My custom gene list', value: 'My custom gene list', text: 'My custom gene list' }
-];
-
-const HUMAN = {
-  key: 'Human',
-  value: 'Human',
-  text: 'Human',
-  id: 'Homo_sapiens'
-};
-
 
 export default class SearchPage extends React.Component {
   constructor(props) {
@@ -115,21 +85,17 @@ export default class SearchPage extends React.Component {
       genesFromOrthology: [],
       runsFromOrthology: [],
 
-      selectedGenes: [],
-      selectedGenesByName: [],
-      selectedGenesSymbols: [],
+      //selectedGenes: [],
+      //selectedGenesByName: [],
+      //selectedGenesSymbols: [],
 
-      selectedPredefinedGenes: [],
+
       genesMap:[],
+      //genes: [],
+
       runToSpeciesHash:[],
       genesMapBySpecies:[],
-      selectedGeneIds: [],
-      selectedOrganism: HUMAN.value,
-      organismList: [],
       samplesRowData: [],
-      genes: [],
-      allGenes: [],
-      lastSearchGenes: 'default',
       quickFilterValue: '',
       displayHeatmap: 'none',
       orthologyColumnDefs: [{
@@ -139,130 +105,20 @@ export default class SearchPage extends React.Component {
       orthologyData: []
     };
 
-    this.convertSpeciesToEnsemble.bind(this);
-    this.addGenesToDictionary.bind(this);
-    this.onChangePredefinedGenes.bind(this);
-    this.onChangeGenes.bind(this);
-    this.onSearchGenes.bind(this);
     this.onClickShowResults.bind(this);
     this.onClickExportHeatmap.bind(this);
     this.isSelectedGene.bind(this);
     this.isSelectedSample.bind(this);
     this.getHeatmapColumnName.bind(this);
-    this.refreshSelectedGenes.bind(this);
-    this.onChangeOrganism.bind(this);
-    this.getReferenceOrgGenes.bind(this);
     this.renderHeatmap.bind(this);
   }
 
   componentDidMount() { //TODO: refactor me
-    this.getReferenceOrgGenes('Homo_sapiens');
     this.getSamplesAndSpecies();
-    this.getGenesPro();
-    this.getYspeciesGenesPro();
-    this.getYspeciesGenesTop();
-    this.getGenesAnti();
-    this.getEnsembleToName();
     // this.getAllXValues();
     // this.getAllYValues();
   }
 
-  getGenesPro() {
-    console.log('getGenesPro');// remove testApi
-    fetch('/api/getGenesPro')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ samplesRowData : response })
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-          results.push({
-            ensembl_id: response[i].ensembl_id,
-            key: response[i].ensembl_id,
-            value: response[i].name,
-            text: response[i].name,
-            label: response[i].name
-          });
-        }
-        GENAGE_GENES_PRO = results;
-        console.log('getGenesPro', results);
-      });
-  }
-
-  getYspeciesGenesPro() {
-    console.log('getYspeciesGenesPro');// remove testApi
-    fetch('/api/getYspeciesGenesPro')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ samplesRowData : response })
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-          results.push({
-            ensembl_id: response[i].ensembl_id,
-            key: response[i].ensembl_id,
-            value: response[i].name,
-            text: response[i].name,
-            label: response[i].name
-          });
-        }
-        YSPECIES_GENES_PRO = results;
-        console.log('getYspeciesGenesPro', results);
-      });
-  }
-
-  getYspeciesGenesTop() {
-    console.log('getYspeciesGenesTop');// remove testApi
-    fetch('/api/getYspeciesGenesTop')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ samplesRowData : response })
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-          results.push({
-            ensembl_id: response[i].ensembl_id,
-            key: response[i].ensembl_id,
-            value: response[i].name,
-            text: response[i].name,
-            label: response[i].name
-          });
-        }
-        YSPECIES_GENES_TOP = results;
-        console.log('getYspeciesGenesTop', results);
-      });
-  }
-
-  getGenesAnti() {
-    console.log('getGenesAnti');// remove testApi
-    fetch('/api/getGenesAnti')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ samplesRowData : response })
-
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-          results.push({
-            ensembl_id: response[i].ensembl_id,
-            key: response[i].ensembl_id,
-            value: response[i].name,
-            text: response[i].name,
-            label: response[i].name
-          });
-        }
-        GENAGE_GENES_ANTI = results;
-        console.log('getGenesAnti', results);
-      });
-  }
-
-  getEnsembleToName() {
-    console.log('getEnsembleToName');// remove api
-    fetch('/api/getEnsembleToName')
-      .then(res => res.json())
-      .then((response) => {
-        // this.setState({ samplesRowData : response })
-        ENSEMBL_TO_NAME = response;
-        SPECIES_TO_ENSEMBL = _.invertBy(response);
-        console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL);
-      });
-  }
 
   async getGeneExpression(runs, genes) {
 
@@ -437,221 +293,6 @@ export default class SearchPage extends React.Component {
 
   }
 
-  async refreshSelectedGenes() {
-    console.log("refreshSelectedGenes");
-    let selectedGenes = [];
-    const { selectedGenesSymbols } = this.state;
-    const { selectedPredefinedGenes } = this.state;
-    const { selectedGeneIds } = this.state;
-
-    selectedGenes = selectedGenesSymbols;
-    selectedGenes = selectedGenes.concat(selectedPredefinedGenes);
-    selectedGenes = selectedGenes.concat(selectedGeneIds);
-    let filteredGenes = [];
-    let hashGenes = [];
-    for(let i = 0; i < selectedGenes.length; i++){
-      if(hashGenes[selectedGenes[i].key] == null){
-        hashGenes[selectedGenes[i].key] = 1;
-      } else {
-        continue;
-      }
-      filteredGenes.push(selectedGenes[i]);
-    }
-    console.log("filteredGenes", filteredGenes)
-    await this.setState({ selectedGenes: filteredGenes });
-    await this.addGenesToDictionary(selectedGenes);
-  }
-
-  async onChangeGenes(values) {
-    console.log('onChangeGenes', values);
-    const selected = await this.convertSpeciesToEnsemble(values);
-    await this.setState({ selectedGenesSymbols: selected });
-    await this.refreshSelectedGenes();
-    await this.setState({ selectedGenesByName: values });
-  }
-
-
-  onSearchGenes(values) {
-    // console.log("onSearchGenes", values.state.search);
-    let searchTxt = (values.state.search).toUpperCase();
-    // console.log(this.state.genes);
-    const { lastSearchGenes } = this.state;
-    if (searchTxt.length >= 1 && lastSearchGenes != searchTxt) {
-      // console.log("XXXXXX");
-      this.setState({ lastSearchGenes: searchTxt });
-      const { allGenes } = this.state;
-      const filteredGenes = [];
-
-      for (let i = 0; i < allGenes.length; i++) {
-        const curr = allGenes[i];
-
-        if ((curr.text).indexOf(searchTxt) === 0) {
-          filteredGenes.push(curr);
-        }
-      }
-
-      if (filteredGenes.length >= 1) {
-        this.setState({ genes: filteredGenes.slice(0, 50) });
-      }
-    } else {
-      // console.log("same search", searchTxt);
-    }
-  }
-
-  async handleChangeTextarea(e, target) {
-    const lines = (e.target.value).split('\n');
-    await this.setState({ selectedGeneIds: this.createEnsembleObjectsFromIds(lines) });
-    await this.refreshSelectedGenes();
-    await this.addSelectedPredefinedGenesToDropdown(await this.state.selectedGeneIds);
-  }
-
-  async addGenesToDictionary(currentSelection) {
-    const oldGeneSelection = this.state.selectedGenes;
-    if (oldGeneSelection == null || oldGeneSelection.length === 0) {
-      await this.setState({ selectedGenes: currentSelection });
-    } else {
-      for (let i = 0; i < currentSelection.length; i++) {
-        // console.log(i, currentSelection[i]);
-        if (this.isSelectedGene(currentSelection[i].ensembl_id) === false) {
-          oldGeneSelection.push(currentSelection[i]);
-          await this.setState({ selectedGenes: oldGeneSelection });
-        }
-      }
-      await this.setState({ selectedGenes: oldGeneSelection });
-    }
-  }
-
-  createEnsembleObjectsFromIds(ids) {
-    const result = [];
-    for (let i = 0; i < ids.length; i++) {
-      const object = {
-        ensembl_id: ids[i],
-        key: ids[i],
-        name: ENSEMBL_TO_NAME[ids[i]],
-        value: ENSEMBL_TO_NAME[ids[i]],
-        text: ENSEMBL_TO_NAME[ids[i]],
-        label: ENSEMBL_TO_NAME[ids[i]]
-      };
-      result.push(object);
-    }
-    return result;
-  }
-
-  async onChangeOrganism(e, target) {
-    console.log('onChangeOrganism()');
-    // console.log(e, target);
-    this.setState({ selectedOrganism: target.value });
-    // await this.refreshSelectedGenes();ReferenceOrgGenes(target.value[0])
-
-    const organisms = this.state.organismList;
-    console.log(organisms, target);
-    for (let i = 0; i < organisms.length; i++) {
-      if (organisms[i].value === target.value) {
-        console.log(organisms[i], target.value);
-        this.getReferenceOrgGenes(organisms[i].id);
-        break;
-      }
-    }
-  }
-
-  async getReferenceOrgGenes(referenceOrg) {
-    this.setState({showLoader: true})
-    this.forceUpdate();
-    fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
-      .then(res => res.json())
-      .then((response) => {
-        console.log('getReferenceOrgGenes', response);
-
-        const results = [];
-        const hash = [];
-        for (let i = 0; i < response.length; i++) {
-          const ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
-          if (hash[response[i].symbol] == null) {
-            results.push({
-              ensembl_id,
-              key: ensembl_id,
-              value: response[i].symbol,
-              text: response[i].symbol,
-              label: response[i].symbol
-            });
-            hash[response[i].symbol] = true;
-          }
-        }
-        this.setState({ allGenes: results });
-        this.setState({ genes: results.slice(0, 30) });
-        this.setState({ showLoader: false })
-
-      });
-  }
-
-  convertSpeciesToEnsemble(species) {
-    const speciesHash = {};
-    const result = [];
-    console.log('convertSpeciesToEnsemble', species[0].value);
-    console.log('SPECIES_TO_ENSEMBL', SPECIES_TO_ENSEMBL[species[0].value][0]);
-    for (let i = 0; i < species.length; i++) {
-      const object = {
-        ensembl_id: SPECIES_TO_ENSEMBL[species[i].value][0],
-        key: SPECIES_TO_ENSEMBL[species[i].value][0],
-        name: species[i],
-        value: species[i],
-        text: species[i],
-        label: species[i]
-      };
-      result.push(object);
-    }
-
-    return result;
-  }
-
-  async addSelectedPredefinedGenesToDropdown(genesList) {
-    console.log('addSelectedPredefinedGenesToDropdown', genesList);
-    const genesArray = [];
-    const currentSelectedGenes = await this.state.selectedGenesByName;
-    console.log('addSelectedPredefinedGenesToDropdown current', currentSelectedGenes);
-
-    const genesHash = {};
-    for (let i = 0; i < currentSelectedGenes.length; i++) {
-      genesHash[currentSelectedGenes[i]] = true;
-    }
-
-    for (let i = 0; i < genesList.length; i++) {
-      if (genesHash[genesList[i].text]) { continue; }
-      genesArray.push(genesList[i]);
-    }
-
-    const newSelectedGenes = currentSelectedGenes.concat(genesArray);
-
-    console.log('addSelectedPredefinedGenesToDropdown finish', newSelectedGenes);
-    await this.setState({ selectedGenesByName: newSelectedGenes });
-  }
-
-  async onChangePredefinedGenes(e, target) {
-    switch (target.value) {
-      case 'Pro-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_PRO });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_PRO);
-        break;
-      case 'Yspecies Pro-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: YSPECIES_GENES_PRO });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(YSPECIES_GENES_PRO);
-        break;
-      case 'Yspecies Top Pro & Anti-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: YSPECIES_GENES_TOP });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(YSPECIES_GENES_TOP);
-        break;
-      case 'Anti-Longevity Genes':
-        await this.setState({ selectedPredefinedGenes: GENAGE_GENES_ANTI });
-        await this.refreshSelectedGenes();
-        await this.addSelectedPredefinedGenesToDropdown(GENAGE_GENES_ANTI);
-        break;
-      default:
-        break;
-    }
-  }
 
   isSelectedGene(gene) {
     for (let i = 0; i < this.state.selectedGenes.length; i++) {
@@ -1067,64 +708,7 @@ export default class SearchPage extends React.Component {
 
   render() {
     let self = this
-
-    const select_genes_panes = [
-        { menuItem: 'By gene names', render: () => <Tab.Pane>
-         <Select id="select"
-                placeholder="Search gene symbols"
-                multi
-                options={genes}
-                name="select"
-                values={selectedGenesByName}
-                searchFn={this.onSearchGenes.bind(self)}
-                onChange={this.onChangeGenes.bind(self)}
-        /> </Tab.Pane>},
-      { menuItem: 'From predefined list', render: () => <Tab.Pane>
-          <span>or choose a predefined list:</span>
-          <Dropdown
-              placeholder="Select predefined list of genes"
-              fluid
-              search
-              selection
-              options={PREDEFINED_GENES}
-              onChange={this.onChangePredefinedGenes.bind(self)}
-          />
-        </Tab.Pane> },
-      { menuItem: 'By Ensembl ID', render: () => <Tab.Pane>
-              <div className="gene-list-wrapper" style={{ marginTop: '10px' }}>
-                <p className="or-spacer has-text-primary">Or paste custom gene ids</p>
-                <div className="field">
-                  {/**/}
-                  {' '}
-                  <div style={{ position: 'relative' }}>
-                    <a className="delete is-small input-clear" />
-                    <div className="control is-clearfix">
-                      <textarea
-                          style={{
-                            width: '400px',
-                            height: '100px'
-                          }}
-                          onChange={this.handleChangeTextarea.bind(this)}
-                          placeholder="Please enter ENSEMBL gene ids..."
-                          name="gene_list"
-                          className="textarea"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-
-        </Tab.Pane> },
-    ]
-
-
-    const {
-      selectedGenesByName, selectedOrganism, organismList, genes
-    } = this.state;
-
-
-
+    const hasSelection = () => { return self.state.selectedRows.length === 0}
     return (
       <div className="ui intro">
 
@@ -1163,36 +747,16 @@ export default class SearchPage extends React.Component {
                 <SpeciesTable selectedRows={this.state.selectedRows}></SpeciesTable>
               </Step.Content>
             </Step>
+            <OrthologySelection
+                organismList={this.state.organismList}
+                selectedRows={this.state.selectedRows}
+                setShowLoader={this.state.setShowLoader}
+                hasSelection={hasSelection}
+            >
 
-            <Step disabled={this.state.selectedRows.length === 0} >
-              <Icon name='dna' />
-              <Step.Content>
-                <Step.Title><Header>Choose genes</Header></Step.Title>
-                <Step.Description>
+            </OrthologySelection>
 
-                  <Header>
-                    Choose reference organism
-                  </Header>
-                  <Dropdown
-                      placeholder="Human"
-                      fluid
-                      search
-                      selection
-                      options={organismList}
-                      value={selectedOrganism}
-                      onChange={this.onChangeOrganism.bind(this)}
-                  />
-                  The reference organism (Human by default) is used as a reference point to select your genes of interest.
-                  <Divider horizontal>
-                    <Header as='h4'>
-                      Select genes in the chosen references organism:
-                    </Header>
-                  </Divider>
-                  <Tab className="fluid" panes={select_genes_panes}></Tab>
-                  You can choose them by symbol, Ensembl ID or use one of the predefined lists of genes we've compiled.
-                </Step.Description>
-              </Step.Content>
-            </Step>
+
           </Step.Group>
 
 
