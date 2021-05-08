@@ -4,6 +4,9 @@ import {List, fromJS, Map} from "immutable"
 
 export const SpeciesTable = ({selectedRows}) => {
 
+    const round = (num) => isNaN(num) ? "N/A" : Math.round((num + Number.EPSILON) * 100) / 100
+
+
     const speciesFromRow = (row) => {
         return {
             organism: row.organism,
@@ -40,10 +43,10 @@ export const SpeciesTable = ({selectedRows}) => {
                 <Table.Cell>{species.organism}</Table.Cell>
                 <Table.Cell>{species.common_name}</Table.Cell>
                 <Table.Cell>{species.taxon}</Table.Cell>
-                <Table.Cell>{!isNaN(species.lifespan) ? species.lifespan : "no data"}</Table.Cell>
-                <Table.Cell>{!isNaN(species.mass_g)? species.mass_g / 1000 : "no data"}</Table.Cell>
-                <Table.Cell>{!isNaN(species.metabolic_rate) ? species.metabolic_rate : "no data"}</Table.Cell>
-                <Table.Cell>{!isNaN(species.temperature_celsius)? species.temperature_celsius : "no data"}</Table.Cell>
+                <Table.Cell>{round(species.lifespan)}</Table.Cell>
+                <Table.Cell>{!isNaN(species.mass_g)? round(species.mass_g / 1000.0) : "N/A"}</Table.Cell>
+                <Table.Cell>{round(species.metabolic_rate)}</Table.Cell>
+                <Table.Cell>{round(species.temperature_celsius)}</Table.Cell>
 
             </Table.Row>
     )

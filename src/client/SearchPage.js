@@ -751,7 +751,7 @@ export default class SearchPage extends React.Component {
             <OrthologySelection
                 organismList={this.state.organismList}
                 selectedRows={this.state.selectedRows}
-                setShowLoader={this.state.setShowLoader}
+                setShowLoader={(value) => self.setState({ showLoader: value})}
                 hasSelection={hasSelection}
             >
 

@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useReducer } from 'react'
-import {Divider, Dropdown, Header, Icon, Image, List, Step, Tab, Table} from 'semantic-ui-react'
+import {Divider, Dropdown, Header, Icon, Image, List, Step, Segment, Grid, GridColumn, Tab, Table, TextArea} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
 
@@ -9,28 +9,14 @@ import _ from "lodash";
 //import ENSEMBL_TO_NAME from './data/ensemblToName.json'
 
 
-const HUMAN = {
-    key: 'Human',
-    value: 'Human',
-    text: 'Human',
-    id: 'Homo_sapiens'
-};
-
-//TODO: FINISH MOVING TO Orthology Selection
-
-const PREDEFINED_GENES = [
-    { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
-    { key: 'Yspecies Top Pro & Anti-Longevity Genes', value: 'Yspecies Top Pro & Anti-Longevity Genes', text: 'Yspecies Top Pro & Anti-Longevity Genes' },
-    { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
-    { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
-    { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
-    { key: 'Anti-Lifespan Genes', value: 'Anti-Lifespan Genes', text: 'Anti-Lifespan Genes' },
-    { key: 'DNA Repair genes', value: 'DNA Repair genes', text: 'DNA Repair genes' },
-    { key: 'Autophagy genes', value: 'Autophagy genes', text: 'Autophagy genes' },
-    { key: 'My custom gene list', value: 'My custom gene list', text: 'My custom gene list' }
-];
-
 export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) => {
+
+    const HUMAN = {
+        key: 'Human',
+        value: 'Human',
+        text: 'Human',
+        id: 'Homo_sapiens'
+    };
 
     const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
@@ -40,13 +26,12 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     const [selectedPredefinedGenes, setSelectedPredefinedGenes] = useState([])
     const [selectedGeneIds, setSelectedGeneIds] = useState([])
 
-    const [search, setSearch] = useState('')
+    //const [search, setSearch] = useState('')
 
     const [allGenes, setAllGenes] =  useState([])
     const [genes, setGenes] =  useState([])
     const [, updateState] = React.useState();
     const forceUpdate = React.useCallback(() => updateState({}), []);
-
 
 
     //REWRITE OF UGLY SHARED GLOBAL VARS
@@ -57,6 +42,30 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     const [YSPECIES_GENES_PRO, setYSPECIES_GENES_PRO] = useState([])
     const [YSPECIES_GENES_TOP, setYSPECIES_GENES_TOP] = useState([])
 
+
+    //TODO: FINISH MOVING TO Orthology Selection
+
+    const PREDEFINED_GENES = [
+        { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
+        { key: 'Yspecies Top Pro & Anti-Longevity Genes', value: 'Yspecies Top Pro & Anti-Longevity Genes', text: 'Yspecies Top Pro & Anti-Longevity Genes' },
+        { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
+        { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
+        { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
+        { key: 'Anti-Lifespan Genes', value: 'Anti-Lifespan Genes', text: 'Anti-Lifespan Genes' },
+        { key: 'DNA Repair genes', value: 'DNA Repair genes', text: 'DNA Repair genes' },
+        { key: 'Autophagy genes', value: 'Autophagy genes', text: 'Autophagy genes' },
+        { key: 'My custom gene list', value: 'My custom gene list', text: 'My custom gene list' }
+    ];
+
+    const makeGeneOption = (gene) => {
+        return {
+            ensembl_id: gene.ensembl_id,
+            key: gene.ensembl_id,
+            value: gene.name,
+            text: gene.name,
+            label: gene.name
+        }
+    }
 
 
 
@@ -206,7 +215,10 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     }
 
     const onSearchGenes = (values) => {
-        let searchTxt = search.toUpperCase(); //TODO fix
+
+        const searchTxt = (values.state.search).toUpperCase();
+        console.log(searchTxt)
+        //let searchTxt = search.toUpperCase(); //TODO fix
         if (searchTxt.length >= 1 && lastSearchGenes !== searchTxt) {
             setLastSearchGenes(searchTxt)
             let filteredGenes = [];
@@ -227,57 +239,8 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
         }
     }
 
-    const select_genes_panes = [
-        { menuItem: 'By gene names', render: () => <Tab.Pane>
-                <Select id="select"
-                        placeholder="Search gene symbols"
-                        multi
-                        options={genes}
-                        name="select"
-                        values={selectedGenesByName}
-                        searchFn={onSearchGenes}
-                        onChange={onChangeGenes}
-                /> </Tab.Pane>},
-        { menuItem: 'From predefined list', render: () => <Tab.Pane>
-                <span>or choose a predefined list:</span>
-                <Dropdown
-                    placeholder="Select predefined list of genes"
-                    fluid
-                    search
-                    selection
-                    options={PREDEFINED_GENES}
-                    onChange={onChangePredefinedGenes}
-                />
-            </Tab.Pane> },
-        { menuItem: 'By Ensembl ID', render: () => <Tab.Pane>
-                <div className="gene-list-wrapper" style={{ marginTop: '10px' }}>
-                    <p className="or-spacer has-text-primary">Or paste custom gene ids</p>
-                    <div className="field">
-                        {/**/}
-                        {' '}
-                        <div style={{ position: 'relative' }}>
-                            <a className="delete is-small input-clear" />
-                            <div className="control is-clearfix">
-                      <textarea
-                          style={{
-                              width: '400px',
-                              height: '100px'
-                          }}
-                          onChange={handleChangeTextarea}
-                          placeholder="Please enter ENSEMBL gene ids..."
-                          name="gene_list"
-                          className="textarea"
-                      />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-            </Tab.Pane> }
-            ]
-
     const onChangeOrganism = async (e, target) => {
+        setShowLoader(true)
         console.log('onChangeOrganism()');
         setSelectedOrganism(target.value)
 
@@ -288,6 +251,8 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
                 console.log(organisms[i], target.value);
                 const results = await getReferenceOrgGenes(organisms[i].id);
                 //moving side-effects out of get function
+                console.log("========ALL GENES=============")
+                console.log(results)
                 setAllGenes(results)
                 setGenes(results.slice(0, 30))
                 await setShowLoader(false)
@@ -297,8 +262,6 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     }
 
     const getReferenceOrgGenes = async (referenceOrg) => {
-        setShowLoader(true)
-        forceUpdate();
         return fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
             .then(res => res.json())
             .then((response) => {
@@ -335,18 +298,13 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
                 // this.setState({ samplesRowData : response })
                 const results = [];
                 for (let i = 0; i < response.length; i++) {
-                    results.push({
-                        ensembl_id: response[i].ensembl_id,
-                        key: response[i].ensembl_id,
-                        value: response[i].name,
-                        text: response[i].name,
-                        label: response[i].name
-                    });
+                    results.push(makeGeneOption(response[i]));
                 }
                 console.log('getGenesPro', results);
                 return results
             });
     }
+
 
     const getYspeciesGenesPro = async () => {
         console.log('getYspeciesGenesPro');// remove testApi
@@ -356,13 +314,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
                 // this.setState({ samplesRowData : response })
                 const results = [];
                 for (let i = 0; i < response.length; i++) {
-                    results.push({
-                        ensembl_id: response[i].ensembl_id,
-                        key: response[i].ensembl_id,
-                        value: response[i].name,
-                        text: response[i].name,
-                        label: response[i].name
-                    });
+                    results.push(makeGeneOption(response[i]));
                 }
                 console.log('getYspeciesGenesPro', results);
                 return results
@@ -377,13 +329,8 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
                 // this.setState({ samplesRowData : response })
                 const results = [];
                 for (let i = 0; i < response.length; i++) {
-                    results.push({
-                        ensembl_id: response[i].ensembl_id,
-                        key: response[i].ensembl_id,
-                        value: response[i].name,
-                        text: response[i].name,
-                        label: response[i].name
-                    });
+                    results.push(
+                        makeGeneOption(response[i]));
                 }
                 console.log('getYspeciesGenesTop', results);
                 return results
@@ -399,13 +346,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
 
                 const results = [];
                 for (let i = 0; i < response.length; i++) {
-                    results.push({
-                        ensembl_id: response[i].ensembl_id,
-                        key: response[i].ensembl_id,
-                        value: response[i].name,
-                        text: response[i].name,
-                        label: response[i].name
-                    });
+                    results.push(makeGeneOption(response[i]));
                 }
                 console.log('getGenesAnti', results);
                 return results
@@ -425,6 +366,13 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     }
 
     const loadGeneSuggestions = () =>{
+        setShowLoader(true)
+        forceUpdate();
+        getReferenceOrgGenes('Homo_sapiens').then((results, err)=>{
+            console.log(results)
+            setShowLoader(false)
+            setAllGenes(results)
+        })
         Promise.all([getGenesPro(), getGenesAnti(), getYspeciesGenesPro(), getYspeciesGenesTop(), getEnsembleToName()])
             .then((values) => {
                 console.log("ALL SUGGESTIONS LOADED!");
@@ -450,27 +398,74 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
             <Step.Content>
                 <Step.Title><Header>Choose genes</Header></Step.Title>
                 <Step.Description>
+                    <Segment placeholder>
+                        <Grid columns={2} relaxed='very' stackable>
+                            <Grid.Column>
+                                <Header>
+                                    Choose reference organism
+                                </Header>
+                                <Dropdown
+                                    placeholder="Human"
+                                    fluid
+                                    search
+                                    selection
+                                    options={organismList}
+                                    value={selectedOrganism}
+                                    onChange={onChangeOrganism}
+                                />
+                                The reference organism (Human by default) is used as a reference point to select your genes of interest.
+                                <Divider horizontal>
+                                    <Header as='h4'>
+                                        Select genes in the chosen references organism:
+                                    </Header>
+                                </Divider>
+                                You can search genes by their names name
+                                <Select id="select"
+                                        placeholder="Search gene symbols"
+                                        multi
+                                        options={genes}
+                                        name="select"
+                                        values={selectedGenesByName}
+                                        searchFn={onSearchGenes}
+                                        onChange={onChangeGenes}
+                                />
+                            </Grid.Column>
 
-                    <Header>
-                        Choose reference organism
-                    </Header>
-                    <Dropdown
-                        placeholder="Human"
-                        fluid
-                        search
-                        selection
-                        options={organismList}
-                        value={selectedOrganism}
-                        onChange={onChangeOrganism}
-                    />
-                    The reference organism (Human by default) is used as a reference point to select your genes of interest.
-                    <Divider horizontal>
-                        <Header as='h4'>
-                            Select genes in the chosen references organism:
-                        </Header>
-                    </Divider>
-                    <Tab className="fluid" panes={select_genes_panes}> </Tab>
-                    You can choose them by symbol, Ensembl ID or use one of the predefined lists of genes we've compiled.
+                            <Grid.Column verticalAlign='middle'>
+                                <Header>extend your search with predefined gene-sets:</Header>
+                                <Dropdown
+                                    placeholder="Select predefined list of genes"
+                                    fluid
+                                    search
+                                    selection
+                                    options={PREDEFINED_GENES}
+                                    onChange={onChangePredefinedGenes}
+                                />
+                                <p className="or-spacer has-text-primary">Or paste custom Ensembl gene ids</p>
+                                <div className="field">
+                                    {/**/}
+                                    {' '}
+                                    <div style={{ position: 'relative' }}>
+                                        <a className="delete is-small input-clear" />
+                                        <div className="control is-clearfix">
+                                            <TextArea placeholder='Please enter ENSEMBL gene ids...'
+                                                onChange={handleChangeTextarea}
+                                                name="gene_list"
+                                                className="textarea"
+                                                style={{
+                                                minWidth: '400px',
+                                                height: '100px'
+                                            }}>
+                                            </TextArea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Grid.Column>
+                        </Grid>
+
+                        <Divider vertical>And/Or</Divider>
+                    </Segment>
+
                 </Step.Description>
             </Step.Content>
         </Step>
