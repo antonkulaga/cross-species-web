@@ -51,14 +51,16 @@ export const SpeciesTable = ({selectedRows}) => {
 
                 <Table color="blue" inverted compact celled  textAlign="center">
                     <Table.Header>
-                        <Table.HeaderCell>Image</Table.HeaderCell>
-                        <Table.HeaderCell>Species</Table.HeaderCell>
-                        <Table.HeaderCell>Common name</Table.HeaderCell>
-                        <Table.HeaderCell>NCBI taxon</Table.HeaderCell>
-                        <Table.HeaderCell>Maximum lifespan</Table.HeaderCell>
-                        <Table.HeaderCell>Mass (kg)</Table.HeaderCell>
-                        <Table.HeaderCell>Metabolic_rate</Table.HeaderCell>
-                        <Table.HeaderCell>Temperature (C)</Table.HeaderCell>
+                        <Table.Row>
+                            <Table.HeaderCell>Image</Table.HeaderCell>
+                            <Table.HeaderCell>Species</Table.HeaderCell>
+                            <Table.HeaderCell>Common name</Table.HeaderCell>
+                            <Table.HeaderCell>NCBI taxon</Table.HeaderCell>
+                            <Table.HeaderCell>Maximum lifespan</Table.HeaderCell>
+                            <Table.HeaderCell>Mass (kg)</Table.HeaderCell>
+                            <Table.HeaderCell>Metabolic_rate</Table.HeaderCell>
+                            <Table.HeaderCell>Temperature (C)</Table.HeaderCell>
+                        </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {speciesRows}

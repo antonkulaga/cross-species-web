@@ -286,16 +286,20 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
         for (let i = 0; i < organisms.length; i++) {
             if (organisms[i].value === target.value) {
                 console.log(organisms[i], target.value);
-                await getReferenceOrgGenes(organisms[i].id);
+                const results = await getReferenceOrgGenes(organisms[i].id);
+                //moving side-effects out of get function
+                setAllGenes(results)
+                setGenes(results.slice(0, 30))
+                await setShowLoader(false)
                 break;
             }
         }
     }
 
-    const getReferenceOrgGenes = async (referenceOrg) => { //TODO: refactor this side-effects heavy nonsence
+    const getReferenceOrgGenes = async (referenceOrg) => {
         setShowLoader(true)
         forceUpdate();
-        fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
+        return fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
             .then(res => res.json())
             .then((response) => {
                 console.log('getReferenceOrgGenes', response);
@@ -315,9 +319,8 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
                         hash[response[i].symbol] = true;
                     }
                 }
-                setAllGenes(results)
-                setGenes(results.slice(0, 30))
-                setShowLoader(false)
+                //no more side-effect heavy nonsence in the function that gets!
+                return results
             });
     }
 

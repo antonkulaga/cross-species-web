@@ -33,6 +33,7 @@ import CsvDownload from 'react-json-to-csv';
 import {SamplesGrid} from "./components/SamplesGrid";
 import {SpeciesTable} from "./components/SpeciesTable";
 import OrthologySelection from "./components/OrthologySelection";
+//import OrthologyTable from "./components/OrthologyTable";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -239,7 +240,7 @@ export default class SearchPage extends React.Component {
           .then(res => res.json())
           .then((species) => {
             console.log('species:', species);
-            this.setState({ species });
+            this.setState({ species }); //TODO: get ugly side-effect OUT from get function!!!
             const speciesNames = [];
             const runToSpeciesHash = [];
             for (let i = 0; i < species.length; i++) {
@@ -257,8 +258,7 @@ export default class SearchPage extends React.Component {
                   samples[j].mass_g = species[i].mass_g;
                   samples[j].ensembl_url = species[i].ensembl_url;
                   samples[j].metabolic_rate = species[i].metabolic_rate;
-                  samples[j].temperature_celsius = parseFloat(species[i].temperature_kelvin)
-                                                   - 273.15;
+                  samples[j].temperature_celsius = parseFloat(species[i].temperature_kelvin) - 273.15;
                   samples[j].animal_class = species[i].animal_class;
                   samples[j].taxon = species[i].taxon;
                 }
@@ -284,6 +284,7 @@ export default class SearchPage extends React.Component {
               }
             }  
 
+            //TODO get ugly side-effects out from get function
             this.setState({ organismList: speciesNames });
             this.setState({ samplesRowData: samples });
             this.setState({ runToSpeciesHash })
