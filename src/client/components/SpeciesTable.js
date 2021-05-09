@@ -4,8 +4,10 @@ import {List, fromJS, Map} from "immutable"
 
 export const SpeciesTable = ({selectedRows}) => {
 
-    const round = (num) => isNaN(num) ? "N/A" : Math.round((num + Number.EPSILON) * 100) / 100
-
+    const round = (value) => {
+        const num = value==="" ? "N/A": Number(value)
+        return isNaN(num) ? "N/A" : Math.round((num + Number.EPSILON) * 100) / 100
+    }
 
     const speciesFromRow = (row) => {
         return {

@@ -132,31 +132,20 @@ const samplesGridOptions = {
     floatingFilter: true
 };
 
-export const SamplesGrid = ({samplesRowData, setSelectedRows}) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
+export const SamplesGrid = ({samplesRowData, setSelectedRows, autoSizeAll}) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
 
     const [quickFilterValue, setQuickFilterValue] = useState('')
     const [samplesGridApi, setSamplesGridApi] = useState({})
-    const [samplesColumnApi, setSamplesColumnApi] = useState({})
 
-
-    const autoSizeAll = (columnApi, skipHeader = false) => {
-        const allColumnIds = [];
-        columnApi.getAllColumns().forEach((column) => {
-            allColumnIds.push(column.colId); //TODO: clarify with Laurence+Alex why they do this
-        });
-        columnApi.autoSizeColumns(allColumnIds, skipHeader);
-    }
-
-    const onSamplesGridReady = (params) => {
-        setSamplesGridApi(params.api)
-        setSamplesColumnApi(params.columnApi)
+    const onSamplesGridReady = async (params) => {
+        await setSamplesGridApi(params.api)
         autoSizeAll(params.columnApi);
     }
 
 
-    const onSelectionChanged = () => {
+    const onSelectionChanged = async () => {
         const rows = samplesGridApi.getSelectedRows()
-        setSelectedRows(rows)
+        await setSelectedRows(rows)
     }
 
     const quickFilterChange = (e) => {

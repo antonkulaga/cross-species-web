@@ -9,7 +9,7 @@ import _ from "lodash";
 //import ENSEMBL_TO_NAME from './data/ensemblToName.json'
 
 
-export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) => {
+export const OrthologySelection = ({organismList, hasSelection, setShowLoader, ENSEMBL_TO_NAME, setENSEMBL_TO_NAME, SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL}) => {
 
     const HUMAN = {
         key: 'Human',
@@ -33,10 +33,10 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
     const [, updateState] = React.useState();
     const forceUpdate = React.useCallback(() => updateState({}), []);
 
+    //const [ENSEMBL_TO_NAME, setENSEMBL_TO_NAME] = useState([])
+    //const [SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL] = useState([])
 
     //REWRITE OF UGLY SHARED GLOBAL VARS
-    const [ENSEMBL_TO_NAME, setENSEMBL_TO_NAME] = useState([])
-    const [SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL] = useState([])
     const [GENAGE_GENES_PRO, setGENAGE_GENES_PRO] = useState([])
     const [GENAGE_GENES_ANTI, setGENAGE_GENES_ANTI] = useState([])
     const [YSPECIES_GENES_PRO, setYSPECIES_GENES_PRO] = useState([])
@@ -396,7 +396,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader}) 
         <Step disabled={hasSelection()} >
             <Icon name='dna' />
             <Step.Content>
-                <Step.Title><Header>Choose genes</Header></Step.Title>
+                <Step.Title><Header>Choose reference genes</Header></Step.Title>
                 <Step.Description>
                     <Segment placeholder>
                         <Grid columns={2} relaxed='very' stackable>
