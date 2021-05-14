@@ -4,6 +4,7 @@
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 import React, {useEffect, useState, } from 'react';
 import {Button, Dropdown, Tab, Step, StepContent, Header, Icon, Image, Message, Divider} from 'semantic-ui-react';
+import {List, fromJS, OrderedMap} from "immutable"
 
 
 import './app.css';
@@ -48,8 +49,6 @@ import ExpressionsView from "./components/ExpressionsView";
 export const SearchPage = () => {
 
 
-  let SAMPLES_VALUES = [];
-
   let GENE_EXPRESSIONS = [];
   let allZValues = [];
   let hashString = {};
@@ -88,13 +87,13 @@ export const SearchPage = () => {
 
   const heatmapRef = React.createRef();
 
-  const [species, setSpecies] = useState([])
+  const [species, setSpecies] = useState(OrderedMap())
   const [showLoader, setShowLoader] = useState(false)
   const [data, setData] = useState(null)
   const [selectedRows, setSelectedRows] = useState([])
   const [selectedGenes, setSelectedGenes] = useState([])
   const [genesMap, setGenesMap] = useState([])
-  const [runToSpeciesHash, setRunToSpeciesHash] = useState([])
+  const [speciesByRun, setSpeciesByRun] = useState(OrderedMap())
   const [samplesRowData, setSamplesRowData] = useState([])
   const [organismList, setOrganismList] =useState([])
 
@@ -109,68 +108,39 @@ export const SearchPage = () => {
 
   const [orthologyData, setOrthologyData] = useState([])
 
-  const getSamplesAndSpecies = () => {
-    console.log('getSamplesAndSpecies request');// remove api
-    fetch('/api/getSamples')
-        .then(res => res.json())
-        .then((samples) => {
-          console.log('samples', samples);// remove api
-          fetch('/api/getSpecies')
-              .then(res => res.json())
-              .then((species) => {
-                console.log('species:', species);
-                setSpecies(species)
-                const speciesNames = [];
-                const runToSpeciesHash = [];
-                for (let i = 0; i < species.length; i++) {
-                  speciesNames.push({
-                    key: species[i].common_name,
-                    value: species[i].common_name,
-                    text: species[i].common_name,
-                    id: species[i].id
-                  });
+  const getSpecies =  () => fetch('/api/getSpecies').then(res => res.json())
 
-                  for (let j = 0; j < samples.length; j++) {
-                    if (samples[j].organism === species[i].id) {
-                      samples[j].lifespan = species[i].lifespan;
-                      samples[j].common_name = species[i].common_name;
-                      samples[j].mass_g = species[i].mass_g;
-                      samples[j].ensembl_url = species[i].ensembl_url;
-                      samples[j].metabolic_rate = species[i].metabolic_rate;
-                      samples[j].temperature_celsius = parseFloat(species[i].temperature_kelvin) - 273.15;
-                      samples[j].animal_class = species[i].animal_class;
-                      samples[j].taxon = species[i].taxon;
-                    }
-                    runToSpeciesHash[samples[j].run] = samples[j].organism;
-                  }
-                }
+  const getSamples = () => fetch('/api/getSamples').then(res => res.json())
 
-                console.log('speciesNames', speciesNames);
-                console.log('samples', samples);
-
-                for (let i = 0; i < samples.length; i++) {
-                  samples[i].lifespan = parseFloat(samples[i].lifespan);
-                }
-
-                for (let i = 0; i < samples.length - 1; i++) {
-                  for (let j = i + 1; j < samples.length; j++) {
-
-                    if (samples[j].lifespan > samples[i].lifespan) {
-                      const aux = samples[j];
-                      samples[j] = samples[i];
-                      samples[i] = aux;
-                    }
-                  }
-                }
-
-                //TODO get ugly side-effects out from get function
-
-                setOrganismList(speciesNames)
-                setSamplesRowData(samples)
-                setRunToSpeciesHash(runToSpeciesHash)
-                SAMPLES_VALUES = samples;
-              });
-        });
+  const getSamplesAndSpecies = async () => {
+    console.log('getSamplesAndSpecies request'); // remove api
+    const speciesArray = await getSpecies()
+    const samplesArray = await getSamples()
+    const speciesNames = speciesArray.map( species => ({ //rewrote ugly loops on arrays to more functional approach
+          key: species.common_name,
+          value: species.common_name,
+          text: species.common_name,
+          id: species.id
+        })
+    )
+    const species = OrderedMap(speciesArray.map( sp => [sp.id , sp] ))
+    const runToSpeciesHash = OrderedMap(samplesArray.filter(sample=>species.has(sample.organism)).map(sample => {
+      const sp = species.get(sample.organism) //getting species from species Map
+      sample.lifespan =  parseFloat(sp.lifespan);
+      sample.common_name = sp.common_name;
+      sample.mass_g = sp.mass_g;
+      sample.ensembl_url = sp.ensembl_url;
+      sample.metabolic_rate = sp.metabolic_rate;
+      sample.temperature_celsius = parseFloat(sp.temperature_kelvin) - 273.15;
+      sample.animal_class = sp.animal_class;
+      sample.taxon = sp.taxon
+      return [sample.run, sample]
+    })).sortBy(value=>-value.lifespan)
+    return ({
+      species: species,
+      speciesNames: speciesNames,
+      runToSpeciesHash: runToSpeciesHash
+    })
   }
 
 
@@ -210,7 +180,6 @@ export const SearchPage = () => {
         }
       }
 
-      let speciesByRun = runToSpeciesHash;
       let genesMappedBySpecies = genesMapBySpecies;
       console.log("speciesByRun", speciesByRun);
       console.log("genesMappedBySpecies", genesMappedBySpecies);
@@ -218,8 +187,7 @@ export const SearchPage = () => {
         let currentSample = allXValues[i];
         for(let j = 0; j < allYValues.length; j++) {
           let currentGene = allYValues[j];
-
-          let speciesName = speciesByRun[currentSample];
+          let speciesName = speciesByRun.get(currentSample)
           // console.log('dsgsdgs',speciesName, currentGene + speciesName);
           let genesFromOrthologyTable_raw = (genesMappedBySpecies[currentGene + speciesName]); //renamed to raw to avoid var reassignment
           if(genesFromOrthologyTable == null){
@@ -500,7 +468,14 @@ export const SearchPage = () => {
 
 
   useEffect(()=>{
-    getSamplesAndSpecies();
+    getSamplesAndSpecies().then( values => {
+      const {species, speciesNames, runToSpeciesHash} = values
+      setSpecies(species)
+      setOrganismList(speciesNames)
+      setSamplesRowData( Array.from(runToSpeciesHash.values()))
+      setSpeciesByRun(runToSpeciesHash)
+    })
+
     }, [])
 
   return (
