@@ -2,6 +2,7 @@ import React, {useState, useEffect, useCallback, useReducer } from 'react'
 import {Divider, Dropdown, Header, Icon, Image, List, Step, Segment, Grid, GridColumn, Tab, Table, TextArea} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
+import {OrderedMap} from "immutable";
 
 //import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
 //import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
@@ -9,7 +10,13 @@ import _ from "lodash";
 //import ENSEMBL_TO_NAME from './data/ensemblToName.json'
 
 
-export const OrthologySelection = ({organismList, hasSelection, setShowLoader, ENSEMBL_TO_NAME, setENSEMBL_TO_NAME, SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL}) => {
+export const OrthologySelection = (
+    {
+        organismList, hasSelection, setShowLoader,
+        ENSEMBL_TO_NAME, setENSEMBL_TO_NAME,
+        SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL
+    }
+    ) => {
 
     const HUMAN = {
         key: 'Human',
@@ -17,6 +24,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
         text: 'Human',
         id: 'Homo_sapiens'
     };
+    const LIMIT = 100
 
     const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
@@ -27,35 +35,20 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
     const [selectedGeneIds, setSelectedGeneIds] = useState([])
 
     //const [search, setSearch] = useState('')
+    const [genesByName, setGenesByName] = useState(OrderedMap())
+    const [geneOptionsByName, setGeneOptionsByName] =  useState(OrderedMap())
+    const [geneOptions, setGeneOptions] = useState([])
 
-    const [allGenes, setAllGenes] =  useState([])
-    const [genes, setGenes] =  useState([])
+    const [predefinedSets, setPredefinedSets] = useState([])
+    const [predefinedGenesOptions, setPredefinedGenesOptions] = useState(OrderedMap())
+
+
     const [, updateState] = React.useState();
     const forceUpdate = React.useCallback(() => updateState({}), []);
-
-    //const [ENSEMBL_TO_NAME, setENSEMBL_TO_NAME] = useState([])
-    //const [SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL] = useState([])
-
-    //REWRITE OF UGLY SHARED GLOBAL VARS
-    const [GENAGE_GENES_PRO, setGENAGE_GENES_PRO] = useState([])
-    const [GENAGE_GENES_ANTI, setGENAGE_GENES_ANTI] = useState([])
-    const [YSPECIES_GENES_PRO, setYSPECIES_GENES_PRO] = useState([])
-    const [YSPECIES_GENES_TOP, setYSPECIES_GENES_TOP] = useState([])
 
 
     //TODO: FINISH MOVING TO Orthology Selection
 
-    const PREDEFINED_GENES = [
-        { key: 'Yspecies Pro-Longevity Genes', value: 'Yspecies Pro-Longevity Genes', text: 'Yspecies Pro-Longevity Genes' },
-        { key: 'Yspecies Top Pro & Anti-Longevity Genes', value: 'Yspecies Top Pro & Anti-Longevity Genes', text: 'Yspecies Top Pro & Anti-Longevity Genes' },
-        { key: 'Pro-Longevity Genes', value: 'Pro-Longevity Genes', text: 'Pro-Longevity Genes' },
-        { key: 'Anti-Longevity Genes', value: 'Anti-Longevity Genes', text: 'Anti-Longevity Genes' },
-        { key: 'Pro-Lifespan Genes', value: 'Pro-Lifespan Genes', text: 'Pro-Lifespan Genes' },
-        { key: 'Anti-Lifespan Genes', value: 'Anti-Lifespan Genes', text: 'Anti-Lifespan Genes' },
-        { key: 'DNA Repair genes', value: 'DNA Repair genes', text: 'DNA Repair genes' },
-        { key: 'Autophagy genes', value: 'Autophagy genes', text: 'Autophagy genes' },
-        { key: 'My custom gene list', value: 'My custom gene list', text: 'My custom gene list' }
-    ];
 
     const makeGeneOption = (gene) => {
         return {
@@ -87,6 +80,16 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
 
 
     const onChangePredefinedGenes = async (e, target) => {
+        const gene_set = target.value
+        console.log("gene set is:", gene_set)
+        if(predefinedGenesOptions.has(gene_set)){
+            const chosen = predefinedGenesOptions.get(gene_set)
+            console.log("chosen predefined genes are: ", chosen)
+            await setSelectedPredefinedGenes(chosen)
+            await refreshSelectedGenes();
+            await addSelectedPredefinedGenesToDropdown(chosen);
+        } else console.error("selected gene set ", gene_set, " does not exist!")
+        /*
         switch (target.value) {
             case 'Pro-Longevity Genes':
                 await setSelectedPredefinedGenes(GENAGE_GENES_PRO);
@@ -111,6 +114,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
             default:
                 break;
         }
+         */
     }
 
     const addSelectedPredefinedGenesToDropdown = async (genesList) => {
@@ -208,6 +212,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
 
     const onChangeGenes = async (values) => {
         console.log('onChangeGenes', values);
+        console.error(" convertSpeciesToEnsemble will be rewritten soon!")
         const selected = await convertSpeciesToEnsemble(values);
         await setSelectedGenesSymbols(selected)
         await refreshSelectedGenes();
@@ -219,139 +224,40 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
         const searchTxt = (values.state.search).toUpperCase();
         console.log(searchTxt)
         //let searchTxt = search.toUpperCase(); //TODO fix
-        if (searchTxt.length >= 1 && lastSearchGenes !== searchTxt) {
+        if (searchTxt.length > 1 && lastSearchGenes !== searchTxt) {
             setLastSearchGenes(searchTxt)
-            let filteredGenes = [];
-
-            for (let i = 0; i < allGenes.length; i++) {
-                const curr = allGenes[i];
-
-                if ((curr.text).indexOf(searchTxt) === 0) {
-                    filteredGenes.push(curr);
-                }
-            }
-
-            if (filteredGenes.length >= 1) {
-                setGenes(filteredGenes.slice(0, 50))
-            }
-        } else {
-            // console.log("same search", searchTxt);
+            const suggested = geneOptionsByName.filter((value, key) => key.toUpperCase().includes(searchTxt)).take(LIMIT)
+            const options = Array.from(suggested.values())
+            setGeneOptions(options)
         }
+    }
+
+    const applyReferenceOrganism = async (organism) => {
+        setShowLoader(true)
+        setSelectedOrganism(organism)
+        const genes = await getReferenceOrgGenes(organism)
+        setGenesByName(genes)
+        await setGeneOptionsByName(OrderedMap(genes.map(( ensembl_id, symbol) =>
+            ({
+                key: ensembl_id,
+                value: symbol,
+                text: symbol,
+                label: symbol
+            })
+        )))
+        setShowLoader(false)
     }
 
     const onChangeOrganism = async (e, target) => {
-        setShowLoader(true)
-        console.log('onChangeOrganism()');
-        setSelectedOrganism(target.value)
-
-        const organisms = organismList;
-        console.log(organisms, target);
-        for (let i = 0; i < organisms.length; i++) {
-            if (organisms[i].value === target.value) {
-                console.log(organisms[i], target.value);
-                const results = await getReferenceOrgGenes(organisms[i].id);
-                //moving side-effects out of get function
-                console.log("========ALL GENES=============")
-                console.log(results)
-                setAllGenes(results)
-                setGenes(results.slice(0, 30))
-                await setShowLoader(false)
-                break;
-            }
-        }
+        console.log("change or reference organism from:", organisms, " to ", target);
+        await applyReferenceOrganism(target.value)
     }
 
-    const getReferenceOrgGenes = async (referenceOrg) => {
-        return fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrg}`)
-            .then(res => res.json())
-            .then((response) => {
-                console.log('getReferenceOrgGenes', response);
-
-                const results = [];
-                const hash = [];
-                for (let i = 0; i < response.length; i++) {
-                    const ensembl_id = (response[i].ensembl_id).split('http://rdf.ebi.ac.uk/resource/ensembl/')[1];
-                    if (hash[response[i].symbol] == null) {
-                        results.push({
-                            ensembl_id,
-                            key: ensembl_id,
-                            value: response[i].symbol,
-                            text: response[i].symbol,
-                            label: response[i].symbol
-                        });
-                        hash[response[i].symbol] = true;
-                    }
-                }
-                //no more side-effect heavy nonsence in the function that gets!
-                return results
-            });
+    const getReferenceOrgGenes = async (referenceOrganism) => {
+        const genes = await fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrganism}`).then(res => res.json())
+        return OrderedMap(genes.map(gene => [gene.symbol, gene.ensembl_id.replace('http://rdf.ebi.ac.uk/resource/ensembl/', "")]))
     }
 
-
-
-    //SOME
-    const getGenesPro = () => {
-        console.log('getGenesPro');// remove testApi
-        return fetch('/api/getGenesPro')
-            .then(res => res.json())
-            .then((response) => {
-                // this.setState({ samplesRowData : response })
-                const results = [];
-                for (let i = 0; i < response.length; i++) {
-                    results.push(makeGeneOption(response[i]));
-                }
-                console.log('getGenesPro', results);
-                return results
-            });
-    }
-
-
-    const getYspeciesGenesPro = async () => {
-        console.log('getYspeciesGenesPro');// remove testApi
-        return fetch('/api/getYspeciesGenesPro')
-            .then(res => res.json())
-            .then((response) => {
-                // this.setState({ samplesRowData : response })
-                const results = [];
-                for (let i = 0; i < response.length; i++) {
-                    results.push(makeGeneOption(response[i]));
-                }
-                console.log('getYspeciesGenesPro', results);
-                return results
-            });
-    }
-
-    const getYspeciesGenesTop = async () => {
-        console.log('getYspeciesGenesTop');// remove testApi
-        return fetch('/api/getYspeciesGenesTop')
-            .then(res => res.json())
-            .then((response) => {
-                // this.setState({ samplesRowData : response })
-                const results = [];
-                for (let i = 0; i < response.length; i++) {
-                    results.push(
-                        makeGeneOption(response[i]));
-                }
-                console.log('getYspeciesGenesTop', results);
-                return results
-            });
-    }
-
-    const getGenesAnti = async () => {
-        console.log('getGenesAnti');// remove testApi
-        return fetch('/api/getGenesAnti')
-            .then(res => res.json())
-            .then((response) => {
-                // this.setState({ samplesRowData : response })
-
-                const results = [];
-                for (let i = 0; i < response.length; i++) {
-                    results.push(makeGeneOption(response[i]));
-                }
-                console.log('getGenesAnti', results);
-                return results
-            });
-    }
 
     const getEnsembleToName = async ()=>{
         console.log('getEnsembleToName');// remove api
@@ -365,29 +271,26 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
             });
     }
 
-    const loadGeneSuggestions = () =>{
+    const loadGeneSuggestions = async () =>{
         setShowLoader(true)
         forceUpdate();
-        getReferenceOrgGenes('Homo_sapiens').then((results, err)=>{
-            console.log(results)
-            setShowLoader(false)
-            setAllGenes(results)
-        })
-        Promise.all([getGenesPro(), getGenesAnti(), getYspeciesGenesPro(), getYspeciesGenesTop(), getEnsembleToName()])
-            .then((values) => {
-                console.log("ALL SUGGESTIONS LOADED!");
-                const [genes_pro, genes_anti, yspecies_pro, yspecies_top, ens] = values
-                setGENAGE_GENES_PRO(genes_pro)
-                setGENAGE_GENES_ANTI(genes_anti)
-                setYSPECIES_GENES_PRO(yspecies_pro)
-                setYSPECIES_GENES_TOP(yspecies_top)
-                setENSEMBL_TO_NAME(ens.ENSEMBL_TO_NAME)
-                setSPECIES_TO_ENSEMBL(ens.SPECIES_TO_ENSEMBL)
-        });
+        await applyReferenceOrganism('Homo_sapiens')
+        const ensemblToName = await getEnsembleToName()
+        setENSEMBL_TO_NAME(ensemblToName)
+        setSPECIES_TO_ENSEMBL(_.invertBy(ensemblToName))
+        //setSPECIES_TO_ENSEMBL(ens.SPECIES_TO_ENSEMBL)
+        const gene_sets = await fetch('/api/getPredefinedGenes').then(res => res.json())
+        const predefined = OrderedMap(gene_sets.map(value => [value.key, value]))
+        const predefined_options = predefined.map((value, key) => value.genes.map(gene=>makeGeneOption(gene)))
+        setPredefinedSets(gene_sets)
+        await setPredefinedGenesOptions(predefined_options)
+        console.log("KEYS OF PREDEFINED",Array.from(predefined_options.keys()))
+        console.log("ENTRIES OF PREDEFINED",Array.from(predefined_options.entries()))
+        setShowLoader(false)
     }
 
     useEffect( ()=>{
-        loadGeneSuggestions()
+        loadGeneSuggestions().then(_ => console.log("gene suggestions loaded"))
     }, [])
 
 
@@ -423,7 +326,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
                                 <Select id="select"
                                         placeholder="Search gene symbols"
                                         multi
-                                        options={genes}
+                                        options={geneOptions}
                                         name="select"
                                         values={selectedGenesByName}
                                         searchFn={onSearchGenes}
@@ -438,7 +341,7 @@ export const OrthologySelection = ({organismList, hasSelection, setShowLoader, E
                                     fluid
                                     search
                                     selection
-                                    options={PREDEFINED_GENES}
+                                    options={predefinedSets}
                                     onChange={onChangePredefinedGenes}
                                 />
                                 <p className="or-spacer has-text-primary">Or paste custom Ensembl gene ids</p>
