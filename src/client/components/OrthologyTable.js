@@ -1,17 +1,16 @@
 import React, {useState, useEffect, useCallback, useReducer } from 'react'
 import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
-import {Button, Divider, Dropdown, Header, Icon,  Step, Tab, Table} from 'semantic-ui-react'
+import {Button, Divider, Dropdown, Header, Icon, Image, Step, Tab, Table} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
 
 export const OrthologyTable = ({
                                    selectedRows,
+                                   selectedSpecies,
                                    orthologyData, setOrthologyData,
                                    autoSizeAll,
-                                   setGenesMap,
                                    selectedGenes,
-                                   setGenesMapBySpecies,
                                }
 ) => {
 
@@ -25,20 +24,6 @@ export const OrthologyTable = ({
         }
     ];
 
-
-    const [orthologyColumnDefs, setOrthologyColumnDefs] = useState([{
-        headerName: 'Selected gene',
-        field: 'selected_gene'
-    }])
-
-    const [showOrthology, setShowOrthology] = useState(false)
-    const [genesFromOrthology, setGenesFromOrthology] = useState([])
-    const [runsFromOrthology, setRunsFromOrthology] = useState([]) //TODO: check why its value is not used
-    const [, updateState] = React.useState();
-    const forceUpdate = React.useCallback(() => updateState({}), []);
-
-
-
     const orthologyGridOptions = {
         suppressRowClickSelection: true,
         suppressAggFuncInHeader: true,
@@ -51,6 +36,30 @@ export const OrthologyTable = ({
         // floatingFilter: true
     };
 
+    const [orthologyColumnDefs, setOrthologyCoolumnDefs] = useState(baseOrthologyColumnDefs)
+
+    const [showOrthology, setShowOrthology] = useState(false)
+    //const [genesFromOrthology, setGenesFromOrthology] = useState([])
+    //const [runsFromOrthology, setRunsFromOrthology] = useState([]) //TODO: check why its value is not used
+    //const [, updateState] = React.useState();
+    //const forceUpdate = React.useCallback(() => updateState({}), []);
+
+
+
+    useEffect(()=>{
+        setOrthologyCoolumnDefs(baseOrthologyColumnDefs.concat(
+            selectedSpecies.map(species => ({
+                headerName: species.organism,
+                field: species.organism,
+                cellRenderer: function(params) {
+                    return '<a href="https://www.ensembl.org/'+ species.organism +'/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
+                }
+            }))
+        ))
+    }, [selectedSpecies])
+
+
+
     const onOrthologyGridReady = (params) => {
         // this.samplesGridApi = params.api;
         // this.samplesColumnApi = params.columnApi;
@@ -58,12 +67,49 @@ export const OrthologyTable = ({
     }
 
 
+    /*
+    ortholog_common_name: "Desert tortoise"
+    ortholog_id: "ENSGAGG00000024348"
+    ortholog_species: "Gopherus_agassizii"
+    ortholog_symbol: "TRERF1"
+    orthology: "ortholog_one2one"
+     */
+
+/*
+    const speciesRows = orthologyData.map(gene =>
+
+
+
+        <Table.Row key={species.organism}>
+            <Table.Cell>
+                <Image
+                    src={`http://www.ensembl.org/i/species/${species.organism.replace(" ", "_")}.png`}
+                    as='a'
+                    size='tiny'
+                    href={species.ensembl_url}
+                    target='_blank'
+                    circular
+                />
+            </Table.Cell>
+            <Table.Cell>{gene.ortholog_common_name}</Table.Cell>
+            <Table.Cell>{species.common_name}</Table.Cell>
+            <Table.Cell>{species.taxon}</Table.Cell>
+            <Table.Cell>{round(species.lifespan)}</Table.Cell>
+            <Table.Cell>{!isNaN(species.mass_g)? round(species.mass_g / 1000.0) : "N/A"}</Table.Cell>
+            <Table.Cell>{round(species.metabolic_rate)}</Table.Cell>
+            <Table.Cell>{round(species.temperature_celsius)}</Table.Cell>
+
+        </Table.Row>
+    )
+ */
+
+
     const getOrthology = async () => {
-        const organisms = OrderedSet(Immutable.fromJS(selectedRows.map(sample=>sample.organism)))
+        const organisms = OrderedSet(fromJS(selectedRows.map(sample=>sample.organism)))
         const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
 
         const body = JSON.stringify({
-            reference_genes: selectedGenes.map(gene => gene.ensembl_id),
+            reference_genes: selectedGenes.map(gene => gene.key),
             species: organisms,
             orthologyTypes: orthologyTypes
         })
@@ -79,6 +125,8 @@ export const OrthologyTable = ({
             body: body
         });
         console.log("orthologyReponse", orthologyResponse)
+        return  await orthologyResponse.json()
+
         /*
 
 
@@ -122,68 +170,10 @@ export const OrthologyTable = ({
          */
     }
 
-    const loadOrthologyGenes= async  () => {
-        const orthologyResponse = await getOrthology();
-        console.log("orthologyResponse", orthologyResponse);
-
-        let genes = [];
-        let runs = [];
-        for(let key in orthologyResponse) {
-            let array = orthologyResponse[key];
-
-            for(let i = 0; i < array.length; i++){
-                genes.push(array[i].ortholog_id);
-                runs.push(array[i].ortholog_species);
-                ENSEMBL_TO_NAME[array[i].ortholog_id] = array[i].ortholog_symbol;
-            }
-        }
-        //setENSEMBL_TO_NAME(ENSEMBL_TO_NAME) //added the update
-
-        //TODO: get side effects out
-        setGenesFromOrthology(genes)
-        setRunsFromOrthology(runs)
-        console.log("genesFromOrthology", genes);
-        console.log("runsFromOrthology", runs);
-
-        let genesMap = [];
-        let genesMapBySpecies = [];
-        setOrthologyData(Object.keys(orthologyResponse).map((geneId) => {
-            const row = {};
-            row.selected_gene = geneId;
-            orthologyResponse[geneId].forEach((ortholog) => {
-                if (!row[ortholog.ortholog_species]) {
-                    row[ortholog.ortholog_species] = ortholog.ortholog_id;
-                    genesMap[geneId] = ortholog.ortholog_id;
-                    genesMapBySpecies[geneId + ortholog.ortholog_species] = ortholog.ortholog_id;
-                }
-                else {
-                    row[ortholog.ortholog_species] += `, ${ortholog.ortholog_id}`;
-                    genesMap[geneId] +=`,${ortholog.ortholog_id}`;
-                    genesMapBySpecies[geneId + ortholog.ortholog_species] += `,${ortholog.ortholog_id}`
-                }
-            });
-            return row;
-        }));
-
-        //TODO: get side-effects out
-        setGenesMap(genesMap)
-        setGenesMapBySpecies(genesMapBySpecies)
-        await setShowOrthology(true)
-
-        forceUpdate();
-        /*
-
-                let runs = [];
-                let genes = genesFromOrthology
-
-                for(let i = 0; i < selectedRows.length; i++){
-                    runs.push(selectedRows[i].run);
-                }
-                await getGeneExpression(runs, genes);
-
-         */
+    const loadOrthologyGenes = () => {
+        const data = getOrthology()
+        console.log("Orthology data:", data)
     }
-
 
     const renderOrthoGrid = (value) => {
         if(value)

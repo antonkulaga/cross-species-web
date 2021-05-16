@@ -28,7 +28,8 @@ import {OrderedMap, OrderedSet, fromJS} from "immutable";
 
 export const OrthologySelection = (
     {
-        organismList, hasSelection, setShowLoader, genesBySymbol, setGenesBySymbol, genesById, setGenesById
+        selectedGenes, setSelectedGenes,
+        organismList, hasSelection, setShowLoader, genesBySymbol, setGenesBySymbol, genesById, setGenesById, unique
     }
     ) => {
 
@@ -42,8 +43,6 @@ export const OrthologySelection = (
 
     const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
-    const [selectedGenes, setSelectedGenes] = useState([])
-
     const [allReferenceGenes, setAllReferenceGenes] =  useState(OrderedMap())
     const [selectedGenesOptions, setSelectedGenesOptions] = useState([])
     const [predefinedSets, setPredefinedSets] = useState([])
@@ -67,13 +66,6 @@ export const OrthologySelection = (
             label: gene.name
         }
     }
-
-    /**
-     * Using OrderedSet to make values unique and preserving their order
-     * @param arr
-     * @returns {unknown[]}
-     */
-    const unique = (arr) => Array.from(OrderedSet(fromJS(arr)).values()).map(x => x.toJS()) //TODO consider switching to something more reasonable
 
 
     const onChangePredefinedGenes = async (e, target) => {
@@ -171,7 +163,7 @@ export const OrthologySelection = (
         }).map(ensembl_id=>{
             const symbol = genesById.get(ensembl_id)
             return ({
-                key: symbol,
+                key: ensembl_id,
                 value: symbol,
                 text: symbol,
                 label: symbol

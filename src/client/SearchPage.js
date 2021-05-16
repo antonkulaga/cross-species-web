@@ -4,7 +4,7 @@
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 import React, {useEffect, useState, } from 'react';
 import {Button, Dropdown, Tab, Step, StepContent, Header, Icon, Image, Message, Divider} from 'semantic-ui-react';
-import {List, fromJS, OrderedMap} from "immutable"
+import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
 
 
 import './app.css';
@@ -92,7 +92,8 @@ export const SearchPage = () => {
   const [data, setData] = useState(null)
   const [selectedRows, setSelectedRows] = useState([])
   const [selectedGenes, setSelectedGenes] = useState([])
-  const [genesMap, setGenesMap] = useState([])
+  const [selectedSpecies, setSelectedSpecies] = useState([])
+
   const [speciesByRun, setSpeciesByRun] = useState(OrderedMap())
   const [samplesRowData, setSamplesRowData] = useState([])
   const [organismList, setOrganismList] =useState([])
@@ -101,8 +102,8 @@ export const SearchPage = () => {
 
 
 
-
-  const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
+  //const [genesMap, setGenesMap] = useState([])
+  //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
 
 
   const [orthologyData, setOrthologyData] = useState([])
@@ -477,6 +478,15 @@ export const SearchPage = () => {
 
     }, [])
 
+
+  /**
+   * Using OrderedSet to make values unique and preserving their order
+   * @param arr
+   * @returns {unknown[]}
+   */
+  const unique = (arr) => Array.from(OrderedSet(fromJS(arr)).values()).map(x => x.toJS()) //TODO consider switching to something more reasonable
+
+
   return (
     <div className="ui intro">
     <div className="ui main" style={{ margin: '30px'}} >
@@ -506,7 +516,7 @@ export const SearchPage = () => {
                 Species in selected samples:
               </Header>
             </Divider>
-            <SpeciesTable selectedRows={selectedRows}> </SpeciesTable>
+            <SpeciesTable selectedRows={selectedRows} selectedSpecies={selectedSpecies} setSelectedSpecies={setSelectedSpecies} unique={unique}> </SpeciesTable>
           </Step.Content>
         </Step>
         <OrthologySelection
@@ -514,23 +524,22 @@ export const SearchPage = () => {
             selectedRows={selectedRows}
             setShowLoader={setShowLoader}
             hasSelection={hasSelection}
-            genesBySymbol={genesBySymbol}
-            setGenesBySymbol={setGenesBySymbol}
-            genesById={genesById}
-            setGenesById={setGenesById}
+            selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
+            genesBySymbol={genesBySymbol} setGenesBySymbol={setGenesBySymbol}
+            genesById={genesById} setGenesById={setGenesById}
+            unique={unique}
         >
 
         </OrthologySelection>
         <OrthologyTable
           selectedRows = {selectedRows}
+          selectedSpecies={selectedSpecies}
           orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
-          setGenesMap = {setGenesMap}
           selectedGenes = {selectedGenes}
-          setGenesMapBySpecies = {setGenesMapBySpecies}
           autoSizeAll={autoSizeAll} > </OrthologyTable>
 
         {data != null && <CsvDownload data={data} />}
-        <ExpressionsView></ExpressionsView>
+        <ExpressionsView> </ExpressionsView>
       </Step.Group>
 
 

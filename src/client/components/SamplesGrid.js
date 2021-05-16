@@ -12,7 +12,6 @@ import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import {Button, Table, Divider, Header} from "semantic-ui-react";
-import {SpeciesTable} from "./SpeciesTable";
 
 const samplesColumnDefs = [
     {
