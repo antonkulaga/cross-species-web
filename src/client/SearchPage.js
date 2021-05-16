@@ -96,10 +96,9 @@ export const SearchPage = () => {
   const [speciesByRun, setSpeciesByRun] = useState(OrderedMap())
   const [samplesRowData, setSamplesRowData] = useState([])
   const [organismList, setOrganismList] =useState([])
+  const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap())
+  const [genesById, setGenesById] = useState(OrderedMap())
 
-
-  const [ENSEMBL_TO_NAME, setENSEMBL_TO_NAME] = useState([])
-  const [SPECIES_TO_ENSEMBL, setSPECIES_TO_ENSEMBL] = useState([])
 
 
 
@@ -515,10 +514,10 @@ export const SearchPage = () => {
             selectedRows={selectedRows}
             setShowLoader={setShowLoader}
             hasSelection={hasSelection}
-            ENSEMBL_TO_NAME={ENSEMBL_TO_NAME}
-            setENSEMBL_TO_NAME={setENSEMBL_TO_NAME}
-            SPECIES_TO_ENSEMBL={SPECIES_TO_ENSEMBL}
-            setSPECIES_TO_ENSEMBL={setSPECIES_TO_ENSEMBL}
+            genesBySymbol={genesBySymbol}
+            setGenesBySymbol={setGenesBySymbol}
+            genesById={genesById}
+            setGenesById={setGenesById}
         >
 
         </OrthologySelection>
@@ -528,7 +527,6 @@ export const SearchPage = () => {
           setGenesMap = {setGenesMap}
           selectedGenes = {selectedGenes}
           setGenesMapBySpecies = {setGenesMapBySpecies}
-          ENSEMBL_TO_NAME={ENSEMBL_TO_NAME} setENSEMBL_TO_NAME = {setENSEMBL_TO_NAME}
           autoSizeAll={autoSizeAll} > </OrthologyTable>
 
         {data != null && <CsvDownload data={data} />}

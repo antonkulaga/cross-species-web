@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback, useReducer } from 'react'
-import {Button, Divider, Dropdown, Header, Icon, Image, List, Step, Tab, Table} from 'semantic-ui-react'
+import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
+import {Button, Divider, Dropdown, Header, Icon,  Step, Tab, Table} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
@@ -8,9 +9,9 @@ export const OrthologyTable = ({
                                    selectedRows,
                                    orthologyData, setOrthologyData,
                                    autoSizeAll,
-                                   setGenesMap, selectedGenes,
+                                   setGenesMap,
+                                   selectedGenes,
                                    setGenesMapBySpecies,
-                                   ENSEMBL_TO_NAME, setENSEMBL_TO_NAME //TODO: check if it makes sence
                                }
 ) => {
 
@@ -58,6 +59,30 @@ export const OrthologyTable = ({
 
 
     const getOrthology = async () => {
+        const organisms = OrderedSet(Immutable.fromJS(selectedRows.map(sample=>sample.organism)))
+        const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
+
+        const body = JSON.stringify({
+            reference_genes: selectedGenes.map(gene => gene.ensembl_id),
+            species: organisms,
+            orthologyTypes: orthologyTypes
+        })
+
+        console.log("body to send", body)
+
+        let orthologyResponse = await fetch('/api/getOrthology', {
+            method: 'post',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: body
+        });
+        console.log("orthologyReponse", orthologyResponse)
+        /*
+
+
+        console.log("organisms from samples", organisms)
 
         const speciesToSRR = {};
         console.log("GET ORTHOLOGY!")
@@ -94,9 +119,10 @@ export const OrthologyTable = ({
             })
         });
         return await orthologyResponse.json();
+         */
     }
 
-    const onClickShowGenes= async  () => {
+    const loadOrthologyGenes= async  () => {
         const orthologyResponse = await getOrthology();
         console.log("orthologyResponse", orthologyResponse);
 
@@ -111,7 +137,7 @@ export const OrthologyTable = ({
                 ENSEMBL_TO_NAME[array[i].ortholog_id] = array[i].ortholog_symbol;
             }
         }
-        setENSEMBL_TO_NAME(ENSEMBL_TO_NAME) //added the update
+        //setENSEMBL_TO_NAME(ENSEMBL_TO_NAME) //added the update
 
         //TODO: get side effects out
         setGenesFromOrthology(genes)
@@ -186,7 +212,7 @@ export const OrthologyTable = ({
             <Icon name='dna' />
             <Step.Content>
                 <Step.Title><Header>Load ortholog genes</Header></Step.Title>
-                <Button onClick={onClickShowGenes}
+                <Button onClick={loadOrthologyGenes}
                         className="ui blue"
                         size="massive">
                     Get ortholog genes
