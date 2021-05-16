@@ -132,8 +132,8 @@ export const OrthologySelection = (
         }
     }
 
-    const getReferenceOrgGenes = async (referenceOrganism) => {
-        const genes = await fetch(`/api/getReferenceOrgGenes?referenceOrg=${referenceOrganism}`).then(res => res.json())
+    const getReferenceOrgGenes = async (organism) => {
+        const genes = await fetch(`/api/all_genes/${organism}`).then(res => res.json())
         return OrderedMap(genes.map(gene => [gene.symbol, gene.ensembl_id.replace('http://rdf.ebi.ac.uk/resource/ensembl/', "")]))
     }
 
@@ -141,7 +141,7 @@ export const OrthologySelection = (
         setShowLoader(true)
         forceUpdate();
         await applyReferenceOrganism('Homo_sapiens')
-        const gene_sets = await fetch('/api/getPredefinedGenes').then(res => res.json())
+        const gene_sets = await fetch('/api/predefined_genes').then(res => res.json())
         const predefined = OrderedMap(gene_sets.map(value => [value.key, value]))
         const predefined_options = predefined.map((value, key) => value.genes.map(gene=>makeGeneOption(gene)))
         setPredefinedSets(gene_sets)

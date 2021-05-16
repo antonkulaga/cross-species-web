@@ -23,6 +23,8 @@
     "ag-grid-community": "^25.2.0",
     "ag-grid-react": "^25.2.0",
     "bluebird": "^3.7.2",
+    "cache-manager": "^3.4.3",
+    "cache-manager-fs-hash": "^0.0.9",
     "express": "^4.17.1",
     "graphdb": "1.7.0",
     "immutable": "^4.0.0-rc.12",

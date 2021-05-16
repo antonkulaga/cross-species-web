@@ -27,27 +27,38 @@ const genesAntiPath = './src/server/data/genage_genes_anti.json';
 const genesYspeciesProPath = './src/server/data/yspecies_pro.json';
 const genesYspeciesTopPath = './src/server/data/yspecies_top_pro_anti.json';
 
-const ensemblToNamePath = './src/server/data/ensemblToName.json';
 const allXValuesPath = './src/server/data/allXValues.json';
 const allYValuesPath = './src/server/data/allYValues.json';
 const genesExpressionPath = './src/server/data/geneExpressions.json';
 
-const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/'.length;
-const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/'.length;
-const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/'.length;
-const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/'.length;
 const ORTHOLOGY_TYPES = [
   'ens:ortholog_one2one',
   'ens:ortholog_one2many',
   'ens:ortholog_many2many'
 ];
 
-let cachedHumanGenes = null;
 
 const graph = require( __dirname + '/graph.js');
 const repo = new graph.GraphRepository()
 
 const app = express();
+
+const cacheManager = require('cache-manager');
+const fsStore = require('cache-manager-fs-hash');
+
+const diskCache = cacheManager.caching({
+  store: fsStore,
+  options: {
+    path: __dirname +'/data/cache', //path for cached files
+    ttl: 60 * 60 * 24 * 4,      //time to life in seconds
+    subdirs: true,     //create subdirectories to reduce the
+    //files in a single dir (default: false)
+    zip: false,         //zip files to save diskspace (default: false)
+  }
+});
+
+
+
 
 async function readFile(path) {
   console.log('path', path);
@@ -59,13 +70,14 @@ async function readFile(path) {
   });
 }
 
+
 app.use(express.static('dist'));
-app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({limit: '200mb'}));
+app.use(express.urlencoded({ extended: true, limit: '200mb' }));
 app.use(express.raw());
 
-app.get('/api/getUsername', (req, res) => res.send({ username: os.userInfo().username }));
-app.get('/api/getPredefinedGenes', async (req, res, next) => {
+app.get('/api/username', (req, res) => res.send({ username: os.userInfo().username }));
+app.get('/api/predefined_genes', async (req, res, next) => {
 
   const genes_pro = await readFile(genesProPath);
   const genes_anti = await readFile(genesAntiPath);
@@ -101,12 +113,6 @@ app.get('/api/getPredefinedGenes', async (req, res, next) => {
   res.send(result);
 });
 
-
-app.get('/api/getEnsembleToName', async (req, res, next) => {
-  const result = await readFile(ensemblToNamePath);
-  res.send(result);
-});
-
 app.get('/api/getAllXValues', async (req, res, next) => {
   const result = await readFile(allXValuesPath);
   res.send(result);
@@ -128,24 +134,20 @@ app.get('/api/getSpecies', async (req, res, next) => {
   res.send(result);
 });
 
-app.get('/api/getReferenceOrgGenes', async (req, res, next) => {
-  const referenceOrg = req.query.referenceOrg || 'Homo_sapiens';
-  console.log('/api/getReferenceOrgGenes', referenceOrg);
-  if(referenceOrg === "Homo_sapiens" && cachedHumanGenes != null){
-    const result = cachedHumanGenes;
-    console.log("has cache");
-    res.send(result);
-  } else {
-    const result = await repo.queryReferenceOrgGenes(referenceOrg);
-    if(referenceOrg === "Homo_sapiens" && cachedHumanGenes == null){
-      cachedHumanGenes = result;
-      console.log("no cache");
-    }
-    // console.log(result);
-    res.send(result);
-  }
+const getAllGenes = async (organism = 'Homo_sapiens') => {
+  return diskCache.wrap(organism /* cache key */, async () => {
+    return await repo.queryReferenceOrgGenes(organism);
+  });
+}
+
+app.get('/api/all_genes/:species', async (req, res, next) => {
+  const organism = req.params.species || 'Homo_sapiens';
+  console.log(`/api/all_genes/${req.params.species}`, organism);
+  const result = await getAllGenes(organism)
+  res.send(result);
 });
 
+/*
 app.post('/api/getOrthologyOne2One', async (req, res, next) => {
   console.log(req.body);
   const { genes, samples } = req.body;
@@ -159,6 +161,7 @@ app.post('/api/getOrthologyOne2One', async (req, res, next) => {
   console.log('/api/getOrthologyOne2One');//, genes, species, result);
   res.send(result);
 });
+*/
 
 app.post('/api/getOrthology', async (req, res , next) => {
   const {   reference_genes, species, orthologyTypes} = req.body;
