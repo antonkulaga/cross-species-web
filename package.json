@@ -9,7 +9,8 @@
     "dev-start": "npm run client && node src/server/index.js",
     "client": "webpack serve  --mode development --devtool inline-source-map --hot",
     "server": "nodemon src/server/index.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "jest"
   },
   "author": "Sandeep Raveesh",
   "license": "ISC",
@@ -29,6 +30,7 @@
     "graphdb": "1.7.0",
     "immutable": "^4.0.0-rc.12",
     "install": "^0.13.0",
+    "jest": "^26.6.3",
     "jsonata": "^1.8.4",
     "lodash": "^4.17.15",
     "mathjs": "^8.0.1",
@@ -44,6 +46,7 @@
     "react-router-dom": "^5.2.0",
     "scroll-into-view-if-needed": "^2.2.22",
     "semantic-ui-react": "2.0.3",
+    "stream-to-promise": "^3.0.0",
     "underscore": "^1.9.2",
     "yarn": "^1.22.4",
     "z": "^1.0.9"
@@ -71,5 +74,9 @@
     "webpack": "^5.36.2",
     "webpack-cli": "4.6.0",
     "webpack-dev-server": "^3.11.2"
+  },
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node"
   }
 }

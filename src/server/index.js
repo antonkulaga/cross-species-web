@@ -7,21 +7,6 @@ const Promise = require('bluebird');
 
 const graphdb = require('graphdb');
 
-const { RDFMimeType } = graphdb.http;
-const { RepositoryClientConfig, RDFRepositoryClient } = graphdb.repository;
-
-
-// const serverConfig = new ServerClientConfig('http://10.40.3.21:7200/', 0, {
-//     'Accept': RDFMimeType.SPARQL_RESULTS_JSON
-// });
-// const gDbServer = new ServerClient(serverConfig);
-const readTimeout = 30000;
-const writeTimeout = 30000;
-const config = new RepositoryClientConfig(['http://10.40.3.21:7200/repositories/ensembl'], {
-  Accept: RDFMimeType.SPARQL_RESULTS_JSON
-}, '', readTimeout, writeTimeout);
-const repository = new RDFRepositoryClient(config);
-
 const genesProPath = './src/server/data/genage_genes_pro.json';
 const genesAntiPath = './src/server/data/genage_genes_anti.json';
 const genesYspeciesProPath = './src/server/data/yspecies_pro.json';
@@ -147,25 +132,9 @@ app.get('/api/all_genes/:species', async (req, res, next) => {
   res.send(result);
 });
 
-/*
-app.post('/api/getOrthologyOne2One', async (req, res, next) => {
-  console.log(req.body);
-  const { genes, samples } = req.body;
-  // const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
-  let species = {};
-  samples.forEach((sample) => {
-    species[sample.organism] = true;
-  });
-  species = Object.keys(species);
-  const result = await repo.queryOrthology(genes, species, ORTHOLOGY_TYPES.slice(0, 1));
-  console.log('/api/getOrthologyOne2One');//, genes, species, result);
-  res.send(result);
-});
-*/
-
-app.post('/api/getOrthology', async (req, res , next) => {
+app.post('/api/orthology_table', async (req, res , next) => {
   const {   reference_genes, species, orthologyTypes} = req.body;
-  const results = await repo.queryOrthology(reference_genes, species, orthologyTypes)
+  const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
   res.send(results)
 })
 

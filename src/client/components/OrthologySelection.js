@@ -29,19 +29,14 @@ import {OrderedMap, OrderedSet, fromJS} from "immutable";
 export const OrthologySelection = (
     {
         selectedGenes, setSelectedGenes,
-        organismList, hasSelection, setShowLoader, genesBySymbol, setGenesBySymbol, genesById, setGenesById, unique
+        organismList, hasSelection, setShowLoader, genesBySymbol, setGenesBySymbol, genesById, setGenesById, unique,
+        selectedOrganism, setSelectedOrganism
     }
     ) => {
 
-    const HUMAN = {
-        key: 'Human',
-        value: 'Human',
-        text: 'Human',
-        id: 'Homo_sapiens'
-    };
     const LIMIT = 100
 
-    const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
+
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
     const [allReferenceGenes, setAllReferenceGenes] =  useState(OrderedMap())
     const [selectedGenesOptions, setSelectedGenesOptions] = useState([])

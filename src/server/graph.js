@@ -1,12 +1,15 @@
+const streamToPromise = require("stream-to-promise");
+const {fromJS} = require("immutable");
+
 const Promise = require('bluebird');
 const graphdb = require('graphdb');
 const { RDFMimeType } = graphdb.http;
 const { RepositoryClientConfig, RDFRepositoryClient } = graphdb.repository;
 
-const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/'.length;
-const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/'.length;
-const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/'.length;
-const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/'.length;
+const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
+const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/';
+const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/';
+const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/';
 const ORTHOLOGY_TYPES = [
     'ens:ortholog_one2one',
     'ens:ortholog_one2many',
@@ -76,16 +79,16 @@ class GraphRepository{
                     // study_title: bindings.study_title.id,
                     // library_layout: bindings.library_layout.id,
                     // study: bindings.study.id,
-                    organism: bindings.organism.id.slice(LAB_RESOURCE_PREFIX),
+                    organism: bindings.organism.id.replace(LAB_RESOURCE_PREFIX, ""),
                     sex: bindings.sex.id.replace(/"/g, ''),
-                    run: bindings.run.id.slice(SRA_PREFIX),
+                    run: bindings.run.id.replace(SRA_PREFIX,""),
                     // characterists: bindings.characterists.id,
                     source: bindings.source.id.replace(/"/g, ''),
                     // bootstrap: bindings.bootstrap.id,
                     // library_strategy: bindings.library_strategy.id,
                     // lib_type: bindings.lib_type.id,
-                    sequencer: bindings.sequencer.id.slice(LAB_RESOURCE_PREFIX),
-                    bioproject: bindings.bioproject.id.slice(BIOPROJECT_PREFIX),
+                    sequencer: bindings.sequencer.id.replace(LAB_RESOURCE_PREFIX, ""),
+                    bioproject: bindings.bioproject.id.replace(BIOPROJECT_PREFIX, ""),
                     // protocol: bindings.protocol.id,
                     // series: bindings.series.id,
                     // tumor: bindings.tumor.id,
@@ -103,27 +106,78 @@ class GraphRepository{
         }));
     }
 
+    orthology_query_string(genes, species, orthologyTypes) {
+        return(
+         `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+          PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+          PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+          PREFIX : <http://aging-research.group/resource/>
+          
+          SELECT ?selected_gene ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_gene   WHERE { 
+              values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
+              values ?selected_gene { ens:${genes.join(' ens:')} }
+              ?selected_species :has_gene ?selected_gene .   
+        
+              values ?orthology { ${orthologyTypes.join(' ')} }
+              ?selected_gene ?orthology ?ortholog .   
+        
+              OPTIONAL { ?ortholog rdfs:label ?ortholog_gene . }
+        
+              ?target_species :has_gene ?ortholog .
+              ?target_species :has_common_name ?common_name .
+          } ORDER BY ?selected_gene ?ortholog ?species`);
+    }
+
+    async query_orthology(genes, species, orthologyTypes) {
+        const query = this.orthology_query_string(genes, species, orthologyTypes)
+        const payload = this.select_payload(query)
+        const stream = await this.repository.query(payload)
+        const result = await streamToPromise(stream)
+        return result.map(
+            ({selected_gene, selected_species, orthology, ortholog, target_species, common_name, ortholog_gene}) =>
+                ({
+                    "selected_gene": selected_gene.id.replace(RDF_PREFIX, ''),
+                    "selected_species": selected_species.id.replace(LAB_RESOURCE_PREFIX, ''),
+                    "orthology": orthology.id.replace(RDF_PREFIX, ''),
+                    "ortholog":  ortholog === undefined ? "" : ortholog.id.replace(RDF_PREFIX, ''),
+                    "target_species": target_species.id.replace(LAB_RESOURCE_PREFIX, ''),
+                    "common_name": common_name.id.replace(/"/g, ''),
+                    "ortholog_gene": ortholog_gene === undefined ? "": ortholog_gene.id.replace(/"/g, '')
+                })
+        )
+    }
+
+    async orthology_table(genes, species, orthologyTypes){
+        const results_array = await this.query_orthology(genes,species,orthologyTypes)
+        const dictionary = fromJS(results_array)
+            .groupBy(item => item.get('selected_gene'))
+            .map((values, key)=>{
+                const shorter_values = values.map(value=>value.delete("selected_gene").delete("selected_species"))
+                return shorter_values.groupBy(item=>item.get("target_species"))
+
+            })
+        /*
+        const table = genes.map(gene => {
+            if(dictionary.has(gene)) {
+                const item = dictionary.get(gene)
+                return {
+                    "selected_gene": gene,
+                    "orthologs": item.toJS()
+                }
+            } else return {"selected_gene": gene, "orthologs": {}}
+        })*/
+        return ({
+            genes: genes,
+            species: species,
+            orthology_types: orthologyTypes,
+            orthology_table: dictionary.toJS()
+        })
+
+    }
+
     async queryOrthology(genes, species, orthologyTypes) {
 
-        const query = `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-  PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
-  PREFIX : <http://aging-research.group/resource/>
-  
-  SELECT ?selected_genes ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_gene   WHERE { 
-      values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
-      values ?selected_genes { ens:${genes.join(' ens:')} }
-      ?selected_species :has_gene ?selected_genes .   
-
-      values ?orthology { ${orthologyTypes.join(' ')} }
-      ?selected_genes ?orthology ?ortholog .   
-
-      OPTIONAL { ?ortholog rdfs:label ?ortholog_gene . }
-
-      ?target_species :has_gene ?ortholog .
-      ?target_species :has_common_name ?common_name .
-  } ORDER BY ?selected_genes ?ortholog ?species`;
-        // console.log(query)
+        const query = this.orthology_query_string(genes, species, orthologyTypes)
         const payload = this.select_payload(query)
 
         return this.repository.query(payload).then(stream => new Promise((resolve, reject) => {
@@ -131,13 +185,13 @@ class GraphRepository{
             stream.on('data', (bindings) => {
                 // the bindings stream converted to data objects with the registered parser
                 // console.log(bindings)
-                if (!orthology[bindings.selected_genes.id.slice(RDF_PREFIX)]) {
-                    orthology[bindings.selected_genes.id.slice(RDF_PREFIX)] = [];
+                if (!orthology[bindings.selected_genes.id.replace(RDF_PREFIX,'')]) {
+                    orthology[bindings.selected_genes.id.replace(RDF_PREFIX,'')] = [];
                 }
-                orthology[bindings.selected_genes.id.slice(RDF_PREFIX)].push({
-                    ortholog_id: bindings.ortholog.id.slice(RDF_PREFIX),
-                    ortholog_species: bindings.target_species.id.slice(LAB_RESOURCE_PREFIX),
-                    orthology: bindings.orthology.id.slice(RDF_PREFIX),
+                orthology[bindings.selected_genes.id.replace(RDF_PREFIX,'')].push({
+                    ortholog_id: bindings.ortholog.id.replace(RDF_PREFIX,''),
+                    ortholog_species: bindings.target_species.id.replace(LAB_RESOURCE_PREFIX,''),
+                    orthology: bindings.orthology.id.replace(RDF_PREFIX,''),
                     ortholog_symbol: (bindings.ortholog_gene || {id:''}).id.replace(/"/g, ''),
                     ortholog_common_name: bindings.common_name.id.replace(/"/g, '')
                 });
@@ -215,7 +269,7 @@ class GraphRepository{
                     // the bindings stream converted to data objects with the registered parser
                     //console.log('@@', bindings);
                     speciesNames.push({
-                        id: bindings.species.id.slice(LAB_RESOURCE_PREFIX),
+                        id: bindings.species.id.replace(LAB_RESOURCE_PREFIX,''),
                         common_name: bindings.common_name.id.replace(/"/g, ''),
                         mass_g:bindings.mass_g? this.getNumberFromRDF(bindings.mass_g.id) : '',
                         ensembl_url: bindings.ensembl_url.id,

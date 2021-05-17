@@ -97,6 +97,15 @@ export const SearchPage = () => {
   const [speciesByRun, setSpeciesByRun] = useState(OrderedMap())
   const [samplesRowData, setSamplesRowData] = useState([])
   const [organismList, setOrganismList] =useState([])
+  const HUMAN = {
+    key: 'Human',
+    value: 'Human',
+    text: 'Human',
+    id: 'Homo_sapiens'
+  };
+  const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
+
+
   const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap())
   const [genesById, setGenesById] = useState(OrderedMap())
 
@@ -106,7 +115,7 @@ export const SearchPage = () => {
   //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
 
 
-  const [orthologyData, setOrthologyData] = useState([])
+  const [orthologyData, setOrthologyData] = useState(null) //todo: get rid of nulls
 
   const getSpecies =  () => fetch('/api/getSpecies').then(res => res.json())
 
@@ -520,6 +529,8 @@ export const SearchPage = () => {
           </Step.Content>
         </Step>
         <OrthologySelection
+            selectedOrganism={selectedOrganism}
+            setSelectedOrganism={setSelectedOrganism}
             organismList={organismList}
             selectedRows={selectedRows}
             setShowLoader={setShowLoader}
@@ -533,10 +544,13 @@ export const SearchPage = () => {
         </OrthologySelection>
         <OrthologyTable
           selectedRows = {selectedRows}
+          selectedOrganism = {selectedOrganism}
           selectedSpecies={selectedSpecies}
           orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
           selectedGenes = {selectedGenes}
-          autoSizeAll={autoSizeAll} > </OrthologyTable>
+          setShowLoader={setShowLoader}
+          autoSizeAll={autoSizeAll} >
+        </OrthologyTable>
 
         {data != null && <CsvDownload data={data} />}
         <ExpressionsView> </ExpressionsView>

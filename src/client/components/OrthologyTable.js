@@ -11,8 +11,12 @@ export const OrthologyTable = ({
                                    orthologyData, setOrthologyData,
                                    autoSizeAll,
                                    selectedGenes,
+                                   setShowLoader,
+                                   selectedOrganism
                                }
 ) => {
+
+    const [orthologyRows, setOrthologyRows] = useState([])
 
     const baseOrthologyColumnDefs = [
         {
@@ -48,7 +52,7 @@ export const OrthologyTable = ({
 
     useEffect(()=>{
         setOrthologyCoolumnDefs(baseOrthologyColumnDefs.concat(
-            selectedSpecies.map(species => ({
+            selectedSpecies.filter(species => species.organism !== selectedOrganism).map(species => ({
                 headerName: species.organism,
                 field: species.organism,
                 cellRenderer: function(params) {
@@ -57,6 +61,34 @@ export const OrthologyTable = ({
             }))
         ))
     }, [selectedSpecies])
+
+    useEffect(()=>{
+        if(orthologyData !==null){
+            setShowOrthology(true)
+            const table = fromJS(orthologyData["orthology_table"]).toOrderedMap()
+            const existing_genes = orthologyData["genes"].filter(gene=>table.has(gene))
+            const rows = existing_genes.map(gene =>{
+                    const item = table.get(gene)
+                    return OrderedMap(orthologyData.species.map(sp=> {
+                            if(item.has(sp))
+                            {
+                                const ortho = item.get(sp).toJS(); //getting ortholog genes for the species
+                                console.log("ORTHO IS", ortho, typeof(ortho))
+                                return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
+                            }
+                            else return [sp, "N/A"]
+                        })).set("selected_gene",gene).toJS()
+                }
+            )
+            console.log("ORTHOLOGY ROWS:", rows)
+            setOrthologyRows(rows)
+        } else {
+            setShowOrthology(false)
+        }
+
+
+
+    }, [orthologyData])
 
 
 
@@ -104,8 +136,9 @@ export const OrthologyTable = ({
  */
 
 
-    const getOrthology = async () => {
-        const organisms = OrderedSet(fromJS(selectedRows.map(sample=>sample.organism)))
+    const get_orthology_table = async () => {
+        console.log("selected organism is: ", selectedOrganism)
+        const organisms = OrderedSet(fromJS(selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism)))
         const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
 
         const body = JSON.stringify({
@@ -116,7 +149,7 @@ export const OrthologyTable = ({
 
         console.log("body to send", body)
 
-        let orthologyResponse = await fetch('/api/getOrthology', {
+        let orthologyResponse = await fetch('/api/orthology_table', {
             method: 'post',
             headers: {
                 Accept: 'application/json',
@@ -124,61 +157,22 @@ export const OrthologyTable = ({
             },
             body: body
         });
-        console.log("orthologyReponse", orthologyResponse)
         return  await orthologyResponse.json()
-
-        /*
-
-
-        console.log("organisms from samples", organisms)
-
-        const speciesToSRR = {};
-        console.log("GET ORTHOLOGY!")
-        console.log(selectedRows)
-        selectedRows.forEach((sample) => {
-            console.log("SAMPLE")
-            console.log(sample)
-            if(!speciesToSRR[sample.organism])
-                speciesToSRR[sample.organism] = [];
-            else
-                speciesToSRR[sample.organism].push(sample.run);
-        });
-        const selectedSpecies = Object.keys(speciesToSRR);
-
-        await setOrthologyColumnDefs(baseOrthologyColumnDefs.concat(
-            selectedSpecies.map(species => ({
-                headerName: species,
-                field: species,
-                cellRenderer: function(params) {
-                    return '<a href="https://www.ensembl.org/'+ species +'/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
-                }
-            }))
-        ))
-
-        let orthologyResponse = await fetch('/api/getOrthologyOne2Many', {
-            method: 'post',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                genes: selectedGenes.map(gene => gene.ensembl_id),
-                samples: selectedRows
-            })
-        });
-        return await orthologyResponse.json();
-         */
     }
 
-    const loadOrthologyGenes = () => {
-        const data = getOrthology()
+    const loadOrthologyGenes = async () => {
+        setShowLoader(true)
+        const data = await get_orthology_table()
+        await setOrthologyData(data)
+        setShowLoader(false)
         console.log("Orthology data:", data)
     }
 
     const renderOrthoGrid = (value) => {
         if(value)
             return (
-            <div id="OrthologyGrid" style={{ marginTop: '72px' }}>
+
+            <div id="OrthologyGrid" style={{ marginTop: '72px'}}>
             <h3 className="ui header">Orthology table</h3>
             <div
                 className="ag-theme-material"
@@ -188,7 +182,7 @@ export const OrthologyTable = ({
             >
                 <AgGridReact
                     onGridReady={onOrthologyGridReady}
-                    rowData={orthologyData}
+                    rowData={orthologyRows}
                     columnDefs={orthologyColumnDefs}
                     gridOptions={orthologyGridOptions}
                 /> </div>
@@ -198,9 +192,9 @@ export const OrthologyTable = ({
 
 
     return(
-        <Step disabled={selectedRows.length === 0} >
+        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
             <Icon name='dna' />
-            <Step.Content>
+            <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
                 <Step.Title><Header>Load ortholog genes</Header></Step.Title>
                 <Button onClick={loadOrthologyGenes}
                         className="ui blue"
