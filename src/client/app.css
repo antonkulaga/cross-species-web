@@ -15,3 +15,9 @@ body {
 div.ag-theme-alpine div.ag-row {
   font-size: 12px !important;
 }
+
+#heatmap_container {
+  min-height: 500px;
+  min-width: 1000px;
+  width: 100%;
+}

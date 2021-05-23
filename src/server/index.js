@@ -138,9 +138,15 @@ app.post('/api/orthology_table', async (req, res , next) => {
   res.send(results)
 })
 
-app.post('/api/getExpressions', async (req, res , next) => {
-  const { genes, samples } = req.body;
-})
+
+app.post('/api/getExpressions', async (req, res, next) => {
+  // console.log(req.body);
+  const { runs, genes } = req.body;
+  const result = await repo.queryExpressions(runs, genes);
+  console.log('/api/getExpressions');//, genes, species, result);
+  res.send(result);
+});
+
 
 app.post('/api/getOrthologyOne2Many', async (req, res, next) => {
   console.log("/api/getOrthologyOne2Many", req.body);
@@ -156,27 +162,11 @@ app.post('/api/getOrthologyOne2Many', async (req, res, next) => {
   res.send(result);
 });
 
-/*
-app.post('/api/getOrthologyAll', async (req, res, next) => {
-  const genes = JSON.parse(req.query.genes || '["ENSG00000242265"]');// , "ENSG00000139990", "ENSG00000073921"]'); //WHAT IS THAT???
-  const species = JSON.parse(req.query.species || '["Homo_sapiens"]');// , "ENSG00000139990", "ENSG00000073921"]');
-  const result = await repo.queryOrthology(genes, species, ORTHOLOGY_TYPES);
-  console.log(result);
-  res.send(result);
-});
-*/
 
 app.get('/api/getSamples', async (req, res, next) => {
   const result = await repo.querySamples();
   res.send(result);
 });
 
-app.post('/api/getExpressions', async (req, res, next) => {
-  // console.log(req.body);
-  const { runs, genes } = req.body;
-  const result = await repo.queryExpressions(runs, genes);
-  console.log('/api/getExpressions');//, genes, species, result);
-  res.send(result);
-});
 
 app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));

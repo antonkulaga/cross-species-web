@@ -175,7 +175,6 @@ export const OrthologySelection = (
             <Step.Content>
                 <Step.Title><Header>Choose reference genes</Header></Step.Title>
                 <Step.Description>
-                    <Segment placeholder>
                         <Grid columns={2} relaxed='very' stackable>
                             <Grid.Column>
                                 <Header>
@@ -247,7 +246,6 @@ export const OrthologySelection = (
                         </Grid>
 
                         <Divider vertical>And/Or</Divider>
-                    </Segment>
 
                 </Step.Description>
             </Step.Content>

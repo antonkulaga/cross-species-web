@@ -17,7 +17,6 @@ export const OrthologyTable = ({
 ) => {
 
     const [orthologyRows, setOrthologyRows] = useState([])
-
     const baseOrthologyColumnDefs = [
         {
             headerName: 'Selected gene',
@@ -73,7 +72,6 @@ export const OrthologyTable = ({
                             if(item.has(sp))
                             {
                                 const ortho = item.get(sp).toJS(); //getting ortholog genes for the species
-                                console.log("ORTHO IS", ortho, typeof(ortho))
                                 return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
                             }
                             else return [sp, "N/A"]
@@ -106,35 +104,6 @@ export const OrthologyTable = ({
     ortholog_symbol: "TRERF1"
     orthology: "ortholog_one2one"
      */
-
-/*
-    const speciesRows = orthologyData.map(gene =>
-
-
-
-        <Table.Row key={species.organism}>
-            <Table.Cell>
-                <Image
-                    src={`http://www.ensembl.org/i/species/${species.organism.replace(" ", "_")}.png`}
-                    as='a'
-                    size='tiny'
-                    href={species.ensembl_url}
-                    target='_blank'
-                    circular
-                />
-            </Table.Cell>
-            <Table.Cell>{gene.ortholog_common_name}</Table.Cell>
-            <Table.Cell>{species.common_name}</Table.Cell>
-            <Table.Cell>{species.taxon}</Table.Cell>
-            <Table.Cell>{round(species.lifespan)}</Table.Cell>
-            <Table.Cell>{!isNaN(species.mass_g)? round(species.mass_g / 1000.0) : "N/A"}</Table.Cell>
-            <Table.Cell>{round(species.metabolic_rate)}</Table.Cell>
-            <Table.Cell>{round(species.temperature_celsius)}</Table.Cell>
-
-        </Table.Row>
-    )
- */
-
 
     const get_orthology_table = async () => {
         console.log("selected organism is: ", selectedOrganism)

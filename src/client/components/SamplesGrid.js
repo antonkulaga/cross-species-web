@@ -144,6 +144,7 @@ export const SamplesGrid = ({samplesRowData, setSelectedRows, autoSizeAll}) => {
 
     const onSelectionChanged = async () => {
         const rows = samplesGridApi.getSelectedRows()
+        //console.log("onSelectionChange", rows)
         await setSelectedRows(rows)
     }
 

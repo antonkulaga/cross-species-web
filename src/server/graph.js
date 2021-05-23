@@ -312,7 +312,7 @@ class GraphRepository{
             const expressions = [];
             stream.on('data', (bindings) => {
                 expressions.push({
-                    run: bindings.run.id.slice('https://www.ncbi.nlm.nih.gov/sra/'.length),
+                    run: bindings.run.id.replace('https://www.ncbi.nlm.nih.gov/sra/', ''),
                     gene: bindings.expression.id.split('_')[1],
                     tpm: this.getNumberFromRDF(bindings.tpm.id)
                 })
@@ -325,7 +325,7 @@ class GraphRepository{
     }
 
     getNumberFromRDF(str) {
-        return str.split('^^')[0].replace(/"/g, '');
+        return parseFloat(str.split('^^')[0].replace(/"/g, ''));
     }
 
 
