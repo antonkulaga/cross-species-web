@@ -133,6 +133,10 @@ const samplesGridOptions = {
 };
 
 const selectedSamplesGridOptions = {
+    defaultColDef: {
+        sortable: true,
+        resizable: true
+    },
     rowSelection: 'multiple',
     animateRows: true,
     rowDragManaged: true

@@ -26,7 +26,8 @@ export const OrthologyTable = ({
             rowDrag: true,
             cellRenderer: function(params) {
                 return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
-            }
+            },
+            minWidth: 300
         }
     ];
 
@@ -35,6 +36,10 @@ export const OrthologyTable = ({
         suppressAggFuncInHeader: true,
         rowDragManaged: true,
         debug: true,
+        defaultColDef: {
+            sortable: true,
+            resizable: true
+        }
         // floatingFilter: true
     };
 
@@ -96,6 +101,7 @@ export const OrthologyTable = ({
 
 
     const onOrthologyGridReady = (params) => {
+        params.api.setDomLayout('autoHeight')
         setOrthologyGridApi(params.api)
         // this.samplesColumnApi = params.columnApi;
         autoSizeAll(params.columnApi);
@@ -143,22 +149,23 @@ export const OrthologyTable = ({
 
             <div id="OrthologyGrid" style={{ marginTop: '72px'}}>
             <h3 className="ui header">Orthology table</h3>
-            <div
-                className="ag-theme-material"
-                style={{
-                    height: '300px',
-                }}
-            >
+                <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
+                    <div
+                        className="ag-theme-balham"
+                    >
+                    <AgGridReact
+                        onGridReady={onOrthologyGridReady}
+                        rowData={orthologyRows}
+                        columnDefs={orthologyColumnDefs}
+                        gridOptions={orthologyGridOptions}
+                    />
+                    </div>
+                </div>
                 <Button icon color="blue" disabled={orthologyRows.length === 0} onClick={downloadClick}>
                     <i name="download"> </i>
                     Download genes
                 </Button>
-                <AgGridReact
-                    onGridReady={onOrthologyGridReady}
-                    rowData={orthologyRows}
-                    columnDefs={orthologyColumnDefs}
-                    gridOptions={orthologyGridOptions}
-                /> </div>
+
             </div>);
         return false
     }

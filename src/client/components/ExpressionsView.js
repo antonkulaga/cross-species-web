@@ -4,10 +4,19 @@ import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
 import Plotly from "react-plotly.js";
-import {fromJS, Map, OrderedMap} from "immutable";
+import {fromJS, Map, OrderedMap, Seq} from "immutable";
 
 //NOT YET READY
 export const ExpressionsView = ({data, setData, orthologyData, selectedRows}) => {
+
+
+    const expressionsGridOptions = {
+        suppressRowClickSelection: true,
+        suppressAggFuncInHeader: true,
+        rowDragManaged: true,
+        debug: true,
+        // floatingFilter: true
+    };
 
 
     const default_layout = {
@@ -48,6 +57,21 @@ export const ExpressionsView = ({data, setData, orthologyData, selectedRows}) =>
     const orthologsByReferenceRef = useRef(OrderedMap())
     const referenceByOrthologRef = useRef(Map())
     const expressionsByGeneByRunRef = useRef(OrderedMap())
+
+
+    const baseOrthologyColumnDefs = [
+        {
+            headerName: 'Samples/Genes',
+            field: 'selected_samples',
+        }
+    ];
+
+    const [expressionsColumnDefs, setExpressionsCoolumnDefs] = useState(baseOrthologyColumnDefs)
+    const [genesForSearch, setGenesForSearch] = useState([])
+
+    useEffect(()=>{
+        setExpressionsCoolumnDefs(baseOrthologyColumnDefs)
+    }, [genesForSearch])
 
     /*
 
@@ -383,16 +407,12 @@ disabled={selectedRows.length === 0}
 
     }
 
-    const updateHeatmap = (expressions) => {
+    const updateHeatmap = (expressions, expressionsByGeneByRun) => {
         console.log("====================== UPDATING HEATMAP, expressions are: ", expressions)
         const xValues = runsRef.current
         console.log("xValues", xValues)
         const yValues = genesRef.current
         console.log("yValues", yValues)
-
-        const expressionsByGeneByRun = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, exp.tpm]))
-        expressionsByGeneByRunRef.current = expressionsByGeneByRun
-        console.log("expression by gene by run",   expressionsByGeneByRun.toJS())
         const zValues = yValues.map(y=> xValues.map(x=>  expressionsByGeneByRun.get(y+","+x)))
         console.log("Zvalues", zValues)
         layout.width = Math.max(500, 75 * xValues.length);
@@ -448,37 +468,99 @@ disabled={selectedRows.length === 0}
         );
     }
 
+    const onExpressionsGridReady = (params) => {
+        params.api.setDomLayout('autoHeight')
+        // this.samplesColumnApi = params.columnApi;
+        //autoSizeAll(params.columnApi);
+    }
+
     const canRender = ()=> orthologyData.genes.length > 0 && selectedRows.length > 0
 
     useEffect(()=> {
         if(canRender()) {
             runsRef.current = selectedRows.map(row=>row.run)
             genesRef.current = orthologyData.genes
+            console.log("GENES: ",orthologyData.genes)
+            const reference2reference = OrderedMap(orthologyData.genes.map(g=>[g, g]))
+
             orthologyTableRef.current = fromJS(orthologyData.orthology_table).toOrderedMap()
             orthologsByReferenceRef.current = orthologyTableRef.current.map((value, key) =>
-                value.valueSeq().flatMap(v=> v.map(vv=> vv.get("ortholog"))
-            ))
+                value.valueSeq().flatMap(v=> v.map(vv=> vv.get("ortholog"))) //.insert(key)
+            ) //include reference to reference search
             console.log(" orthologsByReferenceRef",  orthologsByReferenceRef.current.toJS())
 
-            referenceByOrthologRef.current = Map(
+            referenceByOrthologRef.current = reference2reference.toMap().concat(Map(
                 fromJS(genesRef.current).filter(g=>orthologsByReferenceRef.current.has(g))
-                .flatMap(g=> orthologsByReferenceRef.current.get(g).map(o=>[o, g])).concat(genesRef.current.map(g=>[g, g]))
-            )
+                .flatMap(g=> orthologsByReferenceRef.current.get(g).map(o=>[o, g]))
+            ))
             console.log("reference by orthologs", referenceByOrthologRef.current.toJS())
-            const genesForSearch = orthologsByReferenceRef.current.valueSeq().flatten().toJS()
-            console.log("genes for search are: ", genesForSearch)
-            fetchExpressions(runsRef.current, genesForSearch).then(updateHeatmap)
+            setGenesForSearch(orthologsByReferenceRef.current.valueSeq().flatten().toJS())
         }
         },
         [orthologyData, selectedRows]
     )
 
+    const onGenesSearch = async () => {
+        if(genesForSearch.length===0) return false
+        console.log("genes for search are: ", genesForSearch)
+        const expressions = await fetchExpressions(runsRef.current, genesForSearch)
+        console.log("expressions are: ", expressions)
+        expressionsByGeneByRunRef.current = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, exp.tpm]))
+        console.log("expression by gene by run",   expressionsByGeneByRunRef.current .toJS())
+        await updateHeatmap(expressions, expressionsByGeneByRunRef.current)
+    }
+
+    useEffect( () => {
+        onGenesSearch()
+
+    }, [genesForSearch])
+
+    const downloadClick = () => {
+
+    }
 
     return(
+        <Segment>
+            <Divider horizontal>
+                <Header as='h4'>
+                    Expressions:
+                </Header>
+            </Divider>
+            <Divider horizontal>
+                <Header as='h4'>
+                    Expressions rendered as heatmap:
+                </Header>
+            </Divider>
+            { renderHeatMap() }
 
-                    renderHeatMap()
+        </Segment>
         )
 }
 
 export default ExpressionsView
-//default export ExpressionsView
+
+
+/*
+
+                <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
+                    <div
+                        className="ag-theme-balham"
+                    >
+
+                    </div>
+                                 <AgGridReact
+                        rowData={selectedRows}
+                        columnDefs={selectedSamplesColumnDefs}
+                        gridOptions={expressionsGridOptions}
+                        onGridReady={onExpressionsGridReady}
+                    />
+                    <Button icon
+                            disabled={selectedRows.length === 0}
+                            onClick={downloadClick}
+                            className="ui blue"
+                    >
+                        <Icon name='download' />
+                        Download gene expressions as CSV
+                    </Button>
+                </div>
+ */
