@@ -40,8 +40,8 @@ export const SelectedSpecies = ({selectedRows, selectedSpecies, setSelectedSpeci
                         circular
                     />
                     </Table.Cell>
-                <Table.Cell>{species.organism}</Table.Cell>
-                <Table.Cell>{species.common_name}</Table.Cell>
+                <Table.Cell>{species.organism.replace("_", " ")}</Table.Cell>
+                <Table.Cell>{species.common_name.replace("_", " ")}</Table.Cell>
                 <Table.Cell>{species.taxon}</Table.Cell>
                 <Table.Cell>{round(species.lifespan)}</Table.Cell>
                 <Table.Cell>{!isNaN(species.mass_g)? round(species.mass_g / 1000.0) : "N/A"}</Table.Cell>

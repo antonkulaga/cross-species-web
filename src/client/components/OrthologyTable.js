@@ -21,8 +21,8 @@ export const OrthologyTable = ({
     const [bySymbol, setBySymbol] = useState(false)
     const baseOrthologyColumnDefs = [
         {
-            headerName: 'Selected gene',
-            field: 'selected_gene',
+            headerName: selectedOrganism.replace("_", " "),
+            field: selectedOrganism,
             rowDrag: true,
             cellRenderer: function(params) {
                 return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
@@ -77,7 +77,7 @@ export const OrthologyTable = ({
                         return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
                     }
                     else return [sp, "N/A"]
-                })).set("selected_gene",gene).toJS()
+                })).set(selectedOrganism,gene).toJS()
             }
         )
         console.log("ORTHOLOGY ROWS:", rows)
@@ -148,7 +148,7 @@ export const OrthologyTable = ({
             return (
 
             <div id="OrthologyGrid" style={{ marginTop: '72px'}}>
-            <h3 className="ui header">Orthology table</h3>
+            <h3 className="ui header">Orthology table (can be reordered)</h3>
                 <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
                     <div
                         className="ag-theme-balham"
@@ -178,7 +178,6 @@ export const OrthologyTable = ({
     return(
 
               <Segment>
-                <Radio toggle selected={bySymbol} onChange={bySymbolSelection} label="by gene symbol" />
                 <Button onClick={loadOrthologyGenes}
                         className="ui blue"
                         size="massive" disabled={selectedRows.length === 0}
@@ -191,3 +190,5 @@ export const OrthologyTable = ({
 }
 
 export default OrthologyTable
+
+//<Radio toggle selected={bySymbol} onChange={bySymbolSelection} label="by gene symbol" />

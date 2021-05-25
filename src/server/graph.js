@@ -296,7 +296,6 @@ class GraphRepository{
     }
 
     async queryExpressions(runs, genes) {
-        console.log("QUERY EXPRESSIONS!")
         const query = `PREFIX samples:<http://aging-research.group/samples/>
     PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
 
@@ -306,7 +305,7 @@ class GraphRepository{
       values ?expression { samples:has_${genes.join('_expression samples:has_')}_expression } .
       ?run ?expression ?tpm .
     }`;
-        // console.log(query)
+        //console.log("QUERY EXPRESSIONS: ", query)
         const payload = this.select_payload(query)
         return this.repository.query(payload).then(stream => new Promise((resolve, reject) => {
             const expressions = [];

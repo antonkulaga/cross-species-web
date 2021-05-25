@@ -68,7 +68,7 @@ export const SearchPage = () => {
     text: 'Human',
     id: 'Homo_sapiens'
   };
-  const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.value)
+  const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.id)
 
   const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap())
   const [genesById, setGenesById] = useState(OrderedMap())
@@ -218,8 +218,14 @@ export const SearchPage = () => {
         <Step>
           <Icon name='dna'  />
           <Step.Content id="heatmap_container"   style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
-            <Step.Title><Header textAlign='center'>Select gene expression</Header></Step.Title>
-            <ExpressionsView data={data} setData={setData} selectedRows = {selectedRows} orthologyData = {orthologyData}> </ExpressionsView>
+            <Step.Title><Header textAlign='center'>Load gene expression</Header></Step.Title>
+            <ExpressionsView
+                data={data} setData={setData}
+                selectedRows = {selectedRows}
+                orthologyData = {orthologyData}
+                setShowLoader={setShowLoader}
+                autoSizeAll={autoSizeAll}
+            > </ExpressionsView>
           </Step.Content>
         </Step>
 
