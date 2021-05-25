@@ -11,7 +11,7 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
-import {Button, Table, Divider, Header} from "semantic-ui-react";
+import {Button, Icon, Table, Divider, Header, Segment} from "semantic-ui-react";
 
 const samplesColumnDefs = [
     {
@@ -79,13 +79,13 @@ const samplesColumnDefs = [
             filterOptions: ['contains']
         }
     },
-    // {
-    //   headerName: 'Metabolic rate',
-    //   field: 'mass_gmetabolic_rate',
-    //   filterParams: {
-    //     filterOptions: ['contains']
-    //   }
-    // },
+     {
+       headerName: 'Metabolic rate',
+       field: 'mass_gmetabolic_rate',
+       filterParams: {
+         filterOptions: ['contains']
+       }
+     },
     {
         headerName: 'Temp (°C)',
         field: 'temperature_celsius',
@@ -116,6 +116,7 @@ const samplesColumnDefs = [
     }
 ];
 
+
 const samplesGridOptions = {
     rowSelection: 'multiple',
     groupSelectsChildren: true,
@@ -131,20 +132,54 @@ const samplesGridOptions = {
     floatingFilter: true
 };
 
-export const SamplesGrid = ({samplesRowData, setSelectedRows, autoSizeAll}) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
+const selectedSamplesGridOptions = {
+    rowSelection: 'multiple',
+    animateRows: true,
+    rowDragManaged: true
+};
+
+const selectedSamplesColumnDefs =  samplesColumnDefs.map(value => {
+    const newVal = Object.assign({}, value)
+    newVal.filterParams = undefined
+    newVal.checkboxSelection = false
+    newVal.headerCheckboxSelection = false
+    return newVal
+})
+selectedSamplesColumnDefs[0].rowDrag = true
+selectedSamplesColumnDefs[0].minWidth = 300
+
+
+export const SamplesGrid = ({samplesRowData, selectedRows, setSelectedRows, autoSizeAll}) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
 
     const [quickFilterValue, setQuickFilterValue] = useState('')
     const [samplesGridApi, setSamplesGridApi] = useState({})
+    //const [selectedSamplesRowData, setSelectedSamplesRowData] = useState([])
+
+    const [selectedSamplesGridApi, setSelectedSamplesGridApi] = useState({})
 
     const onSamplesGridReady = async (params) => {
         await setSamplesGridApi(params.api)
         autoSizeAll(params.columnApi);
     }
 
+    const onSelectedSamplesGridReady = async (params) => {
+        await setSelectedSamplesGridApi(params.api)
+        autoSizeAll(params.columnApi);
+        params.api.setDomLayout('autoHeight')
+    }
+
+    const downloadClick = () => {
+        samplesGridApi.exportDataAsCsv({fileName: "samples.csv"});
+    };
+
+    const downloadSelectedClick = () => {
+        selectedSamplesGridApi.exportDataAsCsv(({
+            fileName: "selected_samples.csv"
+        }));
+    };
 
     const onSelectionChanged = async () => {
         const rows = samplesGridApi.getSelectedRows()
-        //console.log("onSelectionChange", rows)
         await setSelectedRows(rows)
     }
 
@@ -172,32 +207,7 @@ export const SamplesGrid = ({samplesRowData, setSelectedRows, autoSizeAll}) => {
 
     return(
         <div id="SamplesGrid" className="ui segment"  style={{ width: '100%' }}>
-            <div style={{ marginBottom: '5px' }}>
-                <div className="ui input" style={{ width: '100%' }}>
-                    {/* <i className="search icon"></i> */}
-                    <input
-                        onChange={quickFilterChange}
-                        value={quickFilterValue}
-                        type="text"
-                        id="quickFilter"
-                        placeholder="filter everything..."
-                    />
-                    {/* <div className="ui teal button">Search</div> */}
-                    <Button
-                        onClick={onClearAllFilters}
-                        className="ui blue"
-                    >
-                        Clear all filters
-                    </Button>
-                </div>
-                {/* <button onclick="filterLung()">Filter all species by lung</button> */}
-                {/* <button onclick="filterRbieti()">Filter all tissues by species rbieti</button>
-
-                this.state.selectedRows.length === 0
-
-                <button onclick="clearFilter()" style="margin-left: 10px;">Clear Filter</button> */}
-            </div>
-            <div id="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
+            <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
                 <div
                     className="ag-theme-balham"
                     style={
@@ -214,6 +224,57 @@ export const SamplesGrid = ({samplesRowData, setSelectedRows, autoSizeAll}) => {
                         onSelectionChanged={onSelectionChanged}
                     />
                 </div>
+                <div style={{ marginBottom: '5px' }}>
+                    <div className="ui input" style={{ width: '100%' }}>
+                        {/* <i className="search icon"></i> */}
+                        <input
+                            onChange={quickFilterChange}
+                            value={quickFilterValue}
+                            type="text"
+                            id="quickFilter"
+                            placeholder="filter everything..."
+                        />
+                        {/* <div className="ui teal button">Search</div> */}
+                        <Button
+                            onClick={onClearAllFilters}
+                            className="ui blue"
+                        >
+                            Clear all filters
+                        </Button>
+                        <Button icon
+                                onClick={downloadClick}
+                                className="ui blue"
+                        >
+                            <Icon name='download' />
+                            Download all as CSV
+                        </Button>
+                    </div>
+                </div>
+            </div>
+            <Divider horizontal>
+                <Header as='h4'>
+                    Selected samples (can be reordered):
+                </Header>
+            </Divider>
+            <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>
+                <div
+                    className="ag-theme-balham"
+                >
+                <AgGridReact
+                    rowData={selectedRows}
+                    columnDefs={selectedSamplesColumnDefs}
+                    gridOptions={selectedSamplesGridOptions}
+                    onGridReady={onSelectedSamplesGridReady}
+                />
+                </div>
+                <Button icon
+                        disabled={selectedRows.length === 0}
+                        onClick={downloadSelectedClick}
+                        className="ui blue"
+                >
+                    <Icon name='download' />
+                    Download selected as CSV
+                </Button>
             </div>
         </div>
     )

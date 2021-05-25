@@ -443,7 +443,9 @@ disabled={selectedRows.length === 0}
         console.log("layout", layout)
         setLayout(layout)
         setData([dvalues])
-        setTimeout(() => heatmapRef.current.el.scrollIntoView(), 3000);
+        setTimeout(() =>{
+            if(heatmapRef.current !== null) heatmapRef.current.el.scrollIntoView()}, 5000
+        );
     }
 
     const canRender = ()=> orthologyData.genes.length > 0 && selectedRows.length > 0
@@ -473,17 +475,8 @@ disabled={selectedRows.length === 0}
 
 
     return(
-        <Step>
-            <Icon name='dna'  />
-            <Step.Content id="heatmap_container" style={{
-                minHeight: "500px",
-                width: "100%"
-            }}>
 
-                <Step.Title><Header>Select gene expression</Header></Step.Title>
-                    { renderHeatMap() }
-            </Step.Content>
-        </Step>
+                    renderHeatMap()
         )
 }
 

@@ -19,7 +19,7 @@ const ORTHOLOGY_TYPES = [
 
 class GraphRepository{
 
-    constructor(url = 'http://10.40.3.21:7200/repositories/ensembl', readTimeout = 30000, writeTimeout = 30000) {
+    constructor(url = 'http://agingkills.eu:7200/repositories/ensembl', readTimeout = 30000, writeTimeout = 30000) {
         this.config = new RepositoryClientConfig([url], {
             Accept: RDFMimeType.SPARQL_RESULTS_JSON
         }, '', readTimeout, writeTimeout);

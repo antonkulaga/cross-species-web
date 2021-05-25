@@ -170,10 +170,7 @@ export const OrthologySelection = (
 
 
     return (
-        <Step disabled={hasSelection()} >
-            <Icon name='dna' />
-            <Step.Content>
-                <Step.Title><Header>Choose reference genes</Header></Step.Title>
+
                 <Step.Description>
                         <Grid columns={2} relaxed='very' stackable>
                             <Grid.Column>
@@ -248,8 +245,6 @@ export const OrthologySelection = (
                         <Divider vertical>And/Or</Divider>
 
                 </Step.Description>
-            </Step.Content>
-        </Step>
     )
 
 }

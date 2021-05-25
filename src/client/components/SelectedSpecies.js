@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react'
-import {Image, Table} from 'semantic-ui-react'
+import {Divider, Header, Image, Segment, Step, Table} from 'semantic-ui-react'
 import {List, fromJS, Map} from "immutable"
+import {AgGridReact} from "ag-grid-react";
 
-export const SpeciesTable = ({selectedRows, selectedSpecies, setSelectedSpecies, unique}) => {
+export const SelectedSpecies = ({selectedRows, selectedSpecies, setSelectedSpecies, unique}) => {
 
     const round = (value) => {
         const num = value==="" ? "N/A": Number(value)
@@ -52,25 +53,32 @@ export const SpeciesTable = ({selectedRows, selectedSpecies, setSelectedSpecies,
 
 
     return (
+            <Segment>
+                <Divider horizontal>
+                    <Header as='h4'>
+                        Species in selected samples:
+                    </Header>
+                </Divider>
+                <Table color="blue" inverted compact celled  textAlign="center">
+                    <Table.Header>
+                        <Table.Row>
+                            <Table.HeaderCell>Image</Table.HeaderCell>
+                            <Table.HeaderCell>Species</Table.HeaderCell>
+                            <Table.HeaderCell>Common name</Table.HeaderCell>
+                            <Table.HeaderCell>NCBI taxon</Table.HeaderCell>
+                            <Table.HeaderCell>Maximum lifespan</Table.HeaderCell>
+                            <Table.HeaderCell>Mass (kg)</Table.HeaderCell>
+                            <Table.HeaderCell>Metabolic_rate</Table.HeaderCell>
+                            <Table.HeaderCell>Temperature (C)</Table.HeaderCell>
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        {speciesRows}
+                    </Table.Body>
+                </Table>
+            </Segment>
 
-            <Table color="blue" inverted compact celled  textAlign="center">
-                <Table.Header>
-                    <Table.Row>
-                        <Table.HeaderCell>Image</Table.HeaderCell>
-                        <Table.HeaderCell>Species</Table.HeaderCell>
-                        <Table.HeaderCell>Common name</Table.HeaderCell>
-                        <Table.HeaderCell>NCBI taxon</Table.HeaderCell>
-                        <Table.HeaderCell>Maximum lifespan</Table.HeaderCell>
-                        <Table.HeaderCell>Mass (kg)</Table.HeaderCell>
-                        <Table.HeaderCell>Metabolic_rate</Table.HeaderCell>
-                        <Table.HeaderCell>Temperature (C)</Table.HeaderCell>
-                    </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                    {speciesRows}
-                </Table.Body>
-            </Table>
      )
 }
 
-export default SpeciesTable
+export default SelectedSpecies

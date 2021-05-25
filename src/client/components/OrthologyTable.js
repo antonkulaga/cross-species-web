@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useReducer } from 'react'
 import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
-import {Button, Divider, Dropdown, Header, Icon, Image, Step, Tab, Table} from 'semantic-ui-react'
+import {Button, Divider, Dropdown, Header, Icon, Image, Radio, Segment, Step, Tab, Table} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
@@ -17,10 +17,13 @@ export const OrthologyTable = ({
 ) => {
 
     const [orthologyRows, setOrthologyRows] = useState([])
+    const [orthologyGridApi, setOrthologyGridApi] = useState(null)
+    const [bySymbol, setBySymbol] = useState(false)
     const baseOrthologyColumnDefs = [
         {
             headerName: 'Selected gene',
             field: 'selected_gene',
+            rowDrag: true,
             cellRenderer: function(params) {
                 return '<a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
             }
@@ -30,11 +33,7 @@ export const OrthologyTable = ({
     const orthologyGridOptions = {
         suppressRowClickSelection: true,
         suppressAggFuncInHeader: true,
-        defaultColDef: {
-            sortable: true,
-            resizable: true,
-            filter: true
-        },
+        rowDragManaged: true,
         debug: true,
         // floatingFilter: true
     };
@@ -61,25 +60,31 @@ export const OrthologyTable = ({
         ))
     }, [selectedSpecies])
 
+
+    const updateOrthologyRows = (existing_genes, table) =>
+    {
+        const rows = existing_genes.map(gene =>{
+                const item = table.get(gene)
+                return OrderedMap(orthologyData.species.map(sp=> {
+                    if(item.has(sp))
+                    {
+                        const ortho = item.get(sp).toJS(); //getting ortholog genes for the species
+                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
+                    }
+                    else return [sp, "N/A"]
+                })).set("selected_gene",gene).toJS()
+            }
+        )
+        console.log("ORTHOLOGY ROWS:", rows)
+        setOrthologyRows(rows)
+    }
+
     useEffect(()=>{
         if(orthologyData !==null){
             setShowOrthology(true)
             const table = fromJS(orthologyData["orthology_table"]).toOrderedMap()
             const existing_genes = orthologyData["genes"].filter(gene=>table.has(gene))
-            const rows = existing_genes.map(gene =>{
-                    const item = table.get(gene)
-                    return OrderedMap(orthologyData.species.map(sp=> {
-                            if(item.has(sp))
-                            {
-                                const ortho = item.get(sp).toJS(); //getting ortholog genes for the species
-                                return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
-                            }
-                            else return [sp, "N/A"]
-                        })).set("selected_gene",gene).toJS()
-                }
-            )
-            console.log("ORTHOLOGY ROWS:", rows)
-            setOrthologyRows(rows)
+            updateOrthologyRows(existing_genes, table)
         } else {
             setShowOrthology(false)
         }
@@ -91,19 +96,10 @@ export const OrthologyTable = ({
 
 
     const onOrthologyGridReady = (params) => {
-        // this.samplesGridApi = params.api;
+        setOrthologyGridApi(params.api)
         // this.samplesColumnApi = params.columnApi;
         autoSizeAll(params.columnApi);
     }
-
-
-    /*
-    ortholog_common_name: "Desert tortoise"
-    ortholog_id: "ENSGAGG00000024348"
-    ortholog_species: "Gopherus_agassizii"
-    ortholog_symbol: "TRERF1"
-    orthology: "ortholog_one2one"
-     */
 
     const get_orthology_table = async () => {
         console.log("selected organism is: ", selectedOrganism)
@@ -137,6 +133,10 @@ export const OrthologyTable = ({
         console.log("Orthology data:", data)
     }
 
+    const downloadClick = () => {
+        orthologyGridApi.exportDataAsCsv({fileName: "genes.csv"});
+    };
+
     const renderOrthoGrid = (value) => {
         if(value)
             return (
@@ -149,6 +149,10 @@ export const OrthologyTable = ({
                     height: '300px',
                 }}
             >
+                <Button icon color="blue" disabled={orthologyRows.length === 0} onClick={downloadClick}>
+                    <i name="download"> </i>
+                    Download genes
+                </Button>
                 <AgGridReact
                     onGridReady={onOrthologyGridReady}
                     rowData={orthologyRows}
@@ -159,20 +163,23 @@ export const OrthologyTable = ({
         return false
     }
 
+    const bySymbolSelection = () => {
+        setBySymbol(!bySymbol)
+    }
+
 
     return(
-        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
-            <Icon name='dna' />
-            <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
-                <Step.Title><Header>Load ortholog genes</Header></Step.Title>
+
+              <Segment>
+                <Radio toggle selected={bySymbol} onChange={bySymbolSelection} label="by gene symbol" />
                 <Button onClick={loadOrthologyGenes}
                         className="ui blue"
-                        size="massive">
-                    Get ortholog genes
+                        size="massive" disabled={selectedRows.length === 0}
+                >
+                    Load ortholog genes
                 </Button>
                 { renderOrthoGrid(showOrthology) }
-            </Step.Content>
-        </Step>
+              </Segment>
     )
 }
 

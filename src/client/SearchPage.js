@@ -32,7 +32,7 @@ import Select from 'react-dropdown-select';
 import Loader from 'react-loader-spinner';
 import CsvDownload from 'react-json-to-csv';
 import {SamplesGrid} from "./components/SamplesGrid";
-import {SpeciesTable} from "./components/SpeciesTable";
+import {SelectedSpecies} from "./components/SelectedSpecies";
 import OrthologySelection from "./components/OrthologySelection";
 import OrthologyTable from "./components/OrthologyTable";
 import ExpressionsView from "./components/ExpressionsView";
@@ -171,53 +171,59 @@ export const SearchPage = () => {
         <Step>
           <Image size="tiny" src="./public/RNA-Seq.png"> </Image>
           <Step.Content style={{ width: `calc(100% - 25px)` }}>
-            <Step.Title><Header>Sample selection</Header></Step.Title>
+            <Step.Title><Header  textAlign='center'>Select Samples</Header></Step.Title>
             <Step.Description>
 
               <Message color='blue' size="small">Choose RNA-Seq samples of different species to compare with each other</Message>
             </Step.Description>
-            <SamplesGrid samplesRowData={samplesRowData} setSelectedRows={setSelectedRows} autoSizeAll={autoSizeAll}>
+            <SamplesGrid samplesRowData={samplesRowData} selectedRows = {selectedRows} setSelectedRows={setSelectedRows} autoSizeAll={autoSizeAll}>
 
             </SamplesGrid>
-            <Divider horizontal>
-              <Header as='h4'>
-                Species in selected samples:
-              </Header>
-            </Divider>
-            <SpeciesTable selectedRows={selectedRows} selectedSpecies={selectedSpecies} setSelectedSpecies={setSelectedSpecies} unique={unique}> </SpeciesTable>
+            <SelectedSpecies selectedRows={selectedRows} selectedSpecies={selectedSpecies} setSelectedSpecies={setSelectedSpecies} unique={unique}> </SelectedSpecies>
           </Step.Content>
         </Step>
-        <OrthologySelection
-            selectedOrganism={selectedOrganism}
-            setSelectedOrganism={setSelectedOrganism}
-            organismList={organismList}
-            selectedRows={selectedRows}
-            setShowLoader={setShowLoader}
-            hasSelection={hasSelection}
-            selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
-            genesBySymbol={genesBySymbol} setGenesBySymbol={setGenesBySymbol}
-            genesById={genesById} setGenesById={setGenesById}
-            unique={unique}
-        >
+        <Step disabled={hasSelection()} >
+          <Icon name='dna' />
+          <Step.Content style={{ width: `calc(100% - 25px)` }}>
+            <Step.Title><Header textAlign='center'>Choose reference genes</Header></Step.Title>
+            <OrthologySelection
+                selectedOrganism={selectedOrganism}
+                setSelectedOrganism={setSelectedOrganism}
+                organismList={organismList}
+                selectedRows={selectedRows}
+                setShowLoader={setShowLoader}
+                selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
+                genesBySymbol={genesBySymbol} setGenesBySymbol={setGenesBySymbol}
+                genesById={genesById} setGenesById={setGenesById}
+                unique={unique}
+            >
+            </OrthologySelection>
+          </Step.Content>
+        </Step>
+        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
+          <Icon name='dna' />
+          <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
+            <Step.Title><Header>Load ortholog genes</Header></Step.Title>
+            <OrthologyTable
+              selectedRows = {selectedRows}
+              selectedOrganism = {selectedOrganism}
+              selectedSpecies={selectedSpecies}
+              orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
+              selectedGenes = {selectedGenes}
+              setShowLoader={setShowLoader}
+              autoSizeAll={autoSizeAll} >
+            </OrthologyTable>
+          </Step.Content>
+        </Step>
+        <Step>
+          <Icon name='dna'  />
+          <Step.Content id="heatmap_container"   style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
+            <Step.Title><Header textAlign='center'>Select gene expression</Header></Step.Title>
+            <ExpressionsView data={data} setData={setData} selectedRows = {selectedRows} orthologyData = {orthologyData}> </ExpressionsView>
+          </Step.Content>
+        </Step>
 
-        </OrthologySelection>
-        <OrthologyTable
-          selectedRows = {selectedRows}
-          selectedOrganism = {selectedOrganism}
-          selectedSpecies={selectedSpecies}
-          orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
-          selectedGenes = {selectedGenes}
-          setShowLoader={setShowLoader}
-          autoSizeAll={autoSizeAll} >
-        </OrthologyTable>
-        <ExpressionsView data={data} setData={setData} selectedRows = {selectedRows} orthologyData = {orthologyData}> </ExpressionsView>
       </Step.Group>
-
-
-
-
-
-      {/* ref={(el) => { this.heatmapRef = el; }} */}
 
     </div>
     {showLoader && <Loader
