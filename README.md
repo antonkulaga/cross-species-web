@@ -1,11 +1,10 @@
 # cross-species-web 
 
-## How to run 
-
 ### with yarn ###
 
-1. Run `yarn install` to install all dependencies.
-2. Run `yarn dev`
+Install all dependencies according to the instructions on the bottom of readme.
+
+Run `yarn dev`
 
 ```bash
 HOST=0.0.0.0 yarn dev
@@ -36,14 +35,13 @@ yarn client
 The project depends on nodejs and yarn. Note: official software sources of Linux distributions rely on outdated versions of node and yarn
 The easiest way to install latest nodejs is using https://github.com/nvm-sh/nvm
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-nvm install v14.5.0
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+nvm install node
 ```
-To install yarn:
+Then install yarn and use it for dependencies resolution:
 ```bash
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt update && sudo apt install --no-install-recommends yarn
+npm install -g yarn
+yarn install
 ```
 
 ## Docker container ##
