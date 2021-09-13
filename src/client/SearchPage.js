@@ -85,9 +85,9 @@ export const SearchPage = () => {
     orthology_table: {}
   })
 
-  const getSpecies =  () => fetch('/api/getSpecies').then(res => res.json())
+  const getSpecies =  () => fetch('/api/species').then(res => res.json())
 
-  const getSamples = () => fetch('/api/getSamples').then(res => res.json())
+  const getSamples = () => fetch('/api/samples').then(res => res.json())
 
   const getSamplesAndSpecies = async () => {
     console.log('getSamplesAndSpecies request'); // remove api

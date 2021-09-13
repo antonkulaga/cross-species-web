@@ -1,7 +1,0 @@
-md5: 1b837584be979a6da87a74b4eafaa47b
-outs:
-- md5: eca92c816b61bc6ce8ee9eb0b6232c53
-  path: allYValues.json
-  cache: true
-  metric: false
-  persist: false

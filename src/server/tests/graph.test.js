@@ -1,4 +1,4 @@
-const graph = require('../graph.js');
+const graph = require('../graph');
 const repo = new graph.GraphRepository("http://10.40.3.21:7200/repositories/ensembl")
 
 test('RDF graph should return orthology_table', async () => {

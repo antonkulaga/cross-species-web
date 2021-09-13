@@ -404,7 +404,7 @@ disabled={selectedRows.length === 0}
          : false
 
     const fetchExpressions = async  (runs, genes) => {
-        let response = await fetch('/api/getExpressions', {
+        let response = await fetch('/api/expressions', {
             method: 'post',
             headers: {
                 Accept: 'application/json',

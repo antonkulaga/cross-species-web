@@ -7,7 +7,7 @@ Install all dependencies according to the instructions on the bottom of readme.
 Run `yarn dev`
 
 ```bash
-HOST=0.0.0.0 yarn dev
+HOST=0.0.0.0 GRAPH_DB=http://graphdb.agingkills.eu/repositories/ensembl yarn dev
 ```
 
 ## with docker container ###

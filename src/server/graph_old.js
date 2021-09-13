@@ -105,7 +105,7 @@ class GraphRepository{
             });
         }));
     }
-    
+
     results_ranked_genes_query_string(limit = 0) {
         return `
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -123,7 +123,7 @@ class GraphRepository{
 
     orthology_query_string(genes, species, orthologyTypes) {
         return(
-         `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
           PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
           PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
           PREFIX : <http://aging-research.group/resource/>
@@ -162,7 +162,7 @@ class GraphRepository{
         )
     }
 
-    
+
     async ranked_results(limit = 6) {
         const query = this.results_ranked_genes_query_string(limit)
         const payload = this.select_payload(query)
@@ -186,7 +186,7 @@ class GraphRepository{
          */
         return result
     }
-    
+
     async orthology_table(genes, species, orthologyTypes){
         const results_array = await this.query_orthology(genes,species,orthologyTypes)
         const dictionary = fromJS(results_array)

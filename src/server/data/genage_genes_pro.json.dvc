@@ -1,7 +1,0 @@
-md5: 5e4fed46874f83f2ea76201c92fa2f8f
-outs:
-- md5: e4da7cc07e24b6f7137eab96650c13e8
-  path: genage_genes_pro.json
-  cache: true
-  metric: false
-  persist: false

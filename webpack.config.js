@@ -29,11 +29,14 @@ module.exports = {
     {
       test: /\.(png|woff|woff2|eot|ttf|svg)$/,
       loader: 'url-loader'
-    }
+    },
+   { test: /\.tsx?$/,
+     loader: "ts-loader"
+   },
     ]
   },
   resolve: {
-    extensions: ['*', '.js', '.jsx']
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx']
   },
   devServer: {
     port: 8082,
