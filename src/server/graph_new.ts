@@ -1,12 +1,83 @@
 import * as graphdb from "graphdb"
-//import "graphdb/lib/types"
+import "immutable"
+import {Promise} from "bluebird";
+import {OrderedMap, Seq} from "immutable";
+import Indexed = Seq.Indexed;
+import * as Immutable from "immutable";
+import { match, select, instanceOf, __ } from 'ts-pattern';
+import {string} from "prop-types";
+import {Term, Literal, NamedNode, BlankNode} from "n3";
 const {RDFMimeType} = graphdb.http;
-const query = graphdb.query
 const log = console.log
 const {RepositoryClientConfig, RDFRepositoryClient} = graphdb.repository
 
-class GraphRepository {
+// WILL BE MOVED TO graph.js
 
+
+export const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
+export const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/';
+export const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/';
+export const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/';
+export const ORTHOLOGY_TYPES = [
+    'ens:ortholog_one2one',
+    'ens:ortholog_one2many',
+    'ens:ortholog_many2many'
+];
+
+type StringMap = OrderedMap<string, string>
+
+
+export class SelectResults{
+    keys: Array<string>
+    constructor(public bindings: Array<StringMap>) {
+        this.keys = (bindings.length == 0) ? [] : [...bindings[0].keys()]
+    }
+
+
+    map<T>(fun: (binding: StringMap) => T): Array<T>{
+        return this.bindings.map((value,_)=> fun(value))
+    }
+
+    toJSON(){
+        return this.map(v=>v.toJSON())
+    }
+}
+/*
+"mass_g": "104.0", "ensembl_url": "https://www.ensembl.org/Monodelphis_domestica",
+"species": "http://aging-research.group/resource/Monodelphis_domestica",
+"lifespan": "5.1", "metabolic_rate": "0.335", "temperature_kelvin": "305.75",
+"animal_class": "http://rdf.ebi.ac.uk/resource/ensembl/Mammalia",
+"taxon": "http://rdf.ebi.ac.uk/resource/ensembl/taxon#13616", "common_name": "Gray short-tailed opossum"
+*/
+export class Species{
+    constructor(public species: string,
+                public common_name: string,
+                public ensembl_url: string,
+                public taxon: string,
+                public animal_class: string,
+                public lifespan: number,
+                public mass: number,
+                public metabolic_rate: number,
+                public temperature_kelvin: number
+    ) {
+    }
+    static fromBinding(bindings: StringMap) {
+        return new Species(
+            bindings.get<string>("species", "").replace(LAB_RESOURCE_PREFIX, ''),
+            bindings.get<string>("common_name", "").replace(/"/g, ''),
+            bindings.get<string>("ensembl_url", ""),
+            bindings.get<string>("taxon", ""),
+            bindings.get<string>("animal_class", ""),
+            bindings.has("lifespan") ? parseFloat(bindings.get<string>("lifespan", "0.0")) : NaN,
+            bindings.has("mass_g") ? parseFloat(bindings.get<string>("mass_g", "0.0")) : NaN,
+            bindings.has("metabolic_rate") ? parseFloat(bindings.get<string>("metabolic_rate", "0.0")) : NaN,
+            bindings.has("temperature_kelvin") ? parseFloat(bindings.get<string>("temperature_kelvin", "0.0")) : NaN,
+        )
+    }
+
+
+}
+export class GraphRepository {
 
     config: RepositoryClientConfig
     repository: RDFRepositoryClient
@@ -18,18 +89,37 @@ class GraphRepository {
             .setReadTimeout(readTimeout)
             .setWriteTimeout(writeTimeout);
         this.repository = new RDFRepositoryClient(this.config)
-        //this.repository.registerParser(new graphdb.parser.SparqlJsonResultParser());
+        let repo = this.repository as any
+        repo.registerParser(new graphdb.parser.SparqlJsonResultParser({}));
     }
 
-    select_payload(select: string){
-        return new query.GetQueryPayload()
+    select_payload(select: string): GetQueryPayload {
+        return new graphdb.query.GetQueryPayload()
+            .setQueryType(QueryType.SELECT)
+            .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON)
             .setQuery(select)
-            .setQueryType(query.QueryType.SELECT)
-            .setResponseType(RDFMimeType.SPARQL_RESULTS_JSON);
     }
 
-    async select_query(select: string): Promise<any>  {
-        return await g.repository.query(this.select_payload(select))
+    parseRDF(term: Term) {
+        return term.value
+    }
+
+    async select_query(select: string): Promise<SelectResults> {
+        let stream = await this.repository.query(this.select_payload(select))
+        let results: Array<StringMap> = [];
+        return new Promise((resolve, reject) => {
+            stream.on('data', (bindings) => {
+                // the bindings stream converted to data objects with the registered parser
+                let iterable:Iterable<[string, string]> = Object.entries(bindings)
+                    .map((v: any,i)=>[v[0] as string, (v[1] as Term).value]) as unknown as Iterable<[string, string]>
+                results.push(OrderedMap<string, string>(iterable))
+            })
+            ;
+            stream.on('end', () => {
+                // handle end of the stream
+                resolve(new SelectResults(results));
+            });
+        })
     }
 
     getNumberFromRDF(str: string) {
@@ -55,45 +145,9 @@ class GraphRepository {
       }
     `
 
-    async species() {
-        this.select_query(this.query_string_species).then(result=>{
-            log("SPECIES RESULT",result)
-
-            }
-        )
-            /*
-        return this.repository.query(payload)
-            .then(stream => new Promise((resolve, reject) => {
-                const speciesNames = [];
-                stream.on('data', (bindings) => {
-                    // the bindings stream converted to data objects with the registered parser
-                    //console.log('@@', bindings);
-                    speciesNames.push({
-                        id: bindings.species.id.replace(LAB_RESOURCE_PREFIX,''),
-                        common_name: bindings.common_name.id.replace(/"/g, ''),
-                        mass_g:bindings.mass_g? this.getNumberFromRDF(bindings.mass_g.id) : '',
-                        ensembl_url: bindings.ensembl_url.id,
-                        lifespan: this.getNumberFromRDF(bindings.lifespan.id),
-                        metabolic_rate: bindings.metabolic_rate ? this.getNumberFromRDF(bindings.metabolic_rate.id) : '',
-                        temperature_kelvin: bindings.temperature_kelvin ? this.getNumberFromRDF(bindings.temperature_kelvin.id) : '',
-                        animal_class: bindings.animal_class.id,
-                        taxon: bindings.taxon.id.slice('http://rdf.ebi.ac.uk/resource/ensembl/taxon#'.length)
-                    });
-                });
-                stream.on('end', () => {
-                    // handle end of the stream
-                    resolve(speciesNames);
-                });
-            }))
-            .catch(err => console.error(err))
-
-        // return repository.get(payload)
-        //   .then(data =>
-        //     // data contains requested staments in rdf json format
-        //     data
-        //   )
-        //   .catch(error => console.error(error))
-             */
+    async species(): Promise<Array<Species>> {
+        let results = await this.select_query(this.query_string_species)
+        return results.map(binding => Species.fromBinding(binding))
     }
 
     query_string_results_ranked_genes(limit = 0) {
@@ -117,7 +171,6 @@ class GraphRepository {
 
 }
 
-const g = new GraphRepository("http://pic:7200")
-g.species()
-//const str = g.results_ranked_genes_query_string(30)
-//g.select_query(str).then(result => log("RESULT IS",result))
+const host = "http://graphdb.agingkills.eu" //http://pic:7200
+const g = new GraphRepository(host)
+g.species().then(result => log("RESULT IS",result))

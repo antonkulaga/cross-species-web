@@ -1,5 +1,8 @@
-const graph = require('../graph');
-const repo = new graph.GraphRepository("http://10.40.3.21:7200/repositories/ensembl")
+const graph = require('../graph_new');
+const {GraphRepository} = require("../graph_new");
+const host = "http://graphdb.agingkills.eu" //http://10.40.3.21:7200
+
+const repo = new graph.GraphRepository(host)
 
 test('RDF graph should return orthology_table', async () => {
     const requestString = `{"reference_genes":["ENSG00000164362","ENSG00000084676"],"species":["Homo_sapiens","Gopherus_agassizii","Gorilla_gorilla"],"orthologyTypes":["ens:ortholog_one2one","ens:ortholog_one2many"]}`
@@ -78,3 +81,10 @@ test('RDF graph should return orthology_table', async () => {
     return results
 
 });
+
+test("should return species", async () =>{
+
+    const host = "http://graphdb.agingkills.eu" //http://pic:7200
+    const g = new GraphRepository(host)
+    return g.species()
+})

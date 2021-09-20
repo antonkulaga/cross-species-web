@@ -19,10 +19,13 @@
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/runtime": "^7.15.3",
+    "@types/bluebird-global":  "^3.5.13",
     "@testing-library/dom": "7.31.2",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.2.1",
+    "@types/n3": "^1.8.0",
+    "ts-pattern": "^3.3.1",
     "ag-grid-community": "^25.3.0",
     "ag-grid-react": "^25.3.0",
     "bluebird": "^3.7.2",
