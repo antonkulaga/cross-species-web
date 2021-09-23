@@ -14,7 +14,7 @@ export class GraphRepository {
     config: RepositoryClientConfig
     repository: RDFRepositoryClient
 
-    constructor(endpoint: string = 'http://agingkills.eu:7200', repository: string = "ensembl", readTimeout: number = 30000, writeTimeout: number = 30000) {
+    constructor(endpoint: string = "http://graphdb.agingkills.eu", repository: string = "ensembl", readTimeout: number = 30000, writeTimeout: number = 30000) {
         const url = `${endpoint}/repositories/${repository}`
         this.config = new RepositoryClientConfig(endpoint)
             .setEndpoints([url])
@@ -77,14 +77,14 @@ export class GraphRepository {
         return await this.select_query(Query.results_ranked_genes(limit))
     }
 
-    async query_orthology(genes, species, orthologyTypes): Promise<List<Orthology>> {
+    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes): Promise<List<Orthology>> {
         const queryString: string = Query.orthology(genes, species, orthologyTypes)
         const result = await this.select_query(queryString)
         return List.of(...result.map(b=>Orthology.fromBinding(b)))
     }
 
-    async orthology_table(genes, species, orthologyTypes){
-        const results = await this.query_orthology(genes,species,orthologyTypes)
+    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes){
+        const results = await this.orthology(genes,species,orthologyTypes)
         const grouped = results.groupBy( item => item.selected_gene).map((values, key) => values.groupBy(v=>v.target_species))
         return ({
             genes: genes,

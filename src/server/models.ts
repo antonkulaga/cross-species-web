@@ -169,8 +169,8 @@ export class Gene{
 
     static fromBinding(bindings: StringMap){
         return new Gene(
-            bindings.get<string>("selected_gene", "").replace(RDF_PREFIX, ''),
-            bindings.get<string>("selected_species", "").replace(LAB_RESOURCE_PREFIX, ''),
+            bindings.get<string>("gene", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("symbol", "").replace(LAB_RESOURCE_PREFIX, ''),
         )
     }
 }

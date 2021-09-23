@@ -1,13 +1,22 @@
 module.exports = {
-  "roots": [
-    "<rootDir>/src/server"
+  roots: [
+    '<rootDir>/src/server'
   ],
-  "testMatch": [
-    "**/__tests__/**/*.+(ts|tsx|js)",
-    "**/?(*.)+(spec|test).+(ts|tsx|js)"
+  testMatch: [
+    '**/?(*.)+(spec|test).+(ts|tsx|js)',
+    '**/__tests__/**/*.+(ts|tsx|js)',
   ],
-  "transform": {
-    "^.+\\.(ts|tsx)$": "ts-jest"
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
-  preset: 'ts-jest'
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        sourceMap: true,
+        inlineSourceMap: true,
+      },
+    },
+  },
+  preset: 'ts-jest',
+  testEnvironment: 'node',
 }

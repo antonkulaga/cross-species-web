@@ -6,7 +6,9 @@ import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
 
-const repo = new GraphRepository(process.env.GRAPH_DB || 'http://agingkills.eu:7200/repositories/ensembl')
+const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
+const graph_db_repository =process.env.GRAPH_REPO || "ensembl"
+const repo = new GraphRepository(graph_db_host, graph_db_repository)
 
 const app = express();
 app.use(express.static('dist'));
@@ -39,14 +41,14 @@ app.get('/api/username', (req, res) => res.send({ username: os.userInfo().userna
 
 app.get('/api/species', async (req, res, next) => {
     console.log('/api/species');
-    const result = await repo.querySpecies();
+    const result = await repo.species();
     res.send(result);
 });
 
 
 const getAllGenes = async (organism: string = 'Homo_sapiens') => {
     return diskCache.wrap(organism /* cache key */, async () => {
-        return await repo.queryReferenceOrgGenes(organism);
+        return await repo.referenceGenes(organism);
     });
 }
 
@@ -68,7 +70,7 @@ app.post('/api/orthology_table', async (req, res , next) => {
 app.post('/api/expressions', async (req, res, next) => {
     // console.log(req.body);
     const { runs, genes } = req.body;
-    const result = await repo.queryExpressions(runs, genes);
+    const result = await repo.expressions(runs, genes);
     console.log('/api/expressions');//, genes, species, result);
     res.send(result);
 });
@@ -84,12 +86,12 @@ app.post('/api/orthology_one2many', async (req, res, next) => {
     console.log("/api/orthology_one2many", req.body);
     const { genes, samples } = req.body;
     // const species = JSON.parse(req.query.species);// , "ENSG00000139990", "ENSG00000073921"]');
-    let species = {};
+    let speciesObject = {};
     samples.forEach((sample) => {
-        species[sample.organism] = true;
+        speciesObject[sample.organism] = true;
     });
-    species = Object.keys(species);
-    const result = await repo.queryOrthology(genes, species, ORTHOLOGY_TYPES.slice(0, 2));
+    const species = Array.from<string>(Object.keys(speciesObject));
+    const result = await repo.orthology(genes, species, ORTHOLOGY_TYPES.slice(0, 2));
     res.send(result);
 });
 
@@ -99,7 +101,7 @@ app.get('/api/samples', async (req, res, next) => {
 });
 
 app.get("/api/gene_sets", async (req, res, next) => {
-    const result = await repo.get
+    const result = await repo.ranked_results()
     res.send(result);
 });
 

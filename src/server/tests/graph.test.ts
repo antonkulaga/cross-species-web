@@ -1,6 +1,10 @@
 import * as graphdb from "graphdb"
 import {GraphRepository} from "../graph";
+import * as jest from "jest"
+//import "@types/jest"
+import {Gene, Species} from "../models";
 const host = "http://graphdb.agingkills.eu" //http://10.40.3.21:7200
+const log = console.log
 
 const repo = new GraphRepository(host)
 
@@ -10,8 +14,19 @@ test('RDF graph should return orthology_table', async () => {
     console.log("request:", request)
     const {   reference_genes, species, orthologyTypes} = request;
     const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
-    console.log("RESULTS:", JSON.stringify(results,null, 2))
-    console.log("TODO: make proper test for orthology_table")
+    expect(new Set(results.genes)).toEqual(new Set([
+        "ENSG00000164362",
+        "ENSG00000084676"
+    ]));
+    expect(new Set(results.species)).toEqual(new Set(
+        [
+            "Homo_sapiens",
+            "Gopherus_agassizii",
+            "Gorilla_gorilla"
+        ]
+    ))
+    console.log("ORTHOLOGY TABLE:", JSON.stringify(results.orthology_table,null, 2))
+
     /**
      *     RESULTS: {
       "genes": [
@@ -84,10 +99,17 @@ test('RDF graph should return orthology_table', async () => {
 
 test("should return species", async () =>{
 
-  return repo.species()
+  const species = await repo.species()
+    expect(species.map(s=>s.species)).toEqual(expect.arrayContaining([
+        "Homo_sapiens", "Mus_musculus"
+    ]))
 })
 
 test("should return reference genes for selected species", async () =>{
 
-   return repo.referenceGenes("Homo_sapiens")
+   const result = await repo.referenceGenes("Homo_sapiens")
+    expect(result).toEqual(expect.arrayContaining([
+        new Gene('ENSG00000124942',  'AHNAK' ),
+        new Gene ('ENSG00000136488',  'CSH1' )
+    ]))
 })
