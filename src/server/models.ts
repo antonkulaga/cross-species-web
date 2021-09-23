@@ -32,7 +32,7 @@ export class SelectResults{
 }
 
 
-// WILL BE MOVED TO graph.js
+// WILL BE MOVED TO graph_old.js
 export class Species{
     constructor(public species: string,
                 public common_name: string,
@@ -112,3 +112,70 @@ export class Sample{
         )
     }
 }
+
+export class Orthology{
+
+    constructor(public selected_gene: string,
+                public selected_species: string,
+                public orthology: string,
+                public ortholog: string,
+                public target_species: string,
+                public common_name: string,
+                public ortholog_gene: string
+    ) {
+    }
+
+    static fromBinding(bindings: StringMap){
+       return  new Orthology(
+            bindings.get<string>("selected_gene", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("selected_species", "").replace(LAB_RESOURCE_PREFIX, ''),
+            bindings.get<string>("orthology", "").replace(RDF_PREFIX,""),
+            bindings.get<string>("ortholog", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("target_species", "").replace(LAB_RESOURCE_PREFIX, ""),
+            bindings.get<string>("common_name", "").replace(/"/g, ""),
+            bindings.get<string>("ortholog_gene", "").replace(/"/g, ""))
+    }
+}
+/*
+  "selected_gene": selected_gene.id.replace(RDF_PREFIX, ''),
+                    "selected_species": selected_species.id.replace(LAB_RESOURCE_PREFIX, ''),
+                    "orthology": orthology.id.replace(RDF_PREFIX, ''),
+                    "ortholog":  ortholog === undefined ? "" : ortholog.id.replace(RDF_PREFIX, ''),
+                    "target_species": target_species.id.replace(LAB_RESOURCE_PREFIX, ''),
+                    "common_name": common_name.id.replace(/"/g, ''),
+                    "ortholog_gene": ortholog_gene === undefined ? "": ortholog_gene.id.replace(/"/g, '')
+ */
+export class Expressions{
+    constructor(public run: string, gene: string, tpm: number) {
+
+    }
+    static fromBinding(bindings: StringMap){
+        return new Expressions(
+            bindings.get<string>("run", "").replace('https://www.ncbi.nlm.nih.gov/sra/', ''),
+            bindings.get<string>("gene", "").split('_')[1],
+            parseFloat(bindings.get<string>("tpm", "NaN"))
+        )
+    }
+}
+/*
+  run: bindings.run.id.replace('https://www.ncbi.nlm.nih.gov/sra/', ''),
+                    gene: bindings.expression.id.split('_')[1],
+                    tpm: this.getNumberFromRDF(bindings.tpm.id)
+ */
+
+export class Gene{
+    constructor(public symbol: string, public ensembl_id: string) {
+    }
+
+    static fromBinding(bindings: StringMap){
+        return new Gene(
+            bindings.get<string>("selected_gene", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("selected_species", "").replace(LAB_RESOURCE_PREFIX, ''),
+        )
+    }
+}
+
+/**
+ * symbol: bindings.symbol.id.replace(/"/g, ''),
+ ensembl_id: bindings.gene.id
+ */

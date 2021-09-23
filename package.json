@@ -4,7 +4,7 @@
   "description": "full stack web application using React, Node.js, Express and Webpack.",
   "main": "src/server/index.ts",
   "scripts": {
-    "try": "ts-node src/server/graph_new.ts",
+    "try": "ts-node src/server/graph.ts",
     "request": "ts-node src/server/tests/request.ts",
     "build": "webpack --mode production",
     "start": "yarn run build && ts-node src/server/index.ts",
@@ -35,7 +35,7 @@
     "graphdb": "^2.0.0",
     "immutable": "^4.0.0-rc.14",
     "install": "^0.13.0",
-    "jest": "^26.6.3",
+    "jest": "^27.0.5",
     "jsonata": "^1.8.5",
     "lodash": "^4.17.21",
     "mathjs": "^8.1.1",
@@ -67,6 +67,9 @@
     "@types/node": "^16.7.6",
     "@types/react": "16.9.14",
     "@types/react-dom": "16.9.9",
+    "@types/jest": "^27.0.1",
+    "jest": "^27.0.5",
+    "ts-jest": "^27.0.5",
     "graphdb": "^2.0.0",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.2",
@@ -92,6 +95,11 @@
   },
   "jest": {
     "verbose": true,
-    "testEnvironment": "node"
-  }
+    "testEnvironment": "ts-node",
+    "globals": {
+        "ts-jest": {
+          "tsConfig": "tsconfig.json"
+        }
+      }
+    }
 }

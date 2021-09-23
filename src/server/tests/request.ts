@@ -1,4 +1,4 @@
-const graph = require('../graph.js');
+const graph = require('../graph_old.js');
 const repo = new graph.GraphRepository("" +
     "http://graphdb.agingkills.eu/repositories/ensembl")
 

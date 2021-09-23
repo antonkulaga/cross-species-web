@@ -4,9 +4,9 @@ import {Response} from "express-serve-static-core";
 import {Request} from "express";
 import express from "express"
 import os from "os"
+import {GraphRepository} from "./graph";
 
-const graph = require( __dirname + '/graph.js');
-const repo = new graph.GraphRepository(process.env.GRAPH_DB || 'http://agingkills.eu:7200/repositories/ensembl')
+const repo = new GraphRepository(process.env.GRAPH_DB || 'http://agingkills.eu:7200/repositories/ensembl')
 
 const app = express();
 app.use(express.static('dist'));
@@ -94,7 +94,7 @@ app.post('/api/orthology_one2many', async (req, res, next) => {
 });
 
 app.get('/api/samples', async (req, res, next) => {
-    const result = await repo.querySamples();
+    const result = await repo.samples();
     res.send(result);
 });
 
