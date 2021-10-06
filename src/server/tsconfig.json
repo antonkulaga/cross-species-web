@@ -13,6 +13,7 @@
     /* Language and Environment */
     "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    "jsx": "react",
     // "jsx": "preserve",                                /* Specify what JSX code is generated. */
     // "experimentalDecorators": true,                   /* Enable experimental support for TC39 stage 2 draft decorators. */
     // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
@@ -32,8 +33,9 @@
       "graphdb": ["./node_modules/graphdb"]
     },                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
-    "typeRoots": ["./node_modules/@types","./node_modules/graphdb/lib/types"],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
-    "types": ["graphdb/lib/types", "jest"],                      /* Specify type package names to be included without being referenced in a source file. */
+    "typeRoots": [
+      "../../node_modules/@types","../../node_modules/graphdb/lib/types", "../../node_modules/@types/jest"],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
+    "types": ["graphdb/lib/types", "jest", "@types/jest"],                      /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "resolveJsonModule": true,                        /* Enable importing .json files */
     // "noResolve": true,                                /* Disallow `import`s, `require`s or `<reference>`s from expanding the number of files TypeScript should add to a project. */

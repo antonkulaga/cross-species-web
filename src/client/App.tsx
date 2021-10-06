@@ -5,7 +5,6 @@ import './app.css';
 import SearchPage from './SearchPage'
 import AnalysisPage from './AnalysisPage'
 import AboutPage from './AboutPage'
-const { matches } = require('z')
 
 import { AgGridReact, AgGridColumn } from 'ag-grid-react';
 
@@ -31,9 +30,6 @@ import {DataPage} from "./DataPage";
 
 export const App = () => {
 
-    const [hasSamples, setHasSamples] = useState(false)
-    const [hasGenes, setHasGenes] = useState(false)
-
     return (
         <Router>
             <div className="min-vh-100 w-100 flex flex-column "> {/*items-center justify-center*/}
@@ -58,10 +54,10 @@ export const App = () => {
                 <Divider horizontal> </Divider>
                     <Switch>
                             <Route path="/">
-                                    <SearchPage></SearchPage>
+                                    <SearchPage/>
                             </Route>
                             <Route path="/data">
-                                <DataPage></DataPage>
+                                <DataPage/>
                             </Route>
                     </Switch>
             </div>

@@ -2,9 +2,10 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable react/destructuring-assignment */
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
+
 import React, {useEffect, useState, } from 'react';
 import {Button, Dropdown, Tab, Step, StepContent, Header, Icon, Image, Message, Divider} from 'semantic-ui-react';
-import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
+import Immutable, {List, fromJS, OrderedMap, OrderedSet} from "immutable"
 
 
 import './app.css';
@@ -24,6 +25,7 @@ import { create, all } from 'mathjs'
 
 const config = { }
 const math = create(all, config)
+import {Species, Sample, Orthology, Gene, SelectResults, StringMap, TextOption} from "../shared/models";
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
@@ -36,6 +38,7 @@ import {SelectedSpecies} from "./components/SelectedSpecies";
 import OrthologySelection from "./components/OrthologySelection";
 import OrthologyTable from "./components/OrthologyTable";
 import ExpressionsView from "./components/ExpressionsView";
+import {samples} from "../server/queries";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -49,15 +52,20 @@ import ExpressionsView from "./components/ExpressionsView";
 export const SearchPage = () => {
 
 
-  const [species, setSpecies] = useState(OrderedMap())
   const [showLoader, setShowLoader] = useState(false)
-  const [selectedRows, setSelectedRows] = useState([])
-  const [selectedGenes, setSelectedGenes] = useState([])
-  const [selectedSpecies, setSelectedSpecies] = useState([])
 
-  const [speciesByRun, setSpeciesByRun] = useState(OrderedMap())
-  const [samplesRowData, setSamplesRowData] = useState([])
-  const [organismList, setOrganismList] =useState([])
+  const [samplesRowData, setSamplesRowData] = useState(new Array<Sample>())
+  const [selectedRows, setSelectedRows] = useState(new Array<Sample>())
+
+  const [species, setSpecies] = useState(OrderedMap<string, Species>())
+  const [selectedSpecies, setSelectedSpecies] = useState(new Array<Species>())
+
+  //const [speciesByRun, setSpeciesByRun] = useState(OrderedMap<string, Species>())
+
+  const [organismList, setOrganismList] =useState(new Array<TextOption>())
+
+  const [selectedGenes, setSelectedGenes] = useState(new Array<TextOption>())
+
 
   const [data, setData] = useState([])
 
@@ -70,8 +78,8 @@ export const SearchPage = () => {
   };
   const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.id)
 
-  const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap())
-  const [genesById, setGenesById] = useState(OrderedMap())
+  const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap<string, Gene>())
+  const [genesById, setGenesById] = useState(OrderedMap<string, Gene>())
 
 
   //const [genesMap, setGenesMap] = useState([])
@@ -85,34 +93,35 @@ export const SearchPage = () => {
     orthology_table: {}
   })
 
-  const getSpecies =  () => fetch('/api/species').then(res => res.json())
+  /**
+   * Function that
+   * @returns {Promise<*>}
+   */
+  const getSpecies = (): Promise<Array<Species>> => fetch('/api/species').then(res => res.json())
 
-  const getSamples = () => fetch('/api/samples').then(res => res.json())
+  const getSamples = (): Promise<Array<Sample>> => fetch('/api/samples').then(res => res.json())
 
   const getSamplesAndSpecies = async () => {
     console.log('getSamplesAndSpecies request'); // remove api
-    const speciesArray = await getSpecies()
-    const samplesArray = await getSamples()
-    const speciesNames = speciesArray.map( species => ({ //rewrote ugly loops on arrays to more functional approach
-          key: species.common_name,
-          value: species.common_name,
-          text: species.common_name,
-          id: species.id
-        })
-    )
-    const species = OrderedMap(speciesArray.map( sp => [sp.id , sp] ))
-    const runToSpeciesHash = OrderedMap(samplesArray.filter(sample=>species.has(sample.organism)).map(sample => {
-      const sp = species.get(sample.organism) //getting species from species Map
-      sample.lifespan =  parseFloat(sp.lifespan);
+    const speciesArray: Array<Species> = await getSpecies()
+    const samplesArray: Array<Sample> = await getSamples()
+    const speciesNames = speciesArray.map( species => TextOption.fromSpecies(species) )
+    const species = OrderedMap<string, Species>(speciesArray.map( sp => [sp.species , sp] ))
+
+
+    const runToSpeciesHash = OrderedMap<string, Sample>(samplesArray.filter(sample=>species.has(sample.organism)).map(sample => {
+      let sp: Species = species.get(sample.organism) as Species //getting species from species Map
+      sample.lifespan =  sp.lifespan;
       sample.common_name = sp.common_name;
-      sample.mass_g = sp.mass_g;
+      sample.mass_g = sp.mass;
       sample.ensembl_url = sp.ensembl_url;
       sample.metabolic_rate = sp.metabolic_rate;
-      sample.temperature_celsius = parseFloat(sp.temperature_kelvin) - 273.15;
+      sample.temperature_kelvin = sp.temperature_kelvin;
       sample.animal_class = sp.animal_class;
       sample.taxon = sp.taxon
       return [sample.run, sample]
-    })).sortBy(value=>-value.lifespan)
+    })).sortBy(value=> -value.lifespan!)
+    console.log("RUN TO SPECIES HASH: ", runToSpeciesHash.toArray())
     return ({
       species: species,
       speciesNames: speciesNames,
@@ -121,7 +130,7 @@ export const SearchPage = () => {
   }
 
   const autoSizeAll = (columnApi, skipHeader = false) => {
-    const allColumnIds = [];
+    const allColumnIds = new Array<string>();
     columnApi.getAllColumns().forEach((column) => {
       allColumnIds.push(column.colId); //TODO: ask explanations for this line
     });
@@ -140,21 +149,17 @@ export const SearchPage = () => {
       const {species, speciesNames, runToSpeciesHash} = values
       setSpecies(species)
       setOrganismList(speciesNames)
-      setSamplesRowData( Array.from(runToSpeciesHash.values()))
-      setSpeciesByRun(runToSpeciesHash)
+
+      const samplesRowData = Array.from(runToSpeciesHash.values())
+      console.log("SAMPLES ROW DATA", samplesRowData)
+      setSamplesRowData( samplesRowData )
+      //setSpeciesByRun(runToSpeciesHash)
     })
 
     }, [])
 
 
-  /**
-   * Using OrderedSet to make values unique and preserving their order
-   * @param arr
-   * @returns {unknown[]}
-   */
-  const unique = (arr) => Array.from(OrderedSet(fromJS(arr)).values()).map(x => x.toJS()) //TODO consider switching to something more reasonable
-
-
+  // @ts-ignore
   return (
     <div className="ui intro">
     <div className="ui main" style={{ margin: '30px'}} >
@@ -176,10 +181,17 @@ export const SearchPage = () => {
 
               <Message color='blue' size="small">Choose RNA-Seq samples of different species to compare with each other</Message>
             </Step.Description>
-            <SamplesGrid samplesRowData={samplesRowData} selectedRows = {selectedRows} setSelectedRows={setSelectedRows} autoSizeAll={autoSizeAll}>
-
+            <SamplesGrid samplesRowData= {samplesRowData}
+                         selectedRows = {selectedRows}
+                         setSelectedRows = {setSelectedRows}
+                         autoSizeAll={autoSizeAll}>
             </SamplesGrid>
-            <SelectedSpecies selectedRows={selectedRows} selectedSpecies={selectedSpecies} setSelectedSpecies={setSelectedSpecies} unique={unique}> </SelectedSpecies>
+            <SelectedSpecies
+                selectedRows={selectedRows}
+                selectedSpecies={selectedSpecies}
+                setSelectedSpecies={setSelectedSpecies}
+               >
+            </SelectedSpecies>
           </Step.Content>
         </Step>
         <Step disabled={hasSelection()} >
@@ -195,37 +207,8 @@ export const SearchPage = () => {
                 selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
                 genesBySymbol={genesBySymbol} setGenesBySymbol={setGenesBySymbol}
                 genesById={genesById} setGenesById={setGenesById}
-                unique={unique}
             >
             </OrthologySelection>
-          </Step.Content>
-        </Step>
-        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
-          <Icon name='dna' />
-          <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
-            <Step.Title><Header>Load ortholog genes</Header></Step.Title>
-            <OrthologyTable
-              selectedRows = {selectedRows}
-              selectedOrganism = {selectedOrganism}
-              selectedSpecies={selectedSpecies}
-              orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
-              selectedGenes = {selectedGenes}
-              setShowLoader={setShowLoader}
-              autoSizeAll={autoSizeAll} >
-            </OrthologyTable>
-          </Step.Content>
-        </Step>
-        <Step>
-          <Icon name='dna'  />
-          <Step.Content id="heatmap_container"   style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
-            <Step.Title><Header textAlign='center'>Load gene expression</Header></Step.Title>
-            <ExpressionsView
-                data={data} setData={setData}
-                selectedRows = {selectedRows}
-                orthologyData = {orthologyData}
-                setShowLoader={setShowLoader}
-                autoSizeAll={autoSizeAll}
-            > </ExpressionsView>
           </Step.Content>
         </Step>
 
@@ -238,11 +221,6 @@ export const SearchPage = () => {
         height={200}
         width={200}
         timeout={1000000}
-        style={ { position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)" }}
-
     />}
 
   </div>)

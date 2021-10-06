@@ -1,14 +1,15 @@
 import * as graphdb from "graphdb"
 import "immutable"
-//import {Promise} from "bluebird";
 import {fromJS, OrderedMap, Seq, List} from "immutable";
 import * as Query from "./queries"
-import {SelectResults, Species, StringMap, Sample, Orthology, Expressions, Gene} from "./models"
+import {SelectResults, Species, StringMap, Sample, Orthology, Expressions, Gene, GeneResults} from "../shared/models"
 import {Term, Literal, NamedNode, BlankNode} from "n3";
 const {RDFMimeType} = graphdb.http;
-const log = console.log
 const {RepositoryClientConfig, RDFRepositoryClient} = graphdb.repository
 
+/**
+ * Class that interactions with GRAPHDB and makes queries to it
+ */
 export class GraphRepository {
 
     config: RepositoryClientConfig
@@ -32,6 +33,10 @@ export class GraphRepository {
             .setQuery(select)
     }
 
+    /**
+     * Exactutes the select query and returnes the wraped results
+     * @param select query
+     */
     async select_query(select: string): Promise<SelectResults> {
         let stream = await this.repository.query(this.select_payload(select))
         let results: Array<StringMap> = [];
@@ -50,39 +55,72 @@ export class GraphRepository {
         })
     }
 
-    async expressions(runs, genes) {
+    /**
+     * Returnes the expression genes in a set of samples
+     * @param runs array of samples (NCBI runs)
+     * @param genes list of genes to looks expression values for
+     */
+    async expressions(runs: Array<string>, genes: Array<string>) {
         const queryString = Query.expressions(runs, genes)
         const results = await this.select_query(queryString)
         return results.map(b=> Expressions.fromBinding(b))
     }
 
 
+    /**
+     * Gets list of all species from GraphDB
+     */
     async species(): Promise<Array<Species>> {
         let results = await this.select_query(Query.species)
         return results.map(binding => Species.fromBinding(binding))
     }
 
+    /**
+     * Gets the list of all avaliable samples from GraphDB
+     */
     async samples() {
         let results = await this.select_query(Query.samples)
         return results.map(binding => Sample.fromBinding(binding))
     }
 
-    async referenceGenes(referenceOrg) {
-        const queryString = Query.referenceGenes(referenceOrg)
+    /**
+     * gets the list of genes of the reference organism
+     * @param organism - species for which to get reference genes for
+     */
+    async referenceGenes(organism: string) {
+        const queryString = Query.referenceGenes(organism)
         let results = await this.select_query(queryString)
         return results.map(binding => Gene.fromBinding(binding))
     }
 
-    async ranked_results(limit = 6): Promise<unknown> {
-        return await this.select_query(Query.results_ranked_genes(limit))
+    /**
+     * Gets the ranked results of the research
+     * @param limit number of top genes
+     */
+    async ranked_results(limit = 6): Promise<SelectResults> {
+        const selectResults: SelectResults = await this.select_query(Query.results_ranked_genes(limit))
+        //selectResults.map(binding => binding.toJSON() as GeneResults)
+        return selectResults
     }
 
+    /**
+     * Returnes the list of Orhotologous genes for the genes spcified
+     * @param genes
+     * @param species
+     * @param orthologyTypes
+     */
     async orthology(genes: Array<string>, species: Array<string>, orthologyTypes): Promise<List<Orthology>> {
         const queryString: string = Query.orthology(genes, species, orthologyTypes)
         const result = await this.select_query(queryString)
         return List.of(...result.map(b=>Orthology.fromBinding(b)))
     }
 
+    /**
+     * Returnes the orthologues genes and arrane as a table
+     * @param genes
+     * @param species
+     * @param orthologyTypes
+     */
     async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes){
         const results = await this.orthology(genes,species,orthologyTypes)
         const grouped = results.groupBy( item => item.selected_gene).map((values, key) => values.groupBy(v=>v.target_species))

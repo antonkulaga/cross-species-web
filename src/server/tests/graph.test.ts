@@ -2,7 +2,7 @@ import * as graphdb from "graphdb"
 import {GraphRepository} from "../graph";
 import * as jest from "jest"
 //import "@types/jest"
-import {Gene, Species} from "../models";
+import {Gene, Species} from "../../shared/models";
 const host = "http://graphdb.agingkills.eu" //http://10.40.3.21:7200
 const log = console.log
 

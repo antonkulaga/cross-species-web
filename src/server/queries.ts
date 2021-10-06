@@ -1,7 +1,3 @@
-import {string} from "prop-types";
-import Promise from "bluebird";
-
-
 export const results_ranked_genes: (limit: number) => string = (limit = 0) => {
     return `
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -94,7 +90,7 @@ export const orthology: (genes: Array<string>, species: Array<string>, orthology
       } ORDER BY ?selected_gene ?ortholog ?species`
 }
 
-export const  expressions = (runs, genes) => {
+export const  expressions = (runs: Array<string>, genes: Array<string>) => {
     return `PREFIX samples:<http://aging-research.group/samples/>
     PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
 
@@ -105,7 +101,8 @@ export const  expressions = (runs, genes) => {
       ?run ?expression ?tpm .
     }`;
 }
-export const referenceGenes = (referenceOrg) => {
+
+export const referenceGenes = (referenceOrg: string) => {
     return `
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

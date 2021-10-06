@@ -1,17 +1,22 @@
-import { useState, useEffect, useCallback } from 'react'
+import {useState, useEffect, useCallback, SetStateAction, Dispatch} from 'react'
 import React from 'react'
+
 
 import PropTypes from 'prop-types';
 import '../app.css';
 
 // import SamplesGrid from './SamplesGrid'
-import { AgGridReact, AgGridColumn } from 'ag-grid-react';
+//import { AgGridReact, AgGridColumn, AgGridColumnProps, AgGridColumnGroupProps} from 'ag-grid-react';
+import { AgGridReact} from 'ag-grid-react/lib/agGridReact';
+import { GridApi} from "ag-grid-community";
 
+//import { AgGridReactFire } from 'ag-grid-react/lib/next/agGridReactFire';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import {Button, Icon, Table, Divider, Header, Segment} from "semantic-ui-react";
+import {Sample} from "../../shared/models";
 
 const samplesColumnDefs = [
     {
@@ -129,7 +134,8 @@ const samplesGridOptions = {
     },
     debug: true,
     animateRows: true,
-    floatingFilter: true
+    floatingFilter: true,
+    rowData: []
 };
 
 const selectedSamplesGridOptions = {
@@ -139,11 +145,12 @@ const selectedSamplesGridOptions = {
     },
     rowSelection: 'multiple',
     animateRows: true,
-    rowDragManaged: true
+    rowDragManaged: true,
+    rowData:  []
 };
 
-const selectedSamplesColumnDefs =  samplesColumnDefs.map(value => {
-    const newVal = Object.assign({}, value)
+const selectedSamplesColumnDefs: any =  samplesColumnDefs.map(value => {
+    const newVal: any = Object.assign({}, value)
     newVal.filterParams = undefined
     newVal.checkboxSelection = false
     newVal.headerCheckboxSelection = false
@@ -152,14 +159,27 @@ const selectedSamplesColumnDefs =  samplesColumnDefs.map(value => {
 selectedSamplesColumnDefs[0].rowDrag = true
 selectedSamplesColumnDefs[0].minWidth = 300
 
+type SamplesGridInput = {
+    children?: JSX.Element | JSX.Element[];
+    samplesRowData: Array<Sample>, //Array<any>,
+    selectedRows: Array<Sample>,//Array<any>,
+    setSelectedRows: Dispatch<SetStateAction<Array<Sample>>>,
+    autoSizeAll: (value: any) => void
+}
 
-export const SamplesGrid = ({samplesRowData, selectedRows, setSelectedRows, autoSizeAll}) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
+export const SamplesGrid = (
+    {
+        samplesRowData,
+        selectedRows,
+        setSelectedRows,
+        autoSizeAll
+    }:SamplesGridInput ) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
 
     const [quickFilterValue, setQuickFilterValue] = useState('')
-    const [samplesGridApi, setSamplesGridApi] = useState({})
+    const [samplesGridApi, setSamplesGridApi] = useState<GridApi>({} as any)
     //const [selectedSamplesRowData, setSelectedSamplesRowData] = useState([])
 
-    const [selectedSamplesGridApi, setSelectedSamplesGridApi] = useState({})
+    const [selectedSamplesGridApi, setSelectedSamplesGridApi] =  useState<GridApi>({} as any)
 
     const onSamplesGridReady = async (params) => {
         await setSamplesGridApi(params.api)
@@ -221,8 +241,8 @@ export const SamplesGrid = ({samplesRowData, selectedRows, setSelectedRows, auto
                         }}
                 >
                     <AgGridReact
-                        onGridReady={onSamplesGridReady}
                         rowData={samplesRowData}
+                        onGridReady={onSamplesGridReady}
                         columnDefs={samplesColumnDefs}
                         gridOptions={samplesGridOptions}
                         onSelectionChanged={onSelectionChanged}

@@ -15,6 +15,32 @@ export const ORTHOLOGY_TYPES = [
 
 export type StringMap = OrderedMap<string, string>
 
+
+
+export class TextOption{
+    constructor(public key: string, public value: string, public text: string, public id: string) {
+    }
+
+    static fromSpecies(species: Species)  {
+        return new TextOption(species.common_name, species.common_name, species.common_name, species.species)
+    }
+}
+
+/**
+ {
+    "key": "genes_pro",
+    "value": "genes_pro",
+    "text": "Pro Longevity Genes",
+    "genes": JSON.parse(genes_pro)
+}
+ */
+
+export class GenesOption extends TextOption{
+    constructor(key, set_name: string, public genes: Array<Gene>) {
+        super(key, set_name, key, key);
+    }
+}
+
 export class SelectResults{
     keys: Array<string>
     constructor(public bindings: Array<StringMap>) {
@@ -45,6 +71,21 @@ export class Species{
                 public temperature_kelvin: number
     ) {
     }
+
+    static fromSample(row: Sample) {
+            return new Species(
+                row.organism,
+                row.common_name!,
+                row.ensembl_url!,
+                row.taxon!,
+                row.animal_class!,
+                row.lifespan!,
+                row.mass_g!,
+                row.metabolic_rate!,
+                row.temperature_kelvin!
+            )
+    }
+
     static fromBinding(bindings: StringMap) {
         return new Species(
             bindings.get<string>("species", "").replace(LAB_RESOURCE_PREFIX, ''),
@@ -57,6 +98,13 @@ export class Species{
             bindings.has("metabolic_rate") ? parseFloat(bindings.get<string>("metabolic_rate", "0.0")) : NaN,
             bindings.has("temperature_kelvin") ? parseFloat(bindings.get<string>("temperature_kelvin", "0.0")) : NaN,
         )
+    }
+
+    get mass_kg(): number  {
+        return this.mass / 1000.0
+    }
+    get temperature_celsius(): number {
+        return this.temperature_kelvin - 273 //273.15
     }
 }
 
@@ -94,7 +142,15 @@ export class Sample{
                 public bioproject: string,
                 public tissue: string,
                 public sample_name: string,
-                public study_title: string
+                public study_title: string,
+                public lifespan: undefined | number = undefined,
+                public common_name: undefined | string = undefined,
+                public mass_g: undefined | number = undefined,
+                public ensembl_url: undefined | string = undefined,
+                public metabolic_rate: undefined | number = undefined,
+                public temperature_kelvin: undefined | number = undefined,
+                public animal_class: undefined | string = undefined,
+                public taxon: undefined | string = undefined
     ) {
     }
 
@@ -163,8 +219,29 @@ export class Expressions{
                     tpm: this.getNumberFromRDF(bindings.tpm.id)
  */
 
+export class GeneResults {
+    constructor(
+    public max_linear_r2: number,
+    public gene: string,
+    public rank: number,
+    public label: string,
+    public relative_frequency: number
+    ) {
+    }
+}
+
 export class Gene{
     constructor(public symbol: string, public ensembl_id: string) {
+    }
+
+    get ensembl_short(){
+        return this.ensembl_id.replace('http://rdf.ebi.ac.uk/resource/ensembl/', "")
+    }
+
+    get asTextOption(){
+        return new TextOption(
+            this.ensembl_short, this.symbol, this.symbol, this.symbol
+        )
     }
 
     static fromBinding(bindings: StringMap){

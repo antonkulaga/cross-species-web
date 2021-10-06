@@ -5,6 +5,7 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
+import {Gene} from "../shared/models";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
 const graph_db_repository =process.env.GRAPH_REPO || "ensembl"
@@ -46,7 +47,7 @@ app.get('/api/species', async (req, res, next) => {
 });
 
 
-const getAllGenes = async (organism: string = 'Homo_sapiens') => {
+const getAllGenes = async (organism: string = 'Homo_sapiens'): Promise<Array<Gene>> => {
     return diskCache.wrap(organism /* cache key */, async () => {
         return await repo.referenceGenes(organism);
     });
@@ -102,6 +103,7 @@ app.get('/api/samples', async (req, res, next) => {
 
 app.get("/api/gene_sets", async (req, res, next) => {
     const result = await repo.ranked_results()
+
     res.send(result);
 });
 

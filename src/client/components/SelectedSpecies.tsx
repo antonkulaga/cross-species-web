@@ -1,38 +1,38 @@
-import React, {useEffect, useState} from 'react'
+import React, {Dispatch, SetStateAction, useEffect, useState} from 'react'
 import {Divider, Header, Image, Segment, Step, Table} from 'semantic-ui-react'
-import {List, fromJS, Map} from "immutable"
+import {List, fromJS, Map, OrderedSet} from "immutable"
 import {AgGridReact} from "ag-grid-react";
+import {Sample, Species} from "../../shared/models";
+import * as _ from "lodash";
 
-export const SelectedSpecies = ({selectedRows, selectedSpecies, setSelectedSpecies, unique}) => {
+type selectedSpeciesInput = {
+    children?: JSX.Element | JSX.Element[];
+    selectedRows: Array<Sample>
+    selectedSpecies: Array<Species>,
+    setSelectedSpecies: Dispatch<SetStateAction<Array<Species>>>,
+}
+
+export const SelectedSpecies = ({selectedRows, selectedSpecies, setSelectedSpecies}: selectedSpeciesInput) => {
 
     const round = (value) => {
-        const num = value==="" ? "N/A": Number(value)
+        const num: number = value==="" ? Number.NaN: Number(value)
         return isNaN(num) ? "N/A" : Math.round((num + Number.EPSILON) * 100) / 100
     }
 
-    const speciesFromRow = (row) => {
-        return {
-            organism: row.organism,
-            common_name: row.common_name,
-            taxon: row.taxon,
-            lifespan: row.lifespan,
-            mass_g: row.mass_g,
-            metabolic_rate: row.metabolic_rate,
-            temperature_celsius: row.temperature_celsius,
-            ensembl_url: row.ensembl_url
-        }
-    }
+
     useEffect(()=>{
-        setSelectedSpecies(unique(selectedRows.map(speciesFromRow)))
+        const unique_species = _.uniqWith(selectedRows.map(Species.fromSample),_.isEqual)
+        //setSelectedSpecies(_.uniq<Species>(selectedRows.map(Species.fromSample)))
+        setSelectedSpecies(unique_species)
     }, [selectedRows])
 
 
 
    const speciesRows = selectedSpecies.map(species =>
-            <Table.Row key={species.organism}>
+            <Table.Row key={species.species}>
                 <Table.Cell>
                     <Image
-                        src={`http://www.ensembl.org/i/species/${species.organism.replace(" ", "_")}.png`}
+                        src={`http://www.ensembl.org/i/species/${species.species.replace(" ", "_")}.png`}
                         as='a'
                         size='tiny'
                         href={species.ensembl_url}
@@ -40,11 +40,11 @@ export const SelectedSpecies = ({selectedRows, selectedSpecies, setSelectedSpeci
                         circular
                     />
                     </Table.Cell>
-                <Table.Cell>{species.organism.replace("_", " ")}</Table.Cell>
+                <Table.Cell>{species.species.replace("_", " ")}</Table.Cell>
                 <Table.Cell>{species.common_name.replace("_", " ")}</Table.Cell>
                 <Table.Cell>{species.taxon}</Table.Cell>
                 <Table.Cell>{round(species.lifespan)}</Table.Cell>
-                <Table.Cell>{!isNaN(species.mass_g)? round(species.mass_g / 1000.0) : "N/A"}</Table.Cell>
+                <Table.Cell>{!isNaN(species.mass)? round(species.mass_kg) : "N/A"}</Table.Cell>
                 <Table.Cell>{round(species.metabolic_rate)}</Table.Cell>
                 <Table.Cell>{round(species.temperature_celsius)}</Table.Cell>
 

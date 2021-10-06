@@ -5,7 +5,7 @@ import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
 import Plotly from "react-plotly.js";
 import {fromJS, is, Map, OrderedMap, Seq} from "immutable";
-import OrthologySelection from "./OrthologySelection";
+import OrthologySelection from "./OrthologySelection.tsx";
 
 //NOT YET READY
 export const ExpressionsView = ({data, setData, orthologyData, selectedRows, setShowLoader, autoSizeAll}) => {
