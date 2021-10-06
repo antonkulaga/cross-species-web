@@ -19,7 +19,7 @@ import {
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {OrderedMap, OrderedSet, fromJS} from "immutable";
-import {Gene, GeneResults, Sample, Species, TextOption} from "../../shared/models";
+import {Gene, GeneResults, GeneSetOption, Sample, Species, TextOption} from "../../shared/models";
 
 //import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
 //import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
@@ -58,10 +58,13 @@ export const OrthologySelection = (
     const [allReferenceGenes, setAllReferenceGenes] =  useState(OrderedMap<string, TextOption>())
 
     const [selectedGenesOptions, setSelectedGenesOptions] = useState(new Array<TextOption>())
-    const [predefinedSets, setPredefinedSets] = useState(new Array<TextOption>())
-    const [predefinedGenes, setPredefinedGenes] = useState(OrderedMap<string, Array<TextOption>>())
+
+    const [predefinedSets, setPredefinedSets] = useState(new Array<GeneSetOption>())
+    const [predefinedSetsByName, setPredefinedSetsByName] = useState(OrderedMap<string, GeneSetOption>())
+
     const [selectedGeneSet, setSelectedGeneSet] = useState('')
-    const [selectedIds, setSelectedIds] = useState([])
+
+    const [selectedIds, setSelectedIds] = useState(new Array<string>())
 
     const [, updateState] = React.useState({});
     const forceUpdate = React.useCallback(() => updateState({}), []);
@@ -79,6 +82,7 @@ export const OrthologySelection = (
 
     const onChangePredefinedGenes = async (e, target) => {
         const gene_set = target.value
+        console.log("onChangePredefinedGenes", gene_set)
         await setSelectedGeneSet(gene_set)
     }
 
@@ -148,21 +152,21 @@ export const OrthologySelection = (
     }
 
 
-
+    /**
+     * Loads predefined
+     */
     const loadGeneSuggestions = async () =>{
         setShowLoader(true)
         forceUpdate();
         await applyReferenceOrganism('Homo_sapiens')
-        const geneResults: Array<GeneResults> = await fetch('/api/gene_sets').then(res => res.json())
-        //TextGe
-        console.log("gene results", geneResults)
-        //const predefined =  OrderedMap<string, TextOption>([new TextOption("gene_results", "top_results", "top_results", "top_results")]) //OrderedMap(gene_sets.map(value => [value.key, value]))
-        //const predefined_options = predefined.map((value, key) => value.genes.map(gene=>makeGeneOption(gene)))
-        //setPredefinedSets(predefined)
-        //setPredefinedGenes()
-        //setPredefinedSets(gene_sets)
-        //await setPredefinedGenes(predefined_options)
-        //console.log("KEYS OF PREDEFINED",Array.from(predefined_options.keys()))
+        console.log("LOADING PREDEFINED OPTIONS")
+        const predefined_options : Array<GeneSetOption> = await fetch('/api/gene_sets').then(res => res.json())
+        console.log("predefined_options ", predefined_options )
+        //const predefined =  OrderedMap<string, TextOption>([new TextOption("gene_results", "top_results", "top_results", "top_results")])
+        // OrderedMap(gene_sets.map(value => [value.key, value]))
+        setPredefinedSetsByName( OrderedMap(predefined_options.map(v=>[v.value, v])) )
+        await setPredefinedSets(predefined_options)
+        console.log("KEYS OF PREDEFINED",Array.from(predefinedSetsByName.keys()))
         setShowLoader(false)
     }
 
@@ -171,13 +175,21 @@ export const OrthologySelection = (
     }, [])
 
     const addGenes = async (e) => {
-        const chosen = (selectedGeneSet==="" || !predefinedGenes.has(selectedGeneSet)) ? []:  predefinedGenes.get(selectedGeneSet)
-        const id_options = selectedIds.length === 0 ? []: selectedIds.filter(id =>{
+
+        const chosen: Array<TextOption> = (selectedGeneSet==="" || !predefinedSetsByName.has(selectedGeneSet))
+            ? new Array<TextOption>()
+            : predefinedSetsByName.get(selectedGeneSet)!.geneOptions
+
+        /*
+        const id_options: TextOption[] = selectedIds.length === 0 ? []: selectedIds.filter(id =>{
             const exist = genesById.has(id)
             if(!exist) console.warn("could not find gene ", id)
             return exist
         }).map(ensembl_id=> genesById.get(ensembl_id)!.asTextOption)
+        */
+
         const unique_genes = _.unionWith(selectedGenes.concat(chosen as Array<TextOption>), _.isEqual)
+        console.log("UNIQUE GENES ARE ", unique_genes)
         await setSelectedGenes(unique_genes)
     }
 
@@ -207,7 +219,6 @@ export const OrthologySelection = (
                                 </Divider>
                                 You can search genes by their names name
                                 <Select
-
                                         placeholder="Search gene symbols"
                                         multi
                                         options={selectedGenesOptions}

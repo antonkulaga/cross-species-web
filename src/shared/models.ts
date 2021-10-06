@@ -35,10 +35,18 @@ export class TextOption{
 }
  */
 
-export class GenesOption extends TextOption{
-    constructor(key, set_name: string, public genes: Array<Gene>) {
-        super(key, set_name, key, key);
+/**
+ * Option for predefined sets selection
+ */
+export class GeneSetOption extends TextOption{
+    constructor(set_name: string, value: string, public genes: Array<Gene>) {
+        super(set_name, value, set_name, value);
     }
+
+    get geneOptions(){
+        return this.genes.map(g=>g.asTextOption)
+    }
+
 }
 
 export class SelectResults{
@@ -221,12 +229,26 @@ export class Expressions{
 
 export class GeneResults {
     constructor(
-    public max_linear_r2: number,
     public gene: string,
-    public rank: number,
     public label: string,
+    public rank: number,
+    public max_linear_r2: number,
     public relative_frequency: number
     ) {
+    }
+
+    get asGene() {
+        return new Gene(this.gene, this.label)
+    }
+
+    static fromBinding(bindings: OrderedMap<string, any>){
+        return new GeneResults(
+            bindings.get("gene").replace(RDF_PREFIX, '')!,
+            bindings.get("label")!,
+            bindings.get("rank")!,
+            bindings.get("max_linear_r2")!,
+            bindings.get("relative_frequency")!
+        )
     }
 }
 

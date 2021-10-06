@@ -5,7 +5,8 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
-import {Gene} from "../shared/models";
+import {Gene, GeneResults, GeneSetOption, SelectResults} from "../shared/models";
+import {string} from "prop-types";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
 const graph_db_repository =process.env.GRAPH_REPO || "ensembl"
@@ -101,10 +102,22 @@ app.get('/api/samples', async (req, res, next) => {
     res.send(result);
 });
 
-app.get("/api/gene_sets", async (req, res, next) => {
+app.get("/api/gene_results", async (req, res, next) => {
     const result = await repo.ranked_results()
 
     res.send(result);
+});
+
+app.get("/api/gene_sets", async (req, res, next) => {
+    const selectResults6 = await repo.ranked_results(6)
+    const result6 = selectResults6.map((value) =>GeneResults.fromBinding(value))
+    const selectResults30 = await repo.ranked_results(30)
+    const result30 = selectResults30.map((value) =>GeneResults.fromBinding(value))
+    const genesOptions = [
+        new GeneSetOption("Top 6 results","ranked_results_6", result6.map(r=> r.asGene)),
+        new GeneSetOption("Top 30 results", "ranked_results_30", result30.map(r=>  r.asGene))
+    ]
+    res.send(genesOptions);
 });
 
 
