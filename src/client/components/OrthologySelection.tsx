@@ -20,6 +20,7 @@ import Select from "react-dropdown-select";
 import _ from "lodash";
 import {OrderedMap, OrderedSet, fromJS} from "immutable";
 import {Gene, GeneResults, GeneSetOption, Sample, Species, TextOption} from "../../shared/models";
+import {plainToClass} from "class-transformer";
 
 //import GENAGE_GENES_PRO from './data/genage_genes_pro.json'
 //import GENAGE_GENES_ANTI from './data/genage_genes_anti.json'
@@ -77,12 +78,12 @@ export const OrthologySelection = (
      * @param organism
      */
     const getReferenceOrgGenes = async (organism: string): Promise<Array<Gene>> => {
-        return await fetch(`/api/all_genes/${organism}`).then(res => res.json())
+        return await fetch(`/api/all_genes/${organism}`).then(res => res.json()).then(res=> plainToClass(Gene, res))
     }
 
     const onChangePredefinedGenes = async (e, target) => {
         const gene_set = target.value
-        console.log("onChangePredefinedGenes", gene_set)
+        console.log(" setSelectedGeneSet", gene_set)
         await setSelectedGeneSet(gene_set)
     }
 
@@ -105,7 +106,7 @@ export const OrthologySelection = (
     const onSearchGenes = (values) => {
 
         const searchTxt = (values.state.search).toUpperCase();
-        console.log(searchTxt)
+        console.log("search genes", searchTxt)
         //let searchTxt = search.toUpperCase(); //TODO fix
         if (searchTxt.length > 1 && lastSearchGenes !== searchTxt) {
             setLastSearchGenes(searchTxt)
@@ -151,6 +152,11 @@ export const OrthologySelection = (
         }
     }
 
+    const fetchGeneSets = async(): Promise<Array<GeneSetOption>> => {
+        return  fetch('/api/gene_sets')
+            .then(res => res.json())
+            .then(res=> plainToClass(GeneSetOption, res))
+    }
 
     /**
      * Loads predefined
@@ -160,13 +166,11 @@ export const OrthologySelection = (
         forceUpdate();
         await applyReferenceOrganism('Homo_sapiens')
         console.log("LOADING PREDEFINED OPTIONS")
-        const predefined_options : Array<GeneSetOption> = await fetch('/api/gene_sets').then(res => res.json())
+        const predefined_options : Array<GeneSetOption> = await fetchGeneSets()
         console.log("predefined_options ", predefined_options )
-        //const predefined =  OrderedMap<string, TextOption>([new TextOption("gene_results", "top_results", "top_results", "top_results")])
-        // OrderedMap(gene_sets.map(value => [value.key, value]))
-        setPredefinedSetsByName( OrderedMap(predefined_options.map(v=>[v.value, v])) )
+        const byName = OrderedMap(predefined_options.map(v=>[v.id, v]))
         await setPredefinedSets(predefined_options)
-        console.log("KEYS OF PREDEFINED",Array.from(predefinedSetsByName.keys()))
+        await setPredefinedSetsByName( byName )
         setShowLoader(false)
     }
 
@@ -176,9 +180,17 @@ export const OrthologySelection = (
 
     const addGenes = async (e) => {
 
-        const chosen: Array<TextOption> = (selectedGeneSet==="" || !predefinedSetsByName.has(selectedGeneSet))
-            ? new Array<TextOption>()
-            : predefinedSetsByName.get(selectedGeneSet)!.geneOptions
+        let chosen: Array<TextOption>;
+        if (selectedGeneSet === "" || !predefinedSetsByName.has(selectedGeneSet)) {
+            chosen = new Array<TextOption>();
+        } else {
+            const geneSet = predefinedSetsByName.get(selectedGeneSet)!
+            console.log("selectedGeneSet", selectedGeneSet)
+            console.log("geneSet", geneSet)
+            console.log("geneSetOptions", geneSet.geneOptions)
+            console.log("geneSetOptionsManuals", geneSet.genes.map(g=>g.asTextOption))
+            chosen = geneSet.geneOptions;
+        }
 
         /*
         const id_options: TextOption[] = selectedIds.length === 0 ? []: selectedIds.filter(id =>{
@@ -189,7 +201,6 @@ export const OrthologySelection = (
         */
 
         const unique_genes = _.unionWith(selectedGenes.concat(chosen as Array<TextOption>), _.isEqual)
-        console.log("UNIQUE GENES ARE ", unique_genes)
         await setSelectedGenes(unique_genes)
     }
 

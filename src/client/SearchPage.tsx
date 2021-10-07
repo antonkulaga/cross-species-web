@@ -39,6 +39,7 @@ import OrthologySelection from "./components/OrthologySelection";
 import OrthologyTable from "./components/OrthologyTable";
 import ExpressionsView from "./components/ExpressionsView";
 import {samples} from "../server/queries";
+import {plainToClass} from "class-transformer";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
@@ -97,9 +98,9 @@ export const SearchPage = () => {
    * Function that
    * @returns {Promise<*>}
    */
-  const getSpecies = (): Promise<Array<Species>> => fetch('/api/species').then(res => res.json())
+  const getSpecies = (): Promise<Array<Species>> => fetch('/api/species').then(res => res.json()).then(res=> plainToClass(Species, res))
 
-  const getSamples = (): Promise<Array<Sample>> => fetch('/api/samples').then(res => res.json())
+  const getSamples = (): Promise<Array<Sample>> => fetch('/api/samples').then(res => res.json()).then(res=> plainToClass(Sample, res))
 
   const getSamplesAndSpecies = async () => {
     console.log('getSamplesAndSpecies request'); // remove api

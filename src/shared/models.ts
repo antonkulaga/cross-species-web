@@ -1,6 +1,7 @@
 import {string} from "prop-types";
 import {OrderedMap} from "immutable";
-
+import {Type} from "class-transformer";
+import "reflect-metadata";
 
 
 export const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
@@ -39,8 +40,15 @@ export class TextOption{
  * Option for predefined sets selection
  */
 export class GeneSetOption extends TextOption{
-    constructor(set_name: string, value: string, public genes: Array<Gene>) {
+
+    @Type(() => Gene)
+    genes: Array<Gene>
+
+    constructor(set_name: string,
+                value: string,
+                genes: Array<Gene>) {
         super(set_name, value, set_name, value);
+        this.genes = genes
     }
 
     get geneOptions(){
@@ -230,7 +238,7 @@ export class Expressions{
 export class GeneResults {
     constructor(
     public gene: string,
-    public label: string,
+    public symbol: string,
     public rank: number,
     public max_linear_r2: number,
     public relative_frequency: number
@@ -238,13 +246,13 @@ export class GeneResults {
     }
 
     get asGene() {
-        return new Gene(this.gene, this.label)
+        return new Gene(this.symbol, this.gene)
     }
 
     static fromBinding(bindings: OrderedMap<string, any>){
         return new GeneResults(
             bindings.get("gene").replace(RDF_PREFIX, '')!,
-            bindings.get("label")!,
+            bindings.get("symbol")!,
             bindings.get("rank")!,
             bindings.get("max_linear_r2")!,
             bindings.get("relative_frequency")!

@@ -1,14 +1,14 @@
 export const results_ranked_genes: (limit: number) => string = (limit = 0) => {
     return `
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        SELECT ?gene ?label ?rank ?relative_frequency ?max_linear_r2 where { 
+        SELECT ?gene ?symbol ?rank ?relative_frequency ?max_linear_r2 where { 
             GRAPH <http://aging-research.group/resource/paper_1_results> {?gene <http://aging-research.group/resource/has_analysis_rank> ?rank} .        
             ?gene <http://aging-research.group/resource/mean_abs_shap> ?mean_abs_shap .
             ?gene <http://aging-research.group/resource/mean_kendall_tau> ?mean_kendall_tau .
             ?gene <http://aging-research.group/resource/MLS_influence> ?MLS_influence .
             ?gene <http://aging-research.group/resource/relative_frequency> ?relative_frequency .
             ?gene <http://aging-research.group/resource/max_linear_r2> ?max_linear_r2 .
-            ?gene rdfs:label ?label .
+            ?gene rdfs:label ?symbol .
         } ORDER BY ?rank ${limit === 0 ? "" : "LIMIT "+ limit}    
         `
 }
