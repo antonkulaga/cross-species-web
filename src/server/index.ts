@@ -5,7 +5,7 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
-import {Gene, GeneResults, GeneSetOption, SelectResults} from "../shared/models";
+import {Gene, GeneResults, GeneSetOption, Sample, SelectResults, Species} from "../shared/models";
 import {string} from "prop-types";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
@@ -41,9 +41,15 @@ const diskCache = cacheManager.caching({
 
 app.get('/api/username', (req, res) => res.send({ username: os.userInfo().username }));
 
+const getAllSpecies = async (): Promise<Array<Species>> => {
+    return diskCache.wrap("species" /* cache key */, async () => {
+        return await repo.species();
+    });
+}
+
 app.get('/api/species', async (req, res, next) => {
     console.log('/api/species');
-    const result = await repo.species();
+    const result = await getAllSpecies();
     res.send(result);
 });
 
@@ -97,8 +103,14 @@ app.post('/api/orthology_one2many', async (req, res, next) => {
     res.send(result);
 });
 
+const getAllSamples = async (): Promise<Array<Sample>> => {
+    return diskCache.wrap("samples" /* cache key */, async () => {
+        return await repo.samples();
+    });
+}
+
 app.get('/api/samples', async (req, res, next) => {
-    const result = await repo.samples();
+    const result = await getAllSamples()
     res.send(result);
 });
 
@@ -108,15 +120,22 @@ app.get("/api/gene_results", async (req, res, next) => {
     res.send(result);
 });
 
+const getGeneSets = async (): Promise<Array<GeneSetOption>> => {
+    return diskCache.wrap("gene_sets" /* cache key */, async () => {
+        const selectResults6 = await repo.ranked_results(6)
+        const result6 = selectResults6.map((value) =>GeneResults.fromBinding(value))
+        const selectResults30 = await repo.ranked_results(30)
+        const result30 = selectResults30.map((value) =>GeneResults.fromBinding(value))
+        const genesOptions = [
+            new GeneSetOption("Top 6 results","ranked_results_6", result6.map(r=> r.asGene)),
+            new GeneSetOption("Top 30 results", "ranked_results_30", result30.map(r=>  r.asGene))
+        ]
+        return genesOptions
+    });
+}
+
 app.get("/api/gene_sets", async (req, res, next) => {
-    const selectResults6 = await repo.ranked_results(6)
-    const result6 = selectResults6.map((value) =>GeneResults.fromBinding(value))
-    const selectResults30 = await repo.ranked_results(30)
-    const result30 = selectResults30.map((value) =>GeneResults.fromBinding(value))
-    const genesOptions = [
-        new GeneSetOption("Top 6 results","ranked_results_6", result6.map(r=> r.asGene)),
-        new GeneSetOption("Top 30 results", "ranked_results_30", result30.map(r=>  r.asGene))
-    ]
+    const genesOptions = await getGeneSets()
     res.send(genesOptions);
 });
 

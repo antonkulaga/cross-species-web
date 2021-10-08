@@ -16,7 +16,7 @@ import {
     TextArea,
     Button
 } from 'semantic-ui-react'
-import Select from "react-dropdown-select";
+import Select, {SelectRenderer} from "react-dropdown-select";
 import _ from "lodash";
 import {OrderedMap, OrderedSet, fromJS} from "immutable";
 import {Gene, GeneResults, GeneSetOption, Sample, Species, TextOption} from "../../shared/models";
@@ -29,8 +29,8 @@ import {plainToClass} from "class-transformer";
 
 type OrthologySelectionInput = {
     children?: JSX.Element | JSX.Element[],
-    selectedGenes: Array<TextOption>,
-    setSelectedGenes: Dispatch<SetStateAction<Array<TextOption>>>,
+    selectedGenes: Array<Gene>,
+    setSelectedGenes: Dispatch<SetStateAction<Array<Gene>>>,
     organismList: Array<TextOption>,
     selectedRows: Array<Sample>,
     setShowLoader: Dispatch<SetStateAction<boolean>>,
@@ -54,18 +54,19 @@ export const OrthologySelection = (
 
     const LIMIT = 100
 
-
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
-    const [allReferenceGenes, setAllReferenceGenes] =  useState(OrderedMap<string, TextOption>())
 
-    const [selectedGenesOptions, setSelectedGenesOptions] = useState(new Array<TextOption>())
+   const [geneSuggestions, setGeneSuggestions] = useState(new Array<Gene>())
+
+    //const [referenceGenes, setReferenceGenes] = useState(new Array<Gene>())
+
 
     const [predefinedSets, setPredefinedSets] = useState(new Array<GeneSetOption>())
     const [predefinedSetsByName, setPredefinedSetsByName] = useState(OrderedMap<string, GeneSetOption>())
 
     const [selectedGeneSet, setSelectedGeneSet] = useState('')
 
-    const [selectedIds, setSelectedIds] = useState(new Array<string>())
+    //const [selectedIds, setSelectedIds] = useState(new Array<string>())
 
     const [, updateState] = React.useState({});
     const forceUpdate = React.useCallback(() => updateState({}), []);
@@ -83,37 +84,42 @@ export const OrthologySelection = (
 
     const onChangePredefinedGenes = async (e, target) => {
         const gene_set = target.value
-        console.log(" setSelectedGeneSet", gene_set)
+        console.log("onChangePredefinedGenes", gene_set)
         await setSelectedGeneSet(gene_set)
     }
 
 
     const handleChangeTextarea = async (e, target) => {
         const ids = (e.target.value).replace('\n', ',').split(',').map(g=>g.trim())
-        await setSelectedIds(ids)
+        console.error("setSelectedIds not yet working")
+        //await setSelectedIds(ids)
     }
 
-    const onChangeGenes = async (values) => {
+    const onChangeGenes = async (values: Array<Gene>) => {
         if(values!==selectedGenes){
             console.log('onChangeGenes', values);
             await setSelectedGenes(values)
-            console.log("selected genes by names = ", selectedGenes)
-            setSelectedGenesOptions([])
+            //console.log("selected genes by names = ", selectedGenes)
+            setGeneSuggestions(new Array<Gene>())
+            //setSelectedGenesOptions([])
+        } else {
+            console.log('onChangeGenes', "NO CHANGES", values);
         }
     }
 
     //{ props, state, methods }: SelectRenderer<T>) => T[]
-    const onSearchGenes = (values) => {
+    const onSearchGenes = ({props, state, methods}: SelectRenderer<Gene>): Array<Gene> => {
 
-        const searchTxt = (values.state.search).toUpperCase();
-        console.log("search genes", searchTxt)
+        const searchTxt = (state.search).toUpperCase();
         //let searchTxt = search.toUpperCase(); //TODO fix
         if (searchTxt.length > 1 && lastSearchGenes !== searchTxt) {
             setLastSearchGenes(searchTxt)
-            const suggested = allReferenceGenes.filter((value, key) => key.toUpperCase().includes(searchTxt)).take(LIMIT)
-            const options = Array.from(suggested.values())
-            setSelectedGenesOptions(options)
-        }
+            const suggested = genesBySymbol.filter((option, symbol) => symbol.toUpperCase().includes(searchTxt)).take(LIMIT)
+            const genes = suggested.valueSeq().toArray()
+            console.log("found genes", genes)
+            //setGeneSuggestions(genes)
+            return genes
+        } else return new Array<Gene>()
     }
 
     /**
@@ -123,6 +129,7 @@ export const OrthologySelection = (
      */
     const applyReferenceOrganism = async (organism) => {
         setShowLoader(true)
+        console.log("apply reference organism")
         setSelectedOrganism(organism)
         const genes: Array<Gene> = await getReferenceOrgGenes(organism)
         const genesBySymbol = OrderedMap<string,Gene>(genes.map(gene =>
@@ -137,10 +144,6 @@ export const OrthologySelection = (
             ]))
         setGenesBySymbol(genesBySymbol)
         setGenesById(genesById)
-        //now we have to update genes text options
-        await setAllReferenceGenes(OrderedMap(genesBySymbol.map(
-            (gene, id) => gene.asTextOption
-        )))
         setShowLoader(false)
     }
 
@@ -155,7 +158,7 @@ export const OrthologySelection = (
     const fetchGeneSets = async(): Promise<Array<GeneSetOption>> => {
         return  fetch('/api/gene_sets')
             .then(res => res.json())
-            .then(res=> plainToClass(GeneSetOption, res))
+            .then(res => plainToClass(GeneSetOption, res))
     }
 
     /**
@@ -168,7 +171,7 @@ export const OrthologySelection = (
         console.log("LOADING PREDEFINED OPTIONS")
         const predefined_options : Array<GeneSetOption> = await fetchGeneSets()
         console.log("predefined_options ", predefined_options )
-        const byName = OrderedMap(predefined_options.map(v=>[v.id, v]))
+        const byName = OrderedMap(predefined_options.map(v=>[v.value, v]))
         await setPredefinedSets(predefined_options)
         await setPredefinedSetsByName( byName )
         setShowLoader(false)
@@ -180,16 +183,14 @@ export const OrthologySelection = (
 
     const addGenes = async (e) => {
 
-        let chosen: Array<TextOption>;
+        let chosen: Array<Gene>;
         if (selectedGeneSet === "" || !predefinedSetsByName.has(selectedGeneSet)) {
-            chosen = new Array<TextOption>();
+            chosen = new Array<Gene>();
+            console.log("predefined sets do not have", selectedGeneSet, "the sets are", predefinedSetsByName.keySeq().toArray())
         } else {
             const geneSet = predefinedSetsByName.get(selectedGeneSet)!
-            console.log("selectedGeneSet", selectedGeneSet)
-            console.log("geneSet", geneSet)
-            console.log("geneSetOptions", geneSet.geneOptions)
-            console.log("geneSetOptionsManuals", geneSet.genes.map(g=>g.asTextOption))
-            chosen = geneSet.geneOptions;
+            console.log("geneSetOptionsManuals", geneSet.genes)
+            chosen = geneSet.genes;
         }
 
         /*
@@ -200,7 +201,7 @@ export const OrthologySelection = (
         }).map(ensembl_id=> genesById.get(ensembl_id)!.asTextOption)
         */
 
-        const unique_genes = _.unionWith(selectedGenes.concat(chosen as Array<TextOption>), _.isEqual)
+        const unique_genes = _.unionWith(selectedGenes.concat(chosen), _.isEqual)
         await setSelectedGenes(unique_genes)
     }
 
@@ -228,14 +229,18 @@ export const OrthologySelection = (
                                         Select genes in the chosen references organism:
                                     </Header>
                                 </Divider>
-                                You can search genes by their names name
+                                You can search genes by their names
                                 <Select
                                         placeholder="Search gene symbols"
                                         multi
-                                        options={selectedGenesOptions}
-                                        name="select"
+                                        clearable={true}
+                                        options={geneSuggestions}
+                                        labelField="symbol"
+                                        valueField="ensembl_id"
                                         values={selectedGenes}
-                                        searchFn={onSearchGenes as any}
+                                        searchBy={"symbol"}
+                                        searchable={true}
+                                        searchFn={onSearchGenes}
                                         onChange={onChangeGenes}
                                 />
                             </Grid.Column>

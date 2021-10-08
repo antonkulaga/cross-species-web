@@ -65,7 +65,7 @@ export const SearchPage = () => {
 
   const [organismList, setOrganismList] =useState(new Array<TextOption>())
 
-  const [selectedGenes, setSelectedGenes] = useState(new Array<TextOption>())
+  const [selectedGenes, setSelectedGenes] = useState(new Array<Gene>())
 
 
   const [data, setData] = useState([])
