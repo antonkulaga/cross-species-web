@@ -79,9 +79,9 @@ export const SearchPage = () => {
   };
   const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.id)
 
-  const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap<string, Gene>())
-  const [genesById, setGenesById] = useState(OrderedMap<string, Gene>())
-
+  //const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap<string, Gene>())
+  //const [genesById, setGenesById] = useState(OrderedMap<string, Gene>())
+  const [referenceGenes, setReferenceGenes] = useState(new Array<Gene>())
 
   //const [genesMap, setGenesMap] = useState([])
   //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
@@ -203,11 +203,9 @@ export const SearchPage = () => {
                 selectedOrganism={selectedOrganism}
                 setSelectedOrganism={setSelectedOrganism}
                 organismList={organismList}
-                selectedRows={selectedRows}
                 setShowLoader={setShowLoader}
+                referenceGenes={referenceGenes} setReferenceGenes={setReferenceGenes}
                 selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
-                genesBySymbol={genesBySymbol} setGenesBySymbol={setGenesBySymbol}
-                genesById={genesById} setGenesById={setGenesById}
             >
             </OrthologySelection>
           </Step.Content>

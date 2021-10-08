@@ -5,7 +5,7 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
-import {Gene, GeneResults, GeneSetOption, Sample, SelectResults, Species} from "../shared/models";
+import {Gene, GeneResults, GeneSet, Sample, SelectResults, Species} from "../shared/models";
 import {string} from "prop-types";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
@@ -120,15 +120,15 @@ app.get("/api/gene_results", async (req, res, next) => {
     res.send(result);
 });
 
-const getGeneSets = async (): Promise<Array<GeneSetOption>> => {
+const getGeneSets = async (): Promise<Array<GeneSet>> => {
     return diskCache.wrap("gene_sets" /* cache key */, async () => {
         const selectResults6 = await repo.ranked_results(6)
         const result6 = selectResults6.map((value) =>GeneResults.fromBinding(value))
         const selectResults30 = await repo.ranked_results(30)
         const result30 = selectResults30.map((value) =>GeneResults.fromBinding(value))
         const genesOptions = [
-            new GeneSetOption("Top 6 results","ranked_results_6", result6.map(r=> r.asGene)),
-            new GeneSetOption("Top 30 results", "ranked_results_30", result30.map(r=>  r.asGene))
+            new GeneSet("ranked_results_6", "Top 6 results", result6.map(r=> r.asGene)),
+            new GeneSet("ranked_results_30","Top 30 results", result30.map(r=>  r.asGene))
         ]
         return genesOptions
     });

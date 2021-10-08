@@ -19,11 +19,7 @@ export type StringMap = OrderedMap<string, string>
 
 
 export class TextOption{
-    name: string
-    id: string
     constructor(public key: string, public value: string, public text: string) {
-        this.name = key
-        this.id = value
     }
 
     static fromSpecies(species: Species)  {
@@ -40,30 +36,18 @@ export class TextOption{
 }
  */
 
-/**
- * Option for predefined sets selection
- */
-export class GeneSetOption extends TextOption{
+export class GeneSet extends TextOption{
 
     @Type(() => Gene)
     genes: Array<Gene>
 
     constructor(set_name: string,
-                value: string,
+                text: string,
                 genes: Array<Gene>) {
-        super(set_name, value, set_name);
-        this.id = this.value
-        this.name = set_name
+        super(text, set_name, text);
         this.genes = genes
     }
-
-    @Type(() => TextOption)
-    get geneOptions(){
-        return this.genes.map(g=>g.asTextOption)
-    }
-
 }
-
 export class SelectResults{
     keys: Array<string>
     constructor(public bindings: Array<StringMap>) {
@@ -269,22 +253,13 @@ export class GeneResults {
 
 export class Gene{
 
-    static fromTextOption(option: TextOption){
-        return new Gene(option.value, option.key)
-    }
-
-    constructor(public ensembl_id: string, public symbol: string) {
-    }
+   constructor(public ensembl_id: string, public symbol: string) {}
 
     get ensembl_short(){
         return this.ensembl_id.replace('http://rdf.ebi.ac.uk/resource/ensembl/', "")
     }
-
-
-    get asTextOption(){
-        return new TextOption(
-            this.symbol, this.ensembl_short, this.symbol
-        )
+    get text(){
+        return this.symbol + " (" + this.ensembl_short + ")"
     }
 
     static fromBinding(bindings: StringMap){
