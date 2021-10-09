@@ -25,7 +25,7 @@ import { create, all } from 'mathjs'
 
 const config = { }
 const math = create(all, config)
-import {Species, Sample, Orthology, Gene, SelectResults, StringMap, TextOption} from "../shared/models";
+import {Species, Sample, Orthology, Gene, SelectResults, StringMap, TextOption, OrthologyData} from "../shared/models";
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
@@ -87,12 +87,9 @@ export const SearchPage = () => {
   //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
 
 
-  const [orthologyData, setOrthologyData] = useState({
-    genes: [],
-    species: [],
-    orthology_types: [],
-    orthology_table: {}
-  })
+  const [orthologyData, setOrthologyData] = useState(
+      new OrthologyData([], [], [], OrderedMap())
+  )
 
   /**
    * Function that
@@ -208,6 +205,22 @@ export const SearchPage = () => {
                 selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
             >
             </OrthologySelection>
+          </Step.Content>
+        </Step>
+        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
+          <Icon name='dna' />
+          <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
+            <Step.Title><Header>Load ortholog genes</Header></Step.Title>
+            <OrthologyTable
+                selectedRows = {selectedRows}
+                selectedOrganism = {selectedOrganism}
+                selectedSpecies={selectedSpecies}
+                orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
+                selectedGenes = {selectedGenes}
+                setShowLoader={setShowLoader}
+                autoSizeAll={autoSizeAll}
+            >
+            </OrthologyTable>
           </Step.Content>
         </Step>
 

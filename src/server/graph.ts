@@ -1,8 +1,18 @@
 import * as graphdb from "graphdb"
 import "immutable"
-import {fromJS, OrderedMap, Seq, List} from "immutable";
+import {fromJS, OrderedMap, Seq, List, Collection} from "immutable";
 import * as Query from "./queries"
-import {SelectResults, Species, StringMap, Sample, Orthology, Expressions, Gene, GeneResults} from "../shared/models"
+import {
+    SelectResults,
+    Species,
+    StringMap,
+    Sample,
+    Orthology,
+    Expressions,
+    Gene,
+    GeneResults,
+    OrthologyData
+} from "../shared/models"
 import {Term, Literal, NamedNode, BlankNode} from "n3";
 const {RDFMimeType} = graphdb.http;
 const {RepositoryClientConfig, RDFRepositoryClient} = graphdb.repository
@@ -105,14 +115,14 @@ export class GraphRepository {
 
     /**
      * Returnes the list of Orhotologous genes for the genes spcified
-     * @param genes
+     * @param genes ensembl ids of the genes
      * @param species
      * @param orthologyTypes
      */
-    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes): Promise<List<Orthology>> {
+    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes): Promise<Array<Orthology>> {
         const queryString: string = Query.orthology(genes, species, orthologyTypes)
         const result = await this.select_query(queryString)
-        return List.of(...result.map(b=>Orthology.fromBinding(b)))
+        return result.map(b=>Orthology.fromBinding(b))
     }
 
     /**
@@ -121,16 +131,9 @@ export class GraphRepository {
      * @param species
      * @param orthologyTypes
      */
-    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes){
-        const results = await this.orthology(genes,species,orthologyTypes)
-        const grouped = results.groupBy( item => item.selected_gene).map((values, key) => values.groupBy(v=>v.target_species))
-        return ({
-            genes: genes,
-            species: species,
-            orthology_types: orthologyTypes,
-            orthology_table: grouped// dictionary.toJS()
-        })
-        //TODO: figure out
+    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
+        const results: Array<Orthology> = await this.orthology(genes,species,orthologyTypes)
+        return OrthologyData.fromOrthologyData(genes, species, orthologyTypes, results)
     }
 
 }

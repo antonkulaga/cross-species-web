@@ -1,5 +1,5 @@
 import {string} from "prop-types";
-import {OrderedMap} from "immutable";
+import {Collection, List, OrderedMap} from "immutable";
 import {Type} from "class-transformer";
 import "reflect-metadata";
 
@@ -40,11 +40,13 @@ export class GeneSet extends TextOption{
 
     @Type(() => Gene)
     genes: Array<Gene>
+    key: string
 
     constructor(set_name: string,
                 text: string,
                 genes: Array<Gene>) {
         super(text, set_name, text);
+        this.key = set_name
         this.genes = genes
     }
 }
@@ -267,6 +269,36 @@ export class Gene{
             bindings.get<string>("gene", "").replace(RDF_PREFIX, ''),
             bindings.get<string>("symbol", "").replace(LAB_RESOURCE_PREFIX, ''),
         )
+    }
+}
+
+export class OrthologyData{
+
+    static fromOrthologyData(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>, results: Array<Orthology>) {
+        const grouped =  List.of(...results) //for the sake of groupBy
+            .groupBy<string>( item => item.selected_gene)
+            .map((values, key: string) =>
+                values.toList()
+                    .groupBy<string>(v=>v.target_species)
+                    .toOrderedMap()
+                    .map((v, k) => v.toList())
+            ).toOrderedMap()
+        return new OrthologyData(genes, species, orthologyTypes, grouped )//TODO: figure out types
+    }
+
+    @Type(() => OrderedMap)
+    orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>> | any
+
+    constructor(
+        //public genes: Array<Gene> = [],
+        //public species: Array<Species> = [],
+        public genes: Array<string> = [],
+        public species: Array<string> = [],
+        public orthology_types: Array<string> = [],
+        orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
+    )
+    {
+        this.orthology_table = orthology_table
     }
 }
 

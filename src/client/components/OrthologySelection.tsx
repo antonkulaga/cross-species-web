@@ -81,16 +81,9 @@ export const OrthologySelection = (
             const to_add = _.difference(values, selectedGeneSets).flatMap(s=>s.genes)
 
             const updated_genes = _.unionWith(selectedGenes.filter(g=>to_delete.includes(g)).concat(to_add), _.isEqual)
+            setSelectedGeneSets(values)
             setSelectedGenes(updated_genes)
         }
-    }
-
-
-
-    const handleChangeTextarea = async (e, target) => {
-        //const ids = (e.target.value).replace('\n', ',').split(',').map(g=>g.trim())
-        console.error("setSelectedIds not yet working")
-        //await setSelectedIds(ids)
     }
 
     const onChangeGenes = async (values: Array<Gene>) => {
@@ -185,6 +178,7 @@ export const OrthologySelection = (
                                     selection
                                     options={organismList}
                                     value={selectedOrganism}
+                                    key={selectedOrganism}
                                     onChange={onChangeOrganism}
                                 />
                                 The reference organism (Human by default) is used as a reference point to select your genes of interest.
@@ -202,6 +196,7 @@ export const OrthologySelection = (
                                 options={predefinedGeneSets}
                                 labelField="text"
                                 valueField="set_name"
+                                key={"gene_sets"}
                                 values={selectedGeneSets}
                                 onChange={onChangeGeneSets}
                             />

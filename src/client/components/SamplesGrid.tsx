@@ -17,8 +17,9 @@ import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import {Button, Icon, Table, Divider, Header, Segment} from "semantic-ui-react";
 import {Sample} from "../../shared/models";
+import { ColDef } from 'ag-grid-community';
 
-const samplesColumnDefs = [
+const samplesColumnDefs: Array<ColDef> = [
     {
         headerName: 'Sample',
         field: 'run',

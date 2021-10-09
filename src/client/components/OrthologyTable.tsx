@@ -1,9 +1,23 @@
-import React, {useState, useEffect, useCallback, useReducer } from 'react'
+import React, {useState, useEffect, useCallback, useReducer, Dispatch, SetStateAction} from 'react'
 import {List, fromJS, OrderedMap, OrderedSet} from "immutable"
 import {Button, Divider, Dropdown, Header, Icon, Image, Radio, Segment, Step, Tab, Table} from 'semantic-ui-react'
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
+import {Gene, Orthology, OrthologyData, Sample, Species} from "../../shared/models";
+import {ColDef, GridApi} from "ag-grid-community";
+import {plainToClass} from "class-transformer";
+
+type OrthologTableInputs = {
+    children?: JSX.Element | JSX.Element[],
+    selectedRows: Array<Sample>
+    selectedSpecies: Array<Species>
+    selectedGenes: Array<Gene>
+    setShowLoader: Dispatch<SetStateAction<boolean>>
+    selectedOrganism: string
+    orthologyData: OrthologyData, setOrthologyData: Dispatch<SetStateAction<OrthologyData>>
+    autoSizeAll: (value: any) => void
+}
 
 export const OrthologyTable = ({
                                    selectedRows,
@@ -13,13 +27,13 @@ export const OrthologyTable = ({
                                    selectedGenes,
                                    setShowLoader,
                                    selectedOrganism
-                               }
+                               }: OrthologTableInputs
 ) => {
 
-    const [orthologyRows, setOrthologyRows] = useState([])
-    const [orthologyGridApi, setOrthologyGridApi] = useState(null)
+    const [orthologyRows, setOrthologyRows] = useState(new Array<OrthologyData>())
+    const [orthologyGridApi, setOrthologyGridApi] = useState<GridApi>({} as any)
     const [bySymbol, setBySymbol] = useState(false)
-    const baseOrthologyColumnDefs = [
+    const baseOrthologyColumnDefs: Array<ColDef> = [
         {
             headerName: selectedOrganism.replace("_", " "),
             field: selectedOrganism,
@@ -43,7 +57,7 @@ export const OrthologyTable = ({
         // floatingFilter: true
     };
 
-    const [orthologyColumnDefs, setOrthologyCoolumnDefs] = useState(baseOrthologyColumnDefs)
+    const [orthologyColumnDefs, setOrthologyCoolumnDefs] = useState<Array<ColDef>>(baseOrthologyColumnDefs)
 
     const [showOrthology, setShowOrthology] = useState(false)
     //const [genesFromOrthology, setGenesFromOrthology] = useState([])
@@ -54,20 +68,26 @@ export const OrthologyTable = ({
 
 
     useEffect(()=>{
-        setOrthologyCoolumnDefs(baseOrthologyColumnDefs.concat(
-            selectedSpecies.filter(species => species.organism !== selectedOrganism).map(species => ({
-                headerName: species.organism,
-                field: species.organism,
+        //TODO: improve types
+        const renderedSpecies: Array<any> =  selectedSpecies
+            .filter(species => species.species !== selectedOrganism)
+            .map(species => ({
+                headerName: species.species,
+                field: species.species,
                 cellRenderer: function(params) {
-                    return '<a href="https://www.ensembl.org/'+ species.organism +'/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
+                    return '<a href="https://www.ensembl.org/'+ species.species +'/Gene/Summary?db=core;g=' + params.value+ '">'+ params.value+'</a>'
                 }
             }))
-        ))
+        setOrthologyCoolumnDefs(baseOrthologyColumnDefs.concat(renderedSpecies))
     }, [selectedSpecies])
 
 
-    const updateOrthologyRows = (existing_genes, table) =>
+    const updateOrthologyRows = (existing_genes: Array<string>, table) =>
     {
+        console.error("updateOrthologyRows is TEMPORALLY BROKEN")
+        console.log("existing_genes are", existing_genes)
+        console.log("table is", table)
+        /*
         const rows = existing_genes.map(gene =>{
                 const item = table.get(gene)
                 return OrderedMap(orthologyData.species.map(sp=> {
@@ -82,17 +102,20 @@ export const OrthologyTable = ({
         )
         console.log("ORTHOLOGY ROWS:", rows)
         setOrthologyRows(rows)
+         */
     }
 
     useEffect(()=>{
+        /*
         if(orthologyData !==null){
             setShowOrthology(true)
             const table = fromJS(orthologyData["orthology_table"]).toOrderedMap()
-            const existing_genes = orthologyData["genes"].filter(gene=>table.has(gene))
+            const existing_genes = orthologyData.genes.filter(gene=>table.has(gene))
             updateOrthologyRows(existing_genes, table)
         } else {
             setShowOrthology(false)
         }
+         */
 
 
 
@@ -107,36 +130,48 @@ export const OrthologyTable = ({
         autoSizeAll(params.columnApi);
     }
 
-    const get_orthology_table = async () => {
-        console.log("selected organism is: ", selectedOrganism)
-        const organisms = OrderedSet(fromJS(selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism)))
-        const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
-
+    const fetch_orthology = async (reference_genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => {
         const body = JSON.stringify({
-            reference_genes: selectedGenes.map(gene => gene.key),
-            species: organisms,
+            reference_genes: reference_genes,
+            species:  species,
             orthologyTypes: orthologyTypes
         })
 
         console.log("body to send", body)
-
-        let orthologyResponse = await fetch('/api/orthology_table', {
+        return  fetch('/api/orthology', {
             method: 'post',
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
             body: body
-        });
-        return  await orthologyResponse.json()
+        })
+            .then(res => res.json())
+            .then(res=> plainToClass(Orthology, res))
+    }
+
+
+
+    const fetch_orthology_table = async (): Promise<OrthologyData> => {
+        console.log("selected organism is: ", selectedOrganism)
+        const reference_genes = selectedGenes.map(gene => gene.ensembl_short)
+        const organisms = selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism)
+        const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
+
+        const orthos =  await fetch_orthology(
+            selectedGenes.map(gene => gene.ensembl_short),
+            selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism),
+            orthologyTypes)
+        return OrthologyData.fromOrthologyData(reference_genes, organisms, orthologyTypes, orthos)
     }
 
     const loadOrthologyGenes = async () => {
         setShowLoader(true)
-        const data = await get_orthology_table()
-        await setOrthologyData(data)
+        const data = await fetch_orthology_table()
+        console.log("loadOrthologyGenes", data)
+        await setOrthologyData(data.orthology_table)
         setShowLoader(false)
-        console.log("Orthology data:", data)
+        console.log("Orthology data:", data.orthology_table.toJSON())
     }
 
     const downloadClick = () => {
@@ -162,7 +197,7 @@ export const OrthologyTable = ({
                     </div>
                 </div>
                 <Button icon color="blue" disabled={orthologyRows.length === 0} onClick={downloadClick}>
-                    <i name="download"> </i>
+                    <i className="download" id="download"> </i>
                     Download genes
                 </Button>
 
