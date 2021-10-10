@@ -87,9 +87,8 @@ export const SearchPage = () => {
   //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
 
 
-  const [orthologyData, setOrthologyData] = useState(
-      new OrthologyData([], [], [], OrderedMap())
-  )
+  const [orthologyData, setOrthologyData] = useState<OrthologyData>(OrthologyData.empty)
+
 
   /**
    * Function that

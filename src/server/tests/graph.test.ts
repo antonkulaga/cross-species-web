@@ -14,7 +14,7 @@ test('RDF graph should return orthology_table', async () => {
     console.log("request:", request)
     const {   reference_genes, species, orthologyTypes} = request;
     const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
-    expect(new Set(results.genes)).toEqual(new Set([
+    expect(new Set(results.reference_genes)).toEqual(new Set([
         "ENSG00000164362",
         "ENSG00000084676"
     ]));

@@ -2,6 +2,7 @@ import {string} from "prop-types";
 import {Collection, List, OrderedMap} from "immutable";
 import {Type} from "class-transformer";
 import "reflect-metadata";
+import {species} from "../server/queries";
 
 
 export const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
@@ -14,9 +15,22 @@ export const ORTHOLOGY_TYPES = [
     'ens:ortholog_many2many'
 ];
 
+
+
 export type StringMap = OrderedMap<string, string>
 
 
+export class RequestContent implements RequestInit{
+  
+    body: string
+    constructor(public content, public method: string = "post", public headers: HeadersInit = {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+    ) {
+        this.body = JSON.stringify(content)
+    }
+}
 
 export class TextOption{
     constructor(public key: string, public value: string, public text: string) {
@@ -274,6 +288,8 @@ export class Gene{
 
 export class OrthologyData{
 
+    static empty: OrthologyData = new OrthologyData([], [], [], OrderedMap())
+
     static fromOrthologyData(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>, results: Array<Orthology>) {
         const grouped =  List.of(...results) //for the sake of groupBy
             .groupBy<string>( item => item.selected_gene)
@@ -287,18 +303,39 @@ export class OrthologyData{
     }
 
     @Type(() => OrderedMap)
-    orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>> | any
+    orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
 
     constructor(
         //public genes: Array<Gene> = [],
         //public species: Array<Species> = [],
-        public genes: Array<string> = [],
+        public reference_genes: Array<string> = [],
         public species: Array<string> = [],
         public orthology_types: Array<string> = [],
         orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
     )
     {
         this.orthology_table = orthology_table
+    }
+
+    get isEmpty(){
+        return this.reference_genes.length == 0 || this.species.length ==0
+    }
+
+    makeRows(selectedOrganism: string){
+        return this.reference_genes.map(gene =>{
+                const item = this.orthology_table.get(gene)!
+                const rows: Array<Object> = this.species.map(sp=> {
+                    if(sp == selectedOrganism) return {sp: gene}; else
+                    if(item.has(sp))
+                    {
+                        const ortho: Array<Orthology> = item.get(sp)!.toArray(); //getting ortholog genes for the species
+                        return { sp: ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")}
+                    }
+                    else return {sp: "N/A"}
+                })
+                return rows
+            }
+        )
     }
 }
 

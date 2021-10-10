@@ -4,7 +4,7 @@ import {Button, Divider, Dropdown, Header, Icon, Image, Radio, Segment, Step, Ta
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
-import {Gene, Orthology, OrthologyData, Sample, Species} from "../../shared/models";
+import {Gene, Orthology, OrthologyData, RequestContent, Sample, Species} from "../../shared/models";
 import {ColDef, GridApi} from "ag-grid-community";
 import {plainToClass} from "class-transformer";
 
@@ -30,7 +30,7 @@ export const OrthologyTable = ({
                                }: OrthologTableInputs
 ) => {
 
-    const [orthologyRows, setOrthologyRows] = useState(new Array<OrthologyData>())
+    const [orthologyRows, setOrthologyRows] = useState(new Array<Object>())
     const [orthologyGridApi, setOrthologyGridApi] = useState<GridApi>({} as any)
     const [bySymbol, setBySymbol] = useState(false)
     const baseOrthologyColumnDefs: Array<ColDef> = [
@@ -69,7 +69,7 @@ export const OrthologyTable = ({
 
     useEffect(()=>{
         //TODO: improve types
-        const renderedSpecies: Array<any> =  selectedSpecies
+        const renderedSpecies: Array<ColDef>=  selectedSpecies
             .filter(species => species.species !== selectedOrganism)
             .map(species => ({
                 headerName: species.species,
@@ -81,71 +81,32 @@ export const OrthologyTable = ({
         setOrthologyCoolumnDefs(baseOrthologyColumnDefs.concat(renderedSpecies))
     }, [selectedSpecies])
 
-
-    const updateOrthologyRows = (existing_genes: Array<string>, table) =>
-    {
-        console.error("updateOrthologyRows is TEMPORALLY BROKEN")
-        console.log("existing_genes are", existing_genes)
-        console.log("table is", table)
-        /*
-        const rows = existing_genes.map(gene =>{
-                const item = table.get(gene)
-                return OrderedMap(orthologyData.species.map(sp=> {
-                    if(item.has(sp))
-                    {
-                        const ortho = item.get(sp).toJS(); //getting ortholog genes for the species
-                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")]
-                    }
-                    else return [sp, "N/A"]
-                })).set(selectedOrganism,gene).toJS()
-            }
-        )
-        console.log("ORTHOLOGY ROWS:", rows)
-        setOrthologyRows(rows)
-         */
-    }
-
-    useEffect(()=>{
-        /*
-        if(orthologyData !==null){
-            setShowOrthology(true)
-            const table = fromJS(orthologyData["orthology_table"]).toOrderedMap()
-            const existing_genes = orthologyData.genes.filter(gene=>table.has(gene))
-            updateOrthologyRows(existing_genes, table)
+    useEffect(() =>{
+        if(orthologyData.isEmpty) {
+            setOrthologyRows([])
         } else {
-            setShowOrthology(false)
+            const rows = orthologyData.makeRows(selectedOrganism)
+            setOrthologyRows(rows)
+            console.log("setOrthologyRows", rows)
         }
-         */
 
-
-
-    }, [orthologyData])
-
-
+    },[orthologyData])
 
     const onOrthologyGridReady = (params) => {
         params.api.setDomLayout('autoHeight')
         setOrthologyGridApi(params.api)
-        // this.samplesColumnApi = params.columnApi;
         autoSizeAll(params.columnApi);
     }
 
+    /**
+     * Fetches orthology information
+     * @param reference_genes reference genes ids
+     * @param species species ids
+     * @param orthologyTypes types of orthologies
+     */
     const fetch_orthology = async (reference_genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => {
-        const body = JSON.stringify({
-            reference_genes: reference_genes,
-            species:  species,
-            orthologyTypes: orthologyTypes
-        })
-
-        console.log("body to send", body)
-        return  fetch('/api/orthology', {
-            method: 'post',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: body
-        })
+        const toSend = new OrthologyData(reference_genes, species, orthologyTypes, OrderedMap())
+        return  fetch('/api/orthology', new RequestContent(toSend))
             .then(res => res.json())
             .then(res=> plainToClass(Orthology, res))
     }
@@ -167,11 +128,14 @@ export const OrthologyTable = ({
 
     const loadOrthologyGenes = async () => {
         setShowLoader(true)
-        const data = await fetch_orthology_table()
-        console.log("loadOrthologyGenes", data)
-        await setOrthologyData(data.orthology_table)
-        setShowLoader(false)
-        console.log("Orthology data:", data.orthology_table.toJSON())
+        if(selectedGenes.length === 0 || selectedSpecies.length === 0){
+            setOrthologyData(OrthologyData.empty)
+        } else {
+            const data = await fetch_orthology_table()
+            await setOrthologyData(data)
+            setShowLoader(false)
+            console.log("Orthology data:", data.orthology_table.toJSON())
+        }
     }
 
     const downloadClick = () => {
@@ -181,7 +145,6 @@ export const OrthologyTable = ({
     const renderOrthoGrid = (value) => {
         if(value)
             return (
-
             <div id="OrthologyGrid" style={{ marginTop: '72px'}}>
             <h3 className="ui header">Orthology table (can be reordered)</h3>
                 <div className="gridHolder" style={{ height: 'calc(100% - 25px)', width: `calc(100% - 25px)` }}>

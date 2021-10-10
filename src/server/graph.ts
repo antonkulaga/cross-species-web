@@ -119,10 +119,21 @@ export class GraphRepository {
      * @param species
      * @param orthologyTypes
      */
-    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes): Promise<Array<Orthology>> {
+    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>): Promise<Array<Orthology>> {
         const queryString: string = Query.orthology(genes, species, orthologyTypes)
         const result = await this.select_query(queryString)
         return result.map(b=>Orthology.fromBinding(b))
+    }
+
+    /**
+     * Returns the orthologues as a table
+     * @param genes
+     * @param species
+     * @param orthologyTypes
+     */
+    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
+        const results: Array<Orthology> = await this.orthology(genes,species,orthologyTypes)
+        return OrthologyData.fromOrthologyData(genes, species, orthologyTypes, results)
     }
 
     /**
@@ -131,7 +142,7 @@ export class GraphRepository {
      * @param species
      * @param orthologyTypes
      */
-    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
+    async orthology_data(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
         const results: Array<Orthology> = await this.orthology(genes,species,orthologyTypes)
         return OrthologyData.fromOrthologyData(genes, species, orthologyTypes, results)
     }
