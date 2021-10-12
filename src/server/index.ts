@@ -5,7 +5,7 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
-import {Gene, GeneResults, GeneSet, Orthology, Sample, SelectResults, Species} from "../shared/models";
+import {Gene, GeneResults, GeneSet, Orthology, OrthologyData, Sample, SelectResults, Species} from "../shared/models";
 import {string} from "prop-types";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
@@ -70,14 +70,15 @@ app.get('/api/all_genes/:species', async (req, res, next) => {
 
 
 app.post('/api/orthology', async (req, res , next) => {
-    const {   reference_genes, species, orthologyTypes} = req.body;
-    const results = await repo.orthology(reference_genes, species, orthologyTypes)
+    //console.log("BODY IS:", req.body)
+    const body: OrthologyData = req.body;
+    const results = await repo.orthology(body.reference_genes, body.species, body.orthology_types)
     res.send(results)
 })
 
 app.post('/api/orthology_table', async (req, res , next) => {
-    const {   reference_genes, species, orthologyTypes} = req.body;
-    const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
+    const body: OrthologyData = req.body;
+    const results = await repo.orthology_table(body.reference_genes, body.species, body.orthology_types)
     res.send(results)
 })
 

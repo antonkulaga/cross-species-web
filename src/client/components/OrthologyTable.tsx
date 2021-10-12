@@ -84,12 +84,13 @@ export const OrthologyTable = ({
     useEffect(() =>{
         if(orthologyData.isEmpty) {
             setOrthologyRows([])
+            setShowOrthology(false)
         } else {
             const rows = orthologyData.makeRows(selectedOrganism)
+            setShowOrthology(true)
             setOrthologyRows(rows)
             console.log("setOrthologyRows", rows)
         }
-
     },[orthologyData])
 
     const onOrthologyGridReady = (params) => {
@@ -106,7 +107,9 @@ export const OrthologyTable = ({
      */
     const fetch_orthology = async (reference_genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => {
         const toSend = new OrthologyData(reference_genes, species, orthologyTypes, OrderedMap())
-        return  fetch('/api/orthology', new RequestContent(toSend))
+        const content2send = new RequestContent(toSend)
+        console.log("content to send")
+        return  fetch('/api/orthology', content2send)
             .then(res => res.json())
             .then(res=> plainToClass(Orthology, res))
     }
@@ -132,9 +135,10 @@ export const OrthologyTable = ({
             setOrthologyData(OrthologyData.empty)
         } else {
             const data = await fetch_orthology_table()
+            console.log("Received orthology data, rows are:", data.makeRows(selectedOrganism))
             await setOrthologyData(data)
             setShowLoader(false)
-            console.log("Orthology data:", data.orthology_table.toJSON())
+            //console.log("Orthology data:", data.orthology_table.toJSON())
         }
     }
 
@@ -167,11 +171,6 @@ export const OrthologyTable = ({
             </div>);
         return false
     }
-
-    const bySymbolSelection = () => {
-        setBySymbol(!bySymbol)
-    }
-
 
     return(
 

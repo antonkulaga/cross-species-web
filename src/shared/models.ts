@@ -1,5 +1,5 @@
 import {string} from "prop-types";
-import {Collection, List, OrderedMap} from "immutable";
+import {Collection, fromJS, List, OrderedMap} from "immutable";
 import {Type} from "class-transformer";
 import "reflect-metadata";
 import {species} from "../server/queries";
@@ -21,10 +21,10 @@ export type StringMap = OrderedMap<string, string>
 
 
 export class RequestContent implements RequestInit{
-  
     body: string
-    constructor(public content, public method: string = "post", public headers: HeadersInit = {
-                    Accept: 'application/json',
+    constructor(public content,
+                public method: string = "post",
+                public headers: HeadersInit = {Accept: 'application/json',
                     'Content-Type': 'application/json'
                 }
     ) {
@@ -156,6 +156,11 @@ export class Species{
             ?run samples:has_protocol ?protocol .
  */
 
+/**
+ * class that represents metadata for the sequencing sample.
+ * It is assume by default that it is GEO or similar type of sequencing run
+ * It also contains some optional fields copy-pasted form species as it is also used as SamplesGrid row
+ */
 export class Sample{
     constructor(public organism: string,
                 public sex: string,
@@ -321,25 +326,27 @@ export class OrthologyData{
         return this.reference_genes.length == 0 || this.species.length ==0
     }
 
+    /**
+     * Make rows for the orthology table
+     * @param selectedOrganism
+     */
     makeRows(selectedOrganism: string){
         return this.reference_genes.map(gene =>{
                 const item = this.orthology_table.get(gene)!
-                const rows: Array<Object> = this.species.map(sp=> {
-                    if(sp == selectedOrganism) return {sp: gene}; else
+                const speciesList = this.species.includes(selectedOrganism) ? List(this.species) :  List(this.species).unshift(selectedOrganism)
+                const rows = speciesList.map(sp=> {
+                    if(sp == selectedOrganism) return [sp, gene];
+                    else
                     if(item.has(sp))
                     {
                         const ortho: Array<Orthology> = item.get(sp)!.toArray(); //getting ortholog genes for the species
-                        return { sp: ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc + ortholog + ";")}
+                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc +"," + ortholog + ";")]
                     }
-                    else return {sp: "N/A"}
+                    else
+                        return [sp, "N/A"]
                 })
-                return rows
-            }
+                return OrderedMap(rows).toJSON()
+                }
         )
     }
 }
-
-/**
- * symbol: bindings.symbol.id.replace(/"/g, ''),
- ensembl_id: bindings.gene.id
- */

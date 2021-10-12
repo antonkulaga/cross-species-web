@@ -5,7 +5,7 @@
   "main": "src/server/index.ts",
   "scripts": {
     "try": "ts-node src/server/graph.ts",
-    "request": "ts-node src/server/tests/request.ts",
+    "request": "ts-node src/server/tests/orthology_table.test.ts",
     "build": "webpack --mode production",
     "start": "yarn run build && ts-node src/server/index.ts",
     "dev-start": "yarn run client && ts-node src/server/index.ts",
@@ -25,7 +25,7 @@
     "class-transformer": "^0.4.0",
     "express": "^4.17.1",
     "graphdb": "^2.0.0",
-    "immutable": "^4.0.0-rc.15",
+    "immutable": "^4.0.0",
     "install": "^0.13.0",
     "jest": "^27.2.1",
     "jsonata": "^1.8.5",

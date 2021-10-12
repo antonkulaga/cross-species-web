@@ -25,7 +25,7 @@ export class GraphRepository {
     config: RepositoryClientConfig
     repository: RDFRepositoryClient
 
-    constructor(endpoint: string = "http://graphdb.agingkills.eu", repository: string = "ensembl", readTimeout: number = 30000, writeTimeout: number = 30000) {
+    constructor(endpoint: string = "http://graphdb.agingkills.eu", repository: string = "ensembl", readTimeout: number = 50000, writeTimeout: number = 50000) {
         const url = `${endpoint}/repositories/${repository}`
         this.config = new RepositoryClientConfig(endpoint)
             .setEndpoints([url])
