@@ -5,7 +5,7 @@ import "reflect-metadata";
 import {species} from "../server/queries";
 
 
-export const RDF_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
+export const ENSEMBL_PREFIX = 'http://rdf.ebi.ac.uk/resource/ensembl/';
 export const SRA_PREFIX = 'https://www.ncbi.nlm.nih.gov/sra/';
 export const BIOPROJECT_PREFIX = 'https://www.ncbi.nlm.nih.gov/bioproject/';
 export const LAB_RESOURCE_PREFIX = 'http://aging-research.group/resource/';
@@ -205,19 +205,24 @@ export class Orthology{
                 public ortholog: string,
                 public target_species: string,
                 public common_name: string,
-                public ortholog_gene: string
+                public ortholog_symbol: string
     ) {
+    }
+
+    @Type(() => Gene)
+    public get gene() {
+        return new Gene(this.ortholog, this.ortholog_symbol, this.target_species)
     }
 
     static fromBinding(bindings: StringMap){
        return  new Orthology(
-            bindings.get<string>("selected_gene", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("selected_gene", "").replace(ENSEMBL_PREFIX, ''),
             bindings.get<string>("selected_species", "").replace(LAB_RESOURCE_PREFIX, ''),
-            bindings.get<string>("orthology", "").replace(RDF_PREFIX,""),
-            bindings.get<string>("ortholog", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("orthology", "").replace(ENSEMBL_PREFIX,""),
+            bindings.get<string>("ortholog", "").replace(ENSEMBL_PREFIX, ''),
             bindings.get<string>("target_species", "").replace(LAB_RESOURCE_PREFIX, ""),
             bindings.get<string>("common_name", "").replace(/"/g, ""),
-            bindings.get<string>("ortholog_gene", "").replace(/"/g, ""))
+            bindings.get<string>("ortholog_symbol", "").replace(/"/g, ""))
     }
 }
 /*
@@ -230,13 +235,13 @@ export class Orthology{
                     "ortholog_gene": ortholog_gene === undefined ? "": ortholog_gene.id.replace(/"/g, '')
  */
 export class Expressions{
-    constructor(public run: string, gene: string, tpm: number) {
+    constructor(public run: string, public gene: string, public tpm: number) {
 
     }
     static fromBinding(bindings: StringMap){
         return new Expressions(
             bindings.get<string>("run", "").replace('https://www.ncbi.nlm.nih.gov/sra/', ''),
-            bindings.get<string>("gene", "").split('_')[1],
+            bindings.get<string>("gene", "").replace(ENSEMBL_PREFIX, ''),
             parseFloat(bindings.get<string>("tpm", "NaN"))
         )
     }
@@ -251,6 +256,7 @@ export class GeneResults {
     constructor(
     public gene: string,
     public symbol: string,
+    public species: string,
     public rank: number,
     public max_linear_r2: number,
     public relative_frequency: number
@@ -258,13 +264,14 @@ export class GeneResults {
     }
 
     get asGene() {
-        return new Gene(this.gene, this.symbol)
+        return new Gene(this.gene, this.symbol, this.species)
     }
 
     static fromBinding(bindings: OrderedMap<string, any>){
         return new GeneResults(
-            bindings.get("gene").replace(RDF_PREFIX, '')!,
+            bindings.get("gene").replace(ENSEMBL_PREFIX, '')!,
             bindings.get("symbol")!,
+            bindings.get("species")!,
             bindings.get("rank")!,
             bindings.get("max_linear_r2")!,
             bindings.get("relative_frequency")!
@@ -274,7 +281,7 @@ export class GeneResults {
 
 export class Gene{
 
-   constructor(public ensembl_id: string, public symbol: string) {}
+   constructor(public ensembl_id: string, public symbol: string, public species: string) {}
 
     get ensembl_short(){
         return this.ensembl_id.replace('http://rdf.ebi.ac.uk/resource/ensembl/', "")
@@ -285,62 +292,74 @@ export class Gene{
 
     static fromBinding(bindings: StringMap){
         return new Gene(
-            bindings.get<string>("gene", "").replace(RDF_PREFIX, ''),
+            bindings.get<string>("gene", "").replace(ENSEMBL_PREFIX, ''),
             bindings.get<string>("symbol", "").replace(LAB_RESOURCE_PREFIX, ''),
+            bindings.get<string>("species", "").replace(LAB_RESOURCE_PREFIX, ''),
         )
     }
 }
 
 export class OrthologyData{
 
-    static empty: OrthologyData = new OrthologyData([], [], [], OrderedMap())
+    static empty: OrthologyData = new OrthologyData([], [], [], [])
 
-    static fromOrthologyData(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>, results: Array<Orthology>) {
-        const grouped =  List.of(...results) //for the sake of groupBy
-            .groupBy<string>( item => item.selected_gene)
+    @Type(() => OrderedMap)
+    orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
+    all_genes: List<Gene>
+    bySpecies: OrderedMap<string, List<Gene>>
+
+
+    constructor(
+        public reference_genes: Array<Gene> = [],
+        public species: Array<string> = [],
+        public orthology_types: Array<string> = [],
+        public orthologies: Array<Orthology> = []
+    )
+    {
+        const orthoList = List.of(...orthologies)  //for the sake of groupBy
+        const byId =  orthoList.groupBy<string>( item => item.selected_gene)
+        this.orthology_table =  byId
             .map((values, key: string) =>
                 values.toList()
                     .groupBy<string>(v=>v.target_species)
                     .toOrderedMap()
                     .map((v, k) => v.toList())
             ).toOrderedMap()
-        return new OrthologyData(genes, species, orthologyTypes, grouped )//TODO: figure out types
-    }
+        this.all_genes = List(reference_genes).concat(...orthoList.map(o=>o.gene))
+        this.bySpecies = this.all_genes
+            .groupBy(g=>g.species)
+                .map((values, key)=>values.toList()
+                )
+            .toOrderedMap()
 
-    @Type(() => OrderedMap)
-    orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
-
-    constructor(
-        //public genes: Array<Gene> = [],
-        //public species: Array<Species> = [],
-        public reference_genes: Array<string> = [],
-        public species: Array<string> = [],
-        public orthology_types: Array<string> = [],
-        orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
-    )
-    {
-        this.orthology_table = orthology_table
     }
 
     get isEmpty(){
         return this.reference_genes.length == 0 || this.species.length ==0
     }
 
+
     /**
-     * Make rows for the orthology table
+     * Makes rows for the OrthologyGrid
      * @param selectedOrganism
      */
     makeRows(selectedOrganism: string){
         return this.reference_genes.map(gene =>{
-                const item = this.orthology_table.get(gene)!
+                if(!this.orthology_table.has(gene.ensembl_short)){
+                    console.error("cannot find key", gene.ensembl_id, "in orthology table which is",
+                        this.orthology_table.toJSON()
+                    )
+                    console.error("length is")
+                }
+                const item = this.orthology_table.get(gene.ensembl_short)!
                 const speciesList = this.species.includes(selectedOrganism) ? List(this.species) :  List(this.species).unshift(selectedOrganism)
                 const rows = speciesList.map(sp=> {
-                    if(sp == selectedOrganism) return [sp, gene];
+                    if(sp == selectedOrganism) return [sp, gene.text];
                     else
                     if(item.has(sp))
                     {
                         const ortho: Array<Orthology> = item.get(sp)!.toArray(); //getting ortholog genes for the species
-                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc +"," + ortholog + ";")]
+                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc  + ";" + ortholog)]
                     }
                     else
                         return [sp, "N/A"]

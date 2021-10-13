@@ -19,6 +19,9 @@ import {Button, Icon, Table, Divider, Header, Segment} from "semantic-ui-react";
 import {Sample} from "../../shared/models";
 import { ColDef } from 'ag-grid-community';
 
+/**
+ * Definitions of AgGrid columns
+ */
 const samplesColumnDefs: Array<ColDef> = [
     {
         headerName: 'Sample',
@@ -162,24 +165,30 @@ selectedSamplesColumnDefs[0].minWidth = 300
 
 type SamplesGridInput = {
     children?: JSX.Element | JSX.Element[];
-    samplesRowData: Array<Sample>, //Array<any>,
-    selectedRows: Array<Sample>,//Array<any>,
-    setSelectedRows: Dispatch<SetStateAction<Array<Sample>>>,
+    samples: Array<Sample>, //Array<any>,
+    selectedSamples: Array<Sample>,//Array<any>,
+    setSelectedSamples: Dispatch<SetStateAction<Array<Sample>>>,
     autoSizeAll: (value: any) => void
 }
 
+/**
+ * View with the Samples Grid
+ * @param samples
+ * @param selectedSamples
+ * @param setSelectedRows
+ * @param autoSizeAll
+ * @constructor
+ */
 export const SamplesGrid = (
     {
-        samplesRowData,
-        selectedRows,
-        setSelectedRows,
+        samples,
+        selectedSamples,
+        setSelectedSamples,
         autoSizeAll
     }:SamplesGridInput ) => { //UGLY CALLBACK TO GIVE DATA UPSTREAM
 
     const [quickFilterValue, setQuickFilterValue] = useState('')
     const [samplesGridApi, setSamplesGridApi] = useState<GridApi>({} as any)
-    //const [selectedSamplesRowData, setSelectedSamplesRowData] = useState([])
-
     const [selectedSamplesGridApi, setSelectedSamplesGridApi] =  useState<GridApi>({} as any)
 
     const onSamplesGridReady = async (params) => {
@@ -205,7 +214,7 @@ export const SamplesGrid = (
 
     const onSelectionChanged = async () => {
         const rows = samplesGridApi.getSelectedRows()
-        await setSelectedRows(rows)
+        await setSelectedSamples(rows)
     }
 
     const quickFilterChange = (e) => {
@@ -223,7 +232,7 @@ export const SamplesGrid = (
     }
 
     const onClearAllFilters = async () => {
-        samplesGridApi.setRowData(samplesRowData)
+        samplesGridApi.setRowData(samples)
         setQuickFilterValue('')
         samplesGridApi.setQuickFilter('');
         samplesGridApi.setFilterModel(null);
@@ -242,7 +251,7 @@ export const SamplesGrid = (
                         }}
                 >
                     <AgGridReact
-                        rowData={samplesRowData}
+                        rowData={samples}
                         onGridReady={onSamplesGridReady}
                         columnDefs={samplesColumnDefs}
                         gridOptions={samplesGridOptions}
@@ -286,14 +295,14 @@ export const SamplesGrid = (
                     className="ag-theme-balham"
                 >
                 <AgGridReact
-                    rowData={selectedRows}
+                    rowData={selectedSamples}
                     columnDefs={selectedSamplesColumnDefs}
                     gridOptions={selectedSamplesGridOptions}
                     onGridReady={onSelectedSamplesGridReady}
                 />
                 </div>
                 <Button icon
-                        disabled={selectedRows.length === 0}
+                        disabled={selectedSamples.length === 0}
                         onClick={downloadSelectedClick}
                         className="ui blue"
                 >

@@ -7,6 +7,7 @@ import os from "os"
 import {GraphRepository} from "./graph";
 import {Gene, GeneResults, GeneSet, Orthology, OrthologyData, Sample, SelectResults, Species} from "../shared/models";
 import {string} from "prop-types";
+import {plainToClass} from "class-transformer";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
 const graph_db_repository =process.env.GRAPH_REPO || "ensembl"
@@ -69,16 +70,18 @@ app.get('/api/all_genes/:species', async (req, res, next) => {
 });
 
 
-app.post('/api/orthology', async (req, res , next) => {
-    //console.log("BODY IS:", req.body)
-    const body: OrthologyData = req.body;
-    const results = await repo.orthology(body.reference_genes, body.species, body.orthology_types)
+app.post('/api/genes', async (req, res , next) => {
+    const genes: Array<string> = req.body.genes;
+    const results = repo.genes(genes)
     res.send(results)
 })
 
-app.post('/api/orthology_table', async (req, res , next) => {
+
+app.post('/api/orthology', async (req, res , next) => {
+    //console.log("BODY IS:", req.body)
     const body: OrthologyData = req.body;
-    const results = await repo.orthology_table(body.reference_genes, body.species, body.orthology_types)
+    const ensembl_ids: Array<string> =  plainToClass(Gene, body.reference_genes).map(g=>g.ensembl_short)
+    const results = await repo.orthology(ensembl_ids, body.species, body.orthology_types)
     res.send(results)
 })
 

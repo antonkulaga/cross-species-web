@@ -10,7 +10,7 @@ import {plainToClass} from "class-transformer";
 
 type OrthologTableInputs = {
     children?: JSX.Element | JSX.Element[],
-    selectedRows: Array<Sample>
+    selectedSamples: Array<Sample>
     selectedSpecies: Array<Species>
     selectedGenes: Array<Gene>
     setShowLoader: Dispatch<SetStateAction<boolean>>
@@ -20,7 +20,7 @@ type OrthologTableInputs = {
 }
 
 export const OrthologyTable = ({
-                                   selectedRows,
+                                   selectedSamples,
                                    selectedSpecies,
                                    orthologyData, setOrthologyData,
                                    autoSizeAll,
@@ -105,10 +105,12 @@ export const OrthologyTable = ({
      * @param species species ids
      * @param orthologyTypes types of orthologies
      */
-    const fetch_orthology = async (reference_genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => {
-        const toSend = new OrthologyData(reference_genes, species, orthologyTypes, OrderedMap())
+    const fetch_orthology = async (orthologyTypes: Array<string>) => {
+        const toSend = new OrthologyData(
+            selectedGenes,selectedSamples.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism),
+            orthologyTypes)
         const content2send = new RequestContent(toSend)
-        console.log("content to send")
+        //console.log("content to send is", content2send)
         return  fetch('/api/orthology', content2send)
             .then(res => res.json())
             .then(res=> plainToClass(Orthology, res))
@@ -116,17 +118,12 @@ export const OrthologyTable = ({
 
 
 
-    const fetch_orthology_table = async (): Promise<OrthologyData> => {
+    const fetch_orthology_table = async (
+        orthologyTypes: Array<string> = ["ens:ortholog_one2one", "ens:ortholog_one2many"]/* ens:ortholog_many2many */): Promise<OrthologyData> => {
         console.log("selected organism is: ", selectedOrganism)
-        const reference_genes = selectedGenes.map(gene => gene.ensembl_short)
-        const organisms = selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism)
-        const orthologyTypes = ["ens:ortholog_one2one", "ens:ortholog_one2many"] // ens:ortholog_many2many
-
-        const orthos =  await fetch_orthology(
-            selectedGenes.map(gene => gene.ensembl_short),
-            selectedRows.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism),
-            orthologyTypes)
-        return OrthologyData.fromOrthologyData(reference_genes, organisms, orthologyTypes, orthos)
+        const organisms = selectedSamples.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism)
+        const orthos =  await fetch_orthology(orthologyTypes)
+        return new OrthologyData(selectedGenes, organisms, orthologyTypes, orthos)
     }
 
     const loadOrthologyGenes = async () => {
@@ -177,7 +174,7 @@ export const OrthologyTable = ({
               <Segment>
                 <Button onClick={loadOrthologyGenes}
                         className="ui blue"
-                        size="massive" disabled={selectedRows.length === 0}
+                        size="massive" disabled={selectedSamples.length === 0}
                 >
                     Load ortholog genes
                 </Button>

@@ -1,17 +1,4 @@
-export const results_ranked_genes: (limit: number) => string = (limit = 0) => {
-    return `
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        SELECT ?gene ?symbol ?rank ?relative_frequency ?max_linear_r2 where { 
-            GRAPH <http://aging-research.group/resource/paper_1_results> {?gene <http://aging-research.group/resource/has_analysis_rank> ?rank} .        
-            ?gene <http://aging-research.group/resource/mean_abs_shap> ?mean_abs_shap .
-            ?gene <http://aging-research.group/resource/mean_kendall_tau> ?mean_kendall_tau .
-            ?gene <http://aging-research.group/resource/MLS_influence> ?MLS_influence .
-            ?gene <http://aging-research.group/resource/relative_frequency> ?relative_frequency .
-            ?gene <http://aging-research.group/resource/max_linear_r2> ?max_linear_r2 .
-            ?gene rdfs:label ?symbol .
-        } ORDER BY ?rank ${limit === 0 ? "" : "LIMIT "+ limit}    
-        `
-}
+
 
 export const samples: string = `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -67,39 +54,20 @@ export const species: string = `
       }
     `
 
-export const orthology: (genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => string =
-    (genes, species, orthologyTypes)=>
-    {
-    return `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
-      PREFIX : <http://aging-research.group/resource/>
-      
-      SELECT ?selected_gene ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_gene   WHERE { 
-          values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
-          values ?selected_gene { ens:${genes.join(' ens:')} }
-          ?selected_species :has_gene ?selected_gene .   
-    
-          values ?orthology { ${orthologyTypes.join(' ')} }
-          ?selected_gene ?orthology ?ortholog .   
-    
-          OPTIONAL { ?ortholog rdfs:label ?ortholog_gene . }
-    
-          ?target_species :has_gene ?ortholog .
-          ?target_species :has_common_name ?common_name .
-      } ORDER BY ?selected_gene ?ortholog ?species`
-}
 
-export const  expressions = (runs: Array<string>, genes: Array<string>) => {
-    return `PREFIX samples:<http://aging-research.group/samples/>
-    PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
-
-    SELECT * WHERE
-    {
-      values ?run { sra:${runs.join(' sra:')} }
-      values ?expression { samples:has_${genes.join('_expression samples:has_')}_expression } .
-      ?run ?expression ?tpm .
-    }`;
+export const results_ranked_genes: (limit: number) => string = (limit = 0) => {
+    return `
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT ?gene ?symbol ?rank ?relative_frequency ?max_linear_r2 where { 
+            GRAPH <http://aging-research.group/resource/paper_1_results> {?gene <http://aging-research.group/resource/has_analysis_rank> ?rank} .        
+            ?gene <http://aging-research.group/resource/mean_abs_shap> ?mean_abs_shap .
+            ?gene <http://aging-research.group/resource/mean_kendall_tau> ?mean_kendall_tau .
+            ?gene <http://aging-research.group/resource/MLS_influence> ?MLS_influence .
+            ?gene <http://aging-research.group/resource/relative_frequency> ?relative_frequency .
+            ?gene <http://aging-research.group/resource/max_linear_r2> ?max_linear_r2 .
+            ?gene rdfs:label ?symbol .
+        } ORDER BY ?rank ${limit === 0 ? "" : "LIMIT "+ limit}    
+        `
 }
 
 export const referenceGenes = (referenceOrg: string) => {
@@ -115,4 +83,60 @@ export const referenceGenes = (referenceOrg: string) => {
           ?species :has_gene ?gene .
       }
     `
+}
+
+export const genes = (genes: Array<string>) => {
+    return `
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX : <http://aging-research.group/resource/>
+      
+      SELECT ?gene ?symbol ?species WHERE { 
+          values ?gene { ens:${genes.join(' ens:')} }
+          ?gene rdfs:label ?symbol .
+          ?species :has_gene ?gene .
+      }
+    `
+}
+
+export const orthology: (genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>) => string =
+    (genes, species, orthologyTypes)=>
+    {
+    return `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX : <http://aging-research.group/resource/>
+      
+      SELECT ?selected_gene ?selected_species ?orthology ?ortholog ?target_species ?common_name ?ortholog_symbol   WHERE { 
+          values ?target_species { :${species.join(' :')} }    #put species selected by the user (info from selected samples)
+          values ?selected_gene { ens:${genes.join(' ens:')} }
+          ?selected_species :has_gene ?selected_gene .   
+    
+          values ?orthology { ${orthologyTypes.join(' ')} }
+          ?selected_gene ?orthology ?ortholog .   
+    
+          OPTIONAL { ?ortholog rdfs:label ?ortholog_symbol . }
+    
+          ?target_species :has_gene ?ortholog .
+          ?target_species :has_common_name ?common_name .
+      } ORDER BY ?selected_gene ?ortholog ?species`
+}
+
+export const  expressions = (runs: Array<string>, genes: Array<string>) => {
+    return `
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ens: <http://rdf.ebi.ac.uk/resource/ensembl/>
+      PREFIX : <http://aging-research.group/resource/>
+      PREFIX samples:<http://aging-research.group/samples/>
+      PREFIX sra: <https://www.ncbi.nlm.nih.gov/sra/>
+
+    SELECT ?run ?gene ?tpm WHERE
+    {
+      values ?run { sra:${runs.join(' sra:')} }
+      values ?expression { samples:has_${genes.join('_expression samples:has_')}_expression } .
+      ?run ?expression ?tpm .
+      ?expression :expression_of ?gene .
+    }`;
 }

@@ -2,10 +2,8 @@ import * as graphdb from "graphdb"
 import {GraphRepository} from "../graph";
 import * as jest from "jest"
 //import "@types/jest"
-import {Gene, Species} from "../../shared/models";
-import {List, OrderedMap} from "immutable";
+import {Orthology, OrthologyData} from "../../shared/models";
 const host = "http://graphdb.agingkills.eu" //http://10.40.3.21:7200
-const log = console.log
 
 const repo = new GraphRepository(host)
 
@@ -14,7 +12,9 @@ test('RDF graph should return orthology_table', async () => {
     const request = JSON.parse(requestString)
     console.log("request:", request)
     const {   reference_genes, species, orthologyTypes} = request;
-    const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
+    const orthologies: Array<Orthology> = await repo.orthology(reference_genes,species,orthologyTypes)
+    const results = new OrthologyData(reference_genes, species, orthologyTypes, orthologies)
+
     expect(new Set(results.reference_genes)).toEqual(new Set([
         "ENSG00000164362",
         "ENSG00000084676"
@@ -114,7 +114,10 @@ test("orthology table should convert to orthology rows", async () => {
     const request = JSON.parse(requestString)
     console.log("request:", request)
     const {   reference_genes, species, orthologyTypes} = request;
-    const results = await repo.orthology_table(reference_genes, species, orthologyTypes)
+
+    const orthologies: Array<Orthology> = await repo.orthology(reference_genes,species,orthologyTypes)
+    const ref_genes = await repo.genes(reference_genes)
+    const results = new OrthologyData(ref_genes, species, orthologyTypes, orthologies)
     const rows = results.makeRows("Homo_sapiens")
     console.log("ORTHOLOGY ROWS:", JSON.stringify(rows,null, 2))
     //{"reference_genes":["ENSG00000188747","ENSG00000170835","ENSG00000136436","ENSG00000198663","ENSG00000006282","ENSG00000142002"],"species":["Gopherus_agassizii","Gorilla_gorilla","Gorilla_gorilla","Macaca_mulatta"],"orthology_types":["ens:ortholog_one2one","ens:ortholog_one2many"],"orthology_table":{}}

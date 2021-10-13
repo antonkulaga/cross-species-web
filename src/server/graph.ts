@@ -72,8 +72,10 @@ export class GraphRepository {
      */
     async expressions(runs: Array<string>, genes: Array<string>) {
         const queryString = Query.expressions(runs, genes)
-        const results = await this.select_query(queryString)
-        return results.map(b=> Expressions.fromBinding(b))
+        const bindings = await this.select_query(queryString)
+        const results = bindings.map(b=> Expressions.fromBinding(b))
+        console.log("expressions results", results)
+        return results
     }
 
 
@@ -93,10 +95,12 @@ export class GraphRepository {
         return results.map(binding => Sample.fromBinding(binding))
     }
 
-    /**
-     * gets the list of genes of the reference organism
-     * @param organism - species for which to get reference genes for
-     */
+    async genes(genes: Array<string>) {
+        const queryString = Query.genes(genes)
+        let results = await this.select_query(queryString)
+        return results.map(binding => Gene.fromBinding(binding))
+    }
+
     async referenceGenes(organism: string) {
         const queryString = Query.referenceGenes(organism)
         let results = await this.select_query(queryString)
@@ -121,30 +125,11 @@ export class GraphRepository {
      */
     async orthology(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>): Promise<Array<Orthology>> {
         const queryString: string = Query.orthology(genes, species, orthologyTypes)
-        const result = await this.select_query(queryString)
-        return result.map(b=>Orthology.fromBinding(b))
-    }
-
-    /**
-     * Returns the orthologues as a table
-     * @param genes
-     * @param species
-     * @param orthologyTypes
-     */
-    async orthology_table(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
-        const results: Array<Orthology> = await this.orthology(genes,species,orthologyTypes)
-        return OrthologyData.fromOrthologyData(genes, species, orthologyTypes, results)
-    }
-
-    /**
-     * Returnes the orthologues genes and arrane as a table
-     * @param genes
-     * @param species
-     * @param orthologyTypes
-     */
-    async orthology_data(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>){
-        const results: Array<Orthology> = await this.orthology(genes,species,orthologyTypes)
-        return OrthologyData.fromOrthologyData(genes, species, orthologyTypes, results)
+        const bindings = await this.select_query(queryString)
+        const result = bindings.map(b=>Orthology.fromBinding(b))
+        //console.log("input was: "+ queryString)
+        //console.log("result was: ", result)
+        return result
     }
 
 }

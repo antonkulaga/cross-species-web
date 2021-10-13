@@ -19,7 +19,16 @@ test("should return reference genes for selected species", async () =>{
 
    const result = await repo.referenceGenes("Homo_sapiens")
     expect(result).toEqual(expect.arrayContaining([
-        new Gene('ENSG00000124942',  'AHNAK' ),
-        new Gene ('ENSG00000136488',  'CSH1' )
+        new Gene('ENSG00000124942',  'AHNAK', "Homo_sapiens"),
+        new Gene ('ENSG00000136488',  'CSH1', "Homo_sapiens")
+    ]))
+})
+
+test("should return gene descriptions for selected genes", async () =>{
+
+    const result = await repo.genes(['ENSG00000124942', 'ENSG00000136488'])
+    expect(result).toEqual(expect.arrayContaining([
+        new Gene('ENSG00000124942',  'AHNAK', "Homo_sapiens"),
+        new Gene ('ENSG00000136488',  'CSH1', "Homo_sapiens")
     ]))
 })

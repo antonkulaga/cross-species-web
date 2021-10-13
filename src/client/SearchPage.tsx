@@ -55,21 +55,16 @@ export const SearchPage = () => {
 
   const [showLoader, setShowLoader] = useState(false)
 
-  const [samplesRowData, setSamplesRowData] = useState(new Array<Sample>())
-  const [selectedRows, setSelectedRows] = useState(new Array<Sample>())
+  const [samples, setSamples] = useState(new Array<Sample>())
+  const [selectedSamples, setSelectedSamples] = useState(new Array<Sample>())
 
   const [species, setSpecies] = useState(OrderedMap<string, Species>())
-  const [selectedSpecies, setSelectedSpecies] = useState(new Array<Species>())
 
-  //const [speciesByRun, setSpeciesByRun] = useState(OrderedMap<string, Species>())
+  const [selectedSpecies, setSelectedSpecies] = useState(new Array<Species>())
 
   const [organismList, setOrganismList] =useState(new Array<TextOption>())
 
   const [selectedGenes, setSelectedGenes] = useState(new Array<Gene>())
-
-
-  const [data, setData] = useState([])
-
 
   const HUMAN = {
     key: 'Human',
@@ -78,15 +73,7 @@ export const SearchPage = () => {
     id: 'Homo_sapiens'
   };
   const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.id)
-
-  //const [genesBySymbol, setGenesBySymbol] = useState(OrderedMap<string, Gene>())
-  //const [genesById, setGenesById] = useState(OrderedMap<string, Gene>())
   const [referenceGenes, setReferenceGenes] = useState(new Array<Gene>())
-
-  //const [genesMap, setGenesMap] = useState([])
-  //const [genesMapBySpecies, setGenesMapBySpecies] = useState([])
-
-
   const [orthologyData, setOrthologyData] = useState<OrthologyData>(OrthologyData.empty)
 
 
@@ -134,14 +121,14 @@ export const SearchPage = () => {
     columnApi.autoSizeColumns(allColumnIds, skipHeader);
   }
 
-  const onOrthologyGridReady = (params) => {
-    autoSizeAll(params.columnApi);
-  }
-
-  const hasSelection = () => { return selectedRows.length === 0}
+  const hasSelection = () => { return selectedSamples.length === 0}
 
 
+  /**
+   * Used to do data loading and other sideEffects
+   */
   useEffect(()=>{
+
     getSamplesAndSpecies().then( values => {
       const {species, speciesNames, runToSpeciesHash} = values
       setSpecies(species)
@@ -149,7 +136,7 @@ export const SearchPage = () => {
 
       const samplesRowData = Array.from(runToSpeciesHash.values())
       console.log("SAMPLES ROW DATA", samplesRowData)
-      setSamplesRowData( samplesRowData )
+      setSamples( samplesRowData )
       //setSpeciesByRun(runToSpeciesHash)
     })
 
@@ -178,13 +165,13 @@ export const SearchPage = () => {
 
               <Message color='blue' size="small">Choose RNA-Seq samples of different species to compare with each other</Message>
             </Step.Description>
-            <SamplesGrid samplesRowData= {samplesRowData}
-                         selectedRows = {selectedRows}
-                         setSelectedRows = {setSelectedRows}
+            <SamplesGrid samples= {samples}
+                         selectedSamples= {selectedSamples}
+                         setSelectedSamples= {setSelectedSamples}
                          autoSizeAll={autoSizeAll}>
             </SamplesGrid>
             <SelectedSpecies
-                selectedRows={selectedRows}
+                selectedRows={selectedSamples}
                 selectedSpecies={selectedSpecies}
                 setSelectedSpecies={setSelectedSpecies}
                >
@@ -206,12 +193,12 @@ export const SearchPage = () => {
             </OrthologySelection>
           </Step.Content>
         </Step>
-        <Step disabled={selectedRows.length === 0}  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
+        <Step disabled={selectedSamples.length === 0} style={{ marginTop: '72px', width: `calc(100% - 25px)`  }} >
           <Icon name='dna' />
           <Step.Content  style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
             <Step.Title><Header>Load ortholog genes</Header></Step.Title>
             <OrthologyTable
-                selectedRows = {selectedRows}
+                selectedSamples= {selectedSamples}
                 selectedOrganism = {selectedOrganism}
                 selectedSpecies={selectedSpecies}
                 orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
@@ -222,6 +209,20 @@ export const SearchPage = () => {
             </OrthologyTable>
           </Step.Content>
         </Step>
+        <Step>
+          <Icon name='dna'  />
+          <Step.Content id="heatmap_container"   style={{ marginTop: '72px', width: `calc(100% - 25px)`  }}>
+            <Step.Title><Header textAlign='center'>Load gene expression</Header></Step.Title>
+            <ExpressionsView
+                selectedSamples= {selectedSamples}
+                orthologyData = {orthologyData}
+                setShowLoader={setShowLoader}
+                autoSizeAll={autoSizeAll}
+            ></ExpressionsView>
+          </Step.Content>
+        </Step>
+
+
 
       </Step.Group>
 
