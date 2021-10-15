@@ -24,7 +24,8 @@ export class RequestContent implements RequestInit{
     body: string
     constructor(public content,
                 public method: string = "post",
-                public headers: HeadersInit = {Accept: 'application/json',
+                public headers: HeadersInit = {
+                    Accept: 'application/json',
                     'Content-Type': 'application/json'
                 }
     ) {
@@ -338,12 +339,16 @@ export class OrthologyData{
         return this.reference_genes.length == 0 || this.species.length ==0
     }
 
-
     /**
-     * Makes rows for the OrthologyGrid
-     * @param selectedOrganism
+     *
+     * @param selectedOrganism selected organism
+     * @param mapper map gene to
+     * @param reducer reduce several genes to
      */
-    makeRows(selectedOrganism: string){
+    makeRows(selectedOrganism: string,
+             mapper: (gene: Gene) => string = (gene: Gene) => gene.ensembl_id,
+             reducer: (acc: string, ortholog: string) => string = (acc: string, ortholog: string): string => acc + ";" + ortholog
+             ){
         return this.reference_genes.map(gene =>{
                 if(!this.orthology_table.has(gene.ensembl_short)){
                     console.error("cannot find key", gene.ensembl_id, "in orthology table which is",
@@ -359,7 +364,8 @@ export class OrthologyData{
                     if(item.has(sp))
                     {
                         const ortho: Array<Orthology> = item.get(sp)!.toArray(); //getting ortholog genes for the species
-                        return [sp, ortho.map(v=>v.ortholog).reduce((acc, ortholog)=> acc  + ";" + ortholog)]
+                        const reduced = ortho.map(v=>mapper(v.gene)).reduce((acc, ortholog)=> reducer(acc, ortholog))
+                        return [sp, reduced]
                     }
                     else
                         return [sp, "N/A"]
@@ -368,4 +374,9 @@ export class OrthologyData{
                 }
         )
     }
+
+    makeRowsText(selectedOrganism: string){
+        return this.makeRows(selectedOrganism, gene => gene.text, (acc, ortholog)=> acc + ";" + ortholog)
+    }
+
 }

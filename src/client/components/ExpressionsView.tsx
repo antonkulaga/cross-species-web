@@ -3,9 +3,10 @@ import {Button, Divider, Dropdown, Header, Icon, Image,  Segment, Step, Tab, Tab
 import {AgGridReact} from "ag-grid-react";
 import Plotly from "react-plotly.js";
 import {List, Map, OrderedMap} from "immutable";
-import {Gene, OrthologyData, Sample, TextOption} from "../../shared/models";
+import {Expressions, Gene, Orthology, OrthologyData, RequestContent, Sample, TextOption} from "../../shared/models";
 import {Layout} from "plotly.js";
 import {GridApi} from "ag-grid-community";
+import {plainToClass} from "class-transformer";
 
 type ExpressioinsViewInput = {
     children?: JSX.Element | JSX.Element[],
@@ -19,7 +20,7 @@ type ExpressioinsViewInput = {
 //NOT YET READY
 export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, autoSizeAll}: ExpressioinsViewInput) => {
 
-    const round = (num) => isNaN(num) ? null: Math.round((num + Number.EPSILON) * 100) / 100
+    //const round = (num) => isNaN(num) ? null: Math.round((num + Number.EPSILON) * 100) / 100
 
     const expressionsGridOptions = {
         suppressRowClickSelection: true,
@@ -106,20 +107,18 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
     </Segment>)
          : false
 
-    const fetchExpressions = async  (runs: Array<string>, genes: Array<string>) => {
-        let response = await fetch('/api/expressions', {
-            method: 'post',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                runs,
-                genes
-            })
-        });
-        return await response.json()
-
+    /**
+     * Gets gene expressions
+     * @param runs
+     * @param genes
+     */
+    const fetchExpressions = async  (runs: Array<string>, genes: Array<string>): Promise<Array<Expressions>> => {
+        const toSend = {
+            runs, genes
+        }
+        const content = new RequestContent(toSend)
+        let response = await fetch('/api/expressions', content);
+        return await response.json().then(res=> plainToClass(Expressions, res))
     }
 
     const updateHeatmap = (xValues, yValues, zValues, expressionsByGeneByRun) => {
@@ -192,7 +191,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
         console.log("genes for search are: ", genesForSearch.toJSON())
         //const selectedSamples =
         const expressions = await fetchExpressions(runs, genesForSearch.map(g=>g.ensembl_id).toArray())
-        console.log("expressions are: ", expressions.toJSON)
+        console.log("expressions are: ", expressions)
 
         const rows = orthologyData.reference_genes.map(y => {
                 const result: Record<string,any> = {"selected_gene": y}
@@ -201,6 +200,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
                 return result             //TODO: fix this ugly workaround
             }
         )
+        return rows
 
         //const expressionsByGeneByRun = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, round(exp.tpm)]))
         /*
@@ -228,7 +228,9 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
     }
 
     useEffect( () => {
-        onGenesSearch()
+        onGenesSearch().then((result)=>{
+            console.log("Gene expressions results", result)
+        })
     }, [genesForSearch])
 
     useEffect( () => {
