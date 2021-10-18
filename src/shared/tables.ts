@@ -56,26 +56,32 @@ export class ExpressionsTable{
             }
     }
 
-    makeRows(aggregate: ExpressionAggregate = ExpressionAggregate.Sum): Array<any>{
-        console.log("expression by runs", this.expByGeneRun.toJSON())
-        return this.orthologyData.all_genes.map(gene => {
-            console.log("gene expressions of ", gene.ensembl_id, "are", this.expByGeneRun.get(gene.ensembl_id))
-            const expByRuns = this.expByGeneRun.get(gene.ensembl_id)
-            if (expByRuns === undefined) {
-                console.error("NOT FOUND", gene.ensembl_id, "in ", this.expByGeneRun.toJSON())
-                return new Array<any>()
-            } else {
-                this.runs.map(run => {
-                        const runs = expByRuns.get(run, List<Expressions>())
-                        if (runs.size === 0) {
-                            return {[run]: "N/A"}
-                        } else {
-                            return {[run]: this.aggregateRuns(runs)}
-                        }
+
+    /**
+     *
+     * @param gene
+     * @param aggregate
+     */
+    makeExpressionRow(gene: Gene, aggregate: ExpressionAggregate = ExpressionAggregate.Sum) {
+        const expByRuns = this.expByGeneRun.get(gene.ensembl_id)
+        if (expByRuns === undefined) {
+            console.error("NOT FOUND", gene.ensembl_id, "in ", this.expByGeneRun.toJSON())
+            return new Array<any>()
+        } else {
+            return this.runs.map(run => {
+                    const runs = expByRuns.get(run, List<Expressions>())
+                    if (runs.size === 0) {
+                        return {[run]: "N/A"}
+                    } else {
+                        return {[run]: this.aggregateRuns(runs)}
                     }
-                )
-            }
-        }).toArray()
+                }
+            )
+        }
+    }
+
+    makeRows(aggregate: ExpressionAggregate = ExpressionAggregate.Sum): Array<any>{
+        return this.orthologyData.reference_genes.map(gene => this.makeExpressionRow(gene, aggregate))
     }
 
 }

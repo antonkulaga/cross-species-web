@@ -69,8 +69,8 @@ export class GraphRepository {
      * @param runs array of samples (NCBI runs)
      * @param genes list of genes to looks expression values for
      */
-    async expressions(runs: Array<string>, genes: Array<string>) {
-        const queryString = Query.expressions(runs, genes)
+    async expressions(runs: Array<string>, ensemble_ids: Array<string>) {
+        const queryString = Query.expressions(runs, ensemble_ids)
         const bindings = await this.select_query(queryString)
         const results = bindings.map(b=> Expressions.fromBinding(b))
         console.log("expressions results", results)

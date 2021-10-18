@@ -204,23 +204,28 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
                     field: run,
                     minWidth: 50
                 })))
-        console.log("Expression columns are", cols)
+        //console.log("Expression columns are", cols)
         setExpressionsColumnDefs(cols)
         setExpressionsTable(new ExpressionsTable(orthologyData,runs, expressions))
     }, [selectedSamples, orthologyData, expressions])
 
     useEffect(() => {
-        console.log("expression by genes", expressionsTable.expressionsByGenes.toJSON())
-        const rows = expressionsTable.makeRows()
-        console.log("expression rows are", rows)
+        if(expressionsTable.expressions.length > 0){
+            //console.log("expressions are", expressionsTable.expressions)
+            console.log("expression by genes", expressionsTable.expressionsByGenes.toJSON())
+            const rows = expressionsTable.makeRows()
+            console.log("expression rows are", rows)
             setExpressionRows(rows)
+        }    else{
+            setExpressionRows([])
         }
+        }
+
     , [expressionsTable])
 
 
     const loadGeneExpressionsClick = async () => {
         const expressions = await fetchExpressions(selectedSamples.map(s=>s.run), orthologyData.reference_genes)
-        console.log("loading gene expressions, which are:", expressions)
         setExpressions(expressions)
     }
 

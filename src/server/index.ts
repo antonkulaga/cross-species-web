@@ -88,10 +88,14 @@ app.post('/api/orthology', async (req, res , next) => {
 
 app.post('/api/expressions', async (req, res, next) => {
     // console.log(req.body);
-    const { runs, genes } = req.body;
-    const result = await repo.expressions(runs, genes);
-    console.log('/api/expressions');//, genes, species, result);
-    res.send(result);
+    const { runs, genes }: {runs: Array<string>, genes: Array<Gene | string>} = req.body;
+    if(genes.length > 0){
+        const ensembl_ids = (genes[0] instanceof string) ? genes as Array<string>:  genes.map(gene=> (gene as Gene).ensembl_id)
+        console.log("loading gene expressions for ", ensembl_ids)
+        const result = await repo.expressions(runs, ensembl_ids);
+        console.log('/api/expressions');//, genes, species, result);
+        res.send(result);
+    }
 });
 
 
