@@ -10,8 +10,7 @@ import {
     Orthology,
     Expressions,
     Gene,
-    GeneResults,
-    OrthologyData
+    GeneResults
 } from "../shared/models"
 import {Term, Literal, NamedNode, BlankNode} from "n3";
 const {RDFMimeType} = graphdb.http;

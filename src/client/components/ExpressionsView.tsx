@@ -3,10 +3,11 @@ import {Button, Divider, Dropdown, Header, Icon, Image,  Segment, Step, Tab, Tab
 import {AgGridReact} from "ag-grid-react";
 import Plotly from "react-plotly.js";
 import {List, Map, OrderedMap} from "immutable";
-import {Expressions, Gene, Orthology, OrthologyData, RequestContent, Sample, TextOption} from "../../shared/models";
+import {Expressions, Gene, Orthology, RequestContent, Sample, TextOption} from "../../shared/models";
 import {Layout} from "plotly.js";
 import {GridApi} from "ag-grid-community";
 import {plainToClass} from "class-transformer";
+import {ExpressionsTable, OrthologyData} from "../../shared/tables";
 
 type ExpressioinsViewInput = {
     children?: JSX.Element | JSX.Element[],
@@ -65,7 +66,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
         }
     };
 
-    const [runs, setRuns] = useState<Array<string>>([])
+    //const [runs, setRuns] = useState<Array<string>>([])
     const [expressionRows, setExpressionRows] = useState<Array<any>>([])
 
     const [layout, setLayout] = useState<Layout>(default_layout)
@@ -84,7 +85,10 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
     ];
 
     const [expressionsColumnDefs, setExpressionsColumnDefs] = useState(baseOrthologyColumnDefs)
-    const [genesForSearch, setGenesForSearch] = useState<List<Gene>>(List())
+    //const [genesForSearch, setGenesForSearch] = useState<List<Gene>>(List()) //TODO: change name
+    const [expressions, setExpressions] = useState<Array<Expressions>>([])
+    const [expressionsTable, setExpressionsTable] = useState<ExpressionsTable>(ExpressionsTable.empty())
+
     const [expressionsGridApi, setExpressionsGridApi] = useState<GridApi>({} as any)
     const [data, setData] = useState<Array<any>>([])
 
@@ -112,7 +116,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
      * @param runs
      * @param genes
      */
-    const fetchExpressions = async  (runs: Array<string>, genes: Array<string>): Promise<Array<Expressions>> => {
+    const fetchExpressions = async  (runs: Array<string>, genes: Array<Gene>): Promise<Array<Expressions>> => {
         const toSend = {
             runs, genes
         }
@@ -184,60 +188,15 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
 
     const canRender = (): boolean => orthologyData.reference_genes.length > 0 && selectedSamples.length > 0
 
+    /**
+     * Effects
+     */
 
-    const onGenesSearch = async () => {
-        if(genesForSearch.size===0) return false
-        setShowLoader(true)
-        console.log("genes for search are: ", genesForSearch.toJSON())
-        //const selectedSamples =
-        const expressions = await fetchExpressions(runs, genesForSearch.map(g=>g.ensembl_id).toArray())
-        console.log("expressions are: ", expressions)
-
-        const rows = orthologyData.reference_genes.map(y => {
-                const result: Record<string,any> = {"selected_gene": y}
-                console.error("TODO: unbreak rows for expressions!")
-                //runs.forEach(run=>result[run] = expressionsByGeneByRun.get(y+","+run))
-                return result             //TODO: fix this ugly workaround
-            }
-        )
-        return rows
-
-        //const expressionsByGeneByRun = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, round(exp.tpm)]))
-        /*
-        expressionsByGeneByRunRef.current = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, round(exp.tpm)]))
-        console.log("expression by gene by run",   expressionsByGeneByRunRef.current .toJS())
-
-
-        console.log("====================== PREPARIGN DATA FOR HEATMAP UPDATE, expressions are: ", expressions)
-
-        const expressionsByGeneByRun = expressionsByGeneByRunRef.current
-        console.log("RUNS ARE:", runs)
-        const matrix = orthologyData.reference_genes.map(y=> runs.map(x=>  expressionsByGeneByRun.get(y+","+x)))
-        const rows = orthologyData.reference_genes.map(y => {
-            const result: Record<string,any> = {"selected_gene": y}
-            runs.forEach(run=>result[run] = expressionsByGeneByRun.get(y+","+run))
-            return result             //TODO: fix this ugly workaround
-            }
-        )
-        console.log("EXPRESSION ROWS: ", rows)
-        await setExpressionRows(rows)
-
-        await updateHeatmap(runs, orthologyData.reference_genes, matrix, expressionsByGeneByRun)
-        await setShowLoader(false)
-         */
-    }
-
-    useEffect( () => {
-        onGenesSearch().then((result)=>{
-            console.log("Gene expressions results", result)
-        })
-    }, [genesForSearch])
-
-    useEffect( () => {
-        setRuns(selectedSamples.map(row=>row.run))
-    }, [selectedSamples])
-
+    /**
+     * filling expression Columns and ExpressionsTable based on known values of
+     */
     useEffect(() => {
+        const runs = selectedSamples.map(s=>s.run)
         const cols = baseOrthologyColumnDefs.concat(
             runs.map(run => (
                 {
@@ -245,29 +204,24 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
                     field: run,
                     minWidth: 50
                 })))
-        console.log("Expression columns", cols)
+        console.log("Expression columns are", cols)
         setExpressionsColumnDefs(cols)
-    }, [runs])
+        setExpressionsTable(new ExpressionsTable(orthologyData,runs, expressions))
+    }, [selectedSamples, orthologyData, expressions])
+
+    useEffect(() => {
+        console.log("expression by genes", expressionsTable.expressionsByGenes.toJSON())
+        const rows = expressionsTable.makeRows()
+        console.log("expression rows are", rows)
+            setExpressionRows(rows)
+        }
+    , [expressionsTable])
 
 
     const loadGeneExpressionsClick = async () => {
-        console.error("TEMPORALY BROKEN")
-        setGenesForSearch(orthologyData.all_genes)
-        /*
-        const reference2reference = OrderedMap(orthologyData.reference_genes.map(g=>[g, g]))
-        orthologyTableRef.current = fromJS(orthologyData.orthology_table).toOrderedMap()
-        orthologsByReferenceRef.current = orthologyTableRef.current.map((value, key) =>
-            value.valueSeq().flatMap(v=> v.map(vv=> vv.get("ortholog"))) //.insert(key)
-        ) //include reference to reference search
-        console.log(" orthologsByReferenceRef",  orthologsByReferenceRef.current.toJS())
-
-        referenceByOrthologRef.current = reference2reference.toMap().concat(Map(
-            fromJS(orthologyData.reference_genes).filter(g=>orthologsByReferenceRef.current.has(g))
-                .flatMap(g=> orthologsByReferenceRef.current.get(g).map(o=>[o, g]))
-        ))
-        console.log("reference by orthologs", referenceByOrthologRef.current.toJS())
-        setGenesForSearch(orthologyData.reference_genes.concat(orthologsByReferenceRef.current.valueSeq().flatten().toJS()))
-         */
+        const expressions = await fetchExpressions(selectedSamples.map(s=>s.run), orthologyData.reference_genes)
+        console.log("loading gene expressions, which are:", expressions)
+        setExpressions(expressions)
     }
 
     const downloadClick = () => {
@@ -307,6 +261,60 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
 }
 
 export default ExpressionsView
+
+
+
+/*
+const onGenesSearch = async () => {
+if(genesForSearch.size===0) return false
+setShowLoader(true)
+console.log("genes for search are: ", genesForSearch.toJSON())
+//const selectedSamples =
+const expressions = await fetchExpressions(runs, genesForSearch.map(g=>g.ensembl_id).toArray())
+console.log("expressions are: ", expressions)
+
+//setExpressionRows
+
+
+const rows = orthologyData.reference_genes.map(y => {
+        const result: Record<string,any> = {"selected_gene": y}
+        console.error("TODO: unbreak rows for expressions!")
+        //runs.forEach(run=>result[run] = expressionsByGeneByRun.get(y+","+run))
+        return result             //TODO: fix this ugly workaround
+    }
+)
+return rows
+
+//const expressionsByGeneByRun = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, round(exp.tpm)]))
+/*
+expressionsByGeneByRunRef.current = OrderedMap(expressions.map(exp => [referenceByOrthologRef.current.get(exp.gene)+","+exp.run, round(exp.tpm)]))
+console.log("expression by gene by run",   expressionsByGeneByRunRef.current .toJS())
+
+
+console.log("====================== PREPARIGN DATA FOR HEATMAP UPDATE, expressions are: ", expressions)
+
+const expressionsByGeneByRun = expressionsByGeneByRunRef.current
+console.log("RUNS ARE:", runs)
+const matrix = orthologyData.reference_genes.map(y=> runs.map(x=>  expressionsByGeneByRun.get(y+","+x)))
+const rows = orthologyData.reference_genes.map(y => {
+    const result: Record<string,any> = {"selected_gene": y}
+    runs.forEach(run=>result[run] = expressionsByGeneByRun.get(y+","+run))
+    return result             //TODO: fix this ugly workaround
+    }
+)
+console.log("EXPRESSION ROWS: ", rows)
+await setExpressionRows(rows)
+
+await updateHeatmap(runs, orthologyData.reference_genes, matrix, expressionsByGeneByRun)
+await setShowLoader(false)
+}
+
+useEffect( () => {
+onGenesSearch().then((result)=>{
+    console.log("Gene expressions results", result)
+})
+}, [genesForSearch])
+*/
 
 /*
 

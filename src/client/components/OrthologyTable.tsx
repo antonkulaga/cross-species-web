@@ -4,9 +4,10 @@ import {Button, Divider, Dropdown, Header, Icon, Image, Radio, Segment, Step, Ta
 import Select from "react-dropdown-select";
 import _ from "lodash";
 import {AgGridReact} from "ag-grid-react";
-import {Gene, Orthology, OrthologyData, RequestContent, Sample, Species} from "../../shared/models";
+import {Gene, Orthology,  RequestContent, Sample, Species} from "../../shared/models";
 import {ColDef, GridApi} from "ag-grid-community";
 import {plainToClass} from "class-transformer";
+import {OrthologyData} from "../../shared/tables";
 
 type OrthologTableInputs = {
     children?: JSX.Element | JSX.Element[],

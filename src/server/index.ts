@@ -5,9 +5,10 @@ import {Request} from "express";
 import express from "express"
 import os from "os"
 import {GraphRepository} from "./graph";
-import {Gene, GeneResults, GeneSet, Orthology, OrthologyData, Sample, SelectResults, Species} from "../shared/models";
+import {Gene, GeneResults, GeneSet, Orthology, Sample, SelectResults, Species} from "../shared/models";
 import {string} from "prop-types";
 import {plainToClass} from "class-transformer";
+import {OrthologyData} from "../shared/tables";
 
 const graph_db_host = process.env.GRAPH_DB || 'http://graphdb.agingkills.eu'
 const graph_db_repository =process.env.GRAPH_REPO || "ensembl"

@@ -25,7 +25,7 @@ import { create, all } from 'mathjs'
 
 const config = { }
 const math = create(all, config)
-import {Species, Sample, Orthology, Gene, SelectResults, StringMap, TextOption, OrthologyData} from "../shared/models";
+import {Species, Sample, Orthology, Gene, SelectResults, StringMap, TextOption} from "../shared/models";
 
 import Plotly from 'react-plotly.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
@@ -40,6 +40,7 @@ import OrthologyTable from "./components/OrthologyTable";
 import ExpressionsView from "./components/ExpressionsView";
 import {samples} from "../server/queries";
 import {plainToClass} from "class-transformer";
+import {OrthologyData} from "../shared/tables";
 
 // import SAMPLES_VALUES from './data/samples_values.json'
 
