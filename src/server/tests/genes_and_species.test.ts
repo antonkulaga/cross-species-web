@@ -13,6 +13,7 @@ test("should return species", async () =>{
     expect(species.map(s=>s.species)).toEqual(expect.arrayContaining([
         "Homo_sapiens", "Mus_musculus"
     ]))
+    console.log("SPECIES ARE:", species)
 })
 
 test("should return reference genes for selected species", async () =>{

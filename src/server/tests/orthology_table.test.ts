@@ -2,7 +2,8 @@ import * as graphdb from "graphdb"
 import {GraphRepository} from "../graph";
 import * as jest from "jest"
 //import "@types/jest"
-import {Orthology, OrthologyData} from "../../shared/models";
+import {Orthology} from "../../shared/models";
+import {OrthologyData} from "../../shared/tables";
 const host = "http://graphdb.agingkills.eu" //http://10.40.3.21:7200
 
 const repo = new GraphRepository(host)

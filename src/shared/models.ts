@@ -84,6 +84,18 @@ export class SelectResults{
 
 // WILL BE MOVED TO graph_old.js
 export class Species{
+
+    static human: Species = new Species('Homo_sapiens',
+                'Human',
+                'https://www.ensembl.org/Homo_sapiens',
+                'http://rdf.ebi.ac.uk/resource/ensembl/taxon#9606',
+                'http://rdf.ebi.ac.uk/resource/ensembl/Mammalia',
+                122.5,
+                70000,
+                82.78,
+                310.15
+    )
+
     constructor(public species: string,
                 public common_name: string,
                 public ensembl_url: string,

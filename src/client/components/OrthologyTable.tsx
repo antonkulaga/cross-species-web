@@ -33,7 +33,7 @@ export const OrthologyTable = ({
 
     const [orthologyRows, setOrthologyRows] = useState(new Array<Object>())
     const [orthologyGridApi, setOrthologyGridApi] = useState<GridApi>({} as any)
-    const [bySymbol, setBySymbol] = useState(false)
+    //const [bySymbol, setBySymbol] = useState(false)
     const baseOrthologyColumnDefs: Array<ColDef> = [
         {
             headerName: selectedOrganism.replace("_", " "),
@@ -108,7 +108,8 @@ export const OrthologyTable = ({
      */
     const fetch_orthology = async (orthologyTypes: Array<string>) => {
         const toSend = new OrthologyData(
-            selectedGenes,selectedSamples.filter(sample=>sample.organism !== selectedOrganism).map(sample=>sample.organism),
+            selectedGenes, selectedSamples
+                .map(sample=>sample.organism),
             orthologyTypes)
         const content2send = new RequestContent(toSend)
         //console.log("content to send is", content2send)

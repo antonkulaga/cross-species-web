@@ -30,15 +30,15 @@ import {plainToClass} from "class-transformer";
 type OrthologySelectionInput = {
     children?: JSX.Element | JSX.Element[],
     selectedGenes: Array<Gene>, setSelectedGenes: Dispatch<SetStateAction<Array<Gene>>>,
-    organismList: Array<TextOption>,
+    species: OrderedMap<string, Species>,
     setShowLoader: Dispatch<SetStateAction<boolean>>,
     referenceGenes: Array<Gene>, setReferenceGenes: Dispatch<SetStateAction<Array<Gene>>>
-    selectedOrganism: string, setSelectedOrganism: Dispatch<string>
+    selectedOrganism: Species, setSelectedOrganism: Dispatch<Species>
 }
 
 export const OrthologySelection = (
     {
-        organismList,
+        species,
         selectedGenes, setSelectedGenes,
         setShowLoader,
         referenceGenes,setReferenceGenes,
@@ -49,17 +49,13 @@ export const OrthologySelection = (
     const LIMIT = 50
     const [lastSearchGenes, setLastSearchGenes] = useState('default')
 
-   const [geneSuggestions, setGeneSuggestions] = useState(new Array<Gene>())
-
-    //const [referenceGenes, setReferenceGenes] = useState(new Array<Gene>())
-
+    const [geneSuggestions, setGeneSuggestions] = useState(new Array<Gene>())
 
     const [predefinedGeneSets, setPredefinedGeneSets] = useState(new Array<GeneSet>())
-    //const [predefinedSetsByName, setPredefinedSetsByName] = useState(OrderedMap<string, GeneSet>())
 
     const [selectedGeneSets, setSelectedGeneSets] = useState(new Array<GeneSet>())
 
-    //const [selectedIds, setSelectedIds] = useState(new Array<string>())
+    const [organismList, setOrganismList] =useState<Array<TextOption>>(new Array<TextOption>())
 
     const [, updateState] = React.useState({});
     const forceUpdate = React.useCallback(() => updateState({}), []);
@@ -122,14 +118,22 @@ export const OrthologySelection = (
     const applyReferenceOrganism = async (organism) => {
         setShowLoader(true)
         console.log("apply reference organism")
-        setSelectedOrganism(organism)
+        const sp = species.find(organism)
+        if(sp === undefined && organism !== Species.human.species){
+            console.error("Cannot find organism ", organism)
+            return
+        } else if(organism === Species.human.species) {
+            setSelectedOrganism(Species.human)
+        } else {
+            setSelectedOrganism(sp!)
+        }
         const genes: Array<Gene> = await fetchReferenceOrgGenes(organism)
         setReferenceGenes(genes)
         setShowLoader(false)
     }
 
     const onChangeOrganism = async (e, target) => {
-        if(selectedOrganism !== target.value)
+        if(selectedOrganism.species !== target.value)
         {
             console.log("change or reference organism from:", selectedOrganism, " to ", target.value);
             await applyReferenceOrganism(target.value)
@@ -150,10 +154,18 @@ export const OrthologySelection = (
         forceUpdate();
         await applyReferenceOrganism('Homo_sapiens')
         const predefined_options : Array<GeneSet> = await fetchGeneSets()
-        console.log("predefined gene Setsoptions ", predefined_options )
+        console.log("predefined gene Set options ", predefined_options )
         await setPredefinedGeneSets(predefined_options)
         setShowLoader(false)
     }
+
+    /**
+     * Update organism names from species
+     */
+    useEffect(() => {
+        const speciesNames = species.valueSeq().map( species => TextOption.fromSpecies(species) )
+        setOrganismList(speciesNames.toArray())
+    }, [species])
 
     useEffect( ()=>{
         loadGeneSuggestions().then(_ => console.log("gene suggestions loaded"))
@@ -169,16 +181,16 @@ export const OrthologySelection = (
                 <Step.Description>
 
                                 <Header>
-                                    Choose reference organism
+                                    Choose reference species
                                 </Header>
                                 <Dropdown
-                                    placeholder="Human"
+                                    placeholder="Reference species"
                                     fluid
                                     search
                                     selection
                                     options={organismList}
-                                    value={selectedOrganism}
-                                    key={selectedOrganism}
+                                    value={selectedOrganism.species}
+                                    key={selectedOrganism.common_name}
                                     onChange={onChangeOrganism}
                                 />
                                 The reference organism (Human by default) is used as a reference point to select your genes of interest.

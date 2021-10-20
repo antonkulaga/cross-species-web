@@ -1,8 +1,6 @@
 import {Type} from "class-transformer";
 import {List, OrderedMap} from "immutable";
-import {string} from "prop-types";
 import {Expressions, Gene, Orthology} from "./models";
-import {expressions, genes, referenceGenes} from "../server/queries";
 
 enum ExpressionAggregate {
     Sum,
@@ -13,19 +11,25 @@ enum ExpressionAggregate {
 
 export class ExpressionsTable{
 
-    expressionsByGenes: OrderedMap<string, List<Expressions>>
-    expByGeneRun: OrderedMap<string, OrderedMap<string, List<Expressions>>> //expressions by genes and run
+    //expressionsByGenes: OrderedMap<string, List<Expressions>>
+    //expByGeneRun: OrderedMap<string, OrderedMap<string, List<Expressions>>> //expressions by genes and run
+
+    expressionsByRuns: OrderedMap<string, List<Expressions>>
+    expByRunGene: OrderedMap<string, OrderedMap<string, List<Expressions>>>
 
     constructor(public orthologyData: OrthologyData, public runs: Array<string>, public expressions: Array<Expressions>) {
+        /*
         this.expressionsByGenes = List.of(...expressions)
             .groupBy(v=>v.gene)
             .map(byGene=>byGene.toList()).toOrderedMap()
-
         this.expByGeneRun = this.expressionsByGenes
                 .map(geneVals=>
                     geneVals.groupBy(v=>v.run).map((v=>v.toList()))
                         .toOrderedMap() //type trick, typing in immutable.js sucks!
                 )
+         */
+        this.expressionsByRuns = List.of(...expressions).groupBy(v=>v.run).map(value=>value.toList()).toOrderedMap()
+        this.expByRunGene = this.expressionsByRuns.map(runVals => runVals.groupBy(v=>v.gene).map(v=>v.toList()).toOrderedMap())
     }
     static empty(){
         return new ExpressionsTable(OrthologyData.empty, new Array<string>(), new Array<Expressions>())
@@ -36,7 +40,7 @@ export class ExpressionsTable{
      * @param runs
      * @param aggregate
      */
-    aggregateRuns(runs: List<Expressions>,aggregate: ExpressionAggregate = ExpressionAggregate.Sum): Number
+    aggregateExpressions(runs: List<Expressions>, aggregate: ExpressionAggregate = ExpressionAggregate.Sum): Number
     {
             if(aggregate === ExpressionAggregate.Min) {
                 return runs.minBy(r=>r.tpm)?.tpm!
@@ -62,25 +66,36 @@ export class ExpressionsTable{
      * @param gene
      * @param aggregate
      */
-    makeExpressionRow(gene: Gene, aggregate: ExpressionAggregate = ExpressionAggregate.Sum) {
-        const expByRuns = this.expByGeneRun.get(gene.ensembl_id)
-        if (expByRuns === undefined) {
-            console.error("NOT FOUND", gene.ensembl_id, "in ", this.expByGeneRun.toJSON())
-            return new Array<any>()
+    makeExpressionRow(gene: Gene, aggregate: ExpressionAggregate = ExpressionAggregate.Sum) { //: { [key: string]: string }
+        const orthos = this.orthologyData.byId.get(gene.ensembl_short)
+        if(orthos === undefined){
+            console.error("NOT FOUND", gene.ensembl_id, "in ", this.expressionsByRuns.toJSON())
+            return OrderedMap<string, string>().toJSON()
         } else {
-            return this.runs.map(run => {
-                    const runs = expByRuns.get(run, List<Expressions>())
-                    if (runs.size === 0) {
-                        return {[run]: "N/A"}
-                    } else {
-                        return {[run]: this.aggregateRuns(runs)}
+            const genes = orthos.map(o=>o.gene.ensembl_id)!
+            console.log("expressions for for genes", genes)
+            const result: OrderedMap<string, string> = OrderedMap<string, string>(this.runs.map(run => {
+                    const runExpressions = this.expressionsByRuns.get(run)!
+                    if (runExpressions === undefined) {
+                        return [run, "N/A"]
+                    }
+                    else
+                    {
+                        const exps = runExpressions.filter(exp=>genes.contains(exp.gene))
+                        if( exps.size === 0){
+                            return [run, "N/A"]
+                        } else {
+                            const v: string = this.aggregateExpressions(exps).toString()
+                            return [run, v]
+                        }
                     }
                 }
-            )
+            ))
+            return result.toJSON()
         }
     }
 
-    makeRows(aggregate: ExpressionAggregate = ExpressionAggregate.Sum): Array<any>{
+    makeRows(aggregate: ExpressionAggregate = ExpressionAggregate.Sum) {
         return this.orthologyData.reference_genes.map(gene => this.makeExpressionRow(gene, aggregate))
     }
 
@@ -97,6 +112,7 @@ export class OrthologyData{
     orthology_table: OrderedMap<string, OrderedMap<string, List<Orthology>>>
     all_genes: List<Gene>
     bySpecies: OrderedMap<string, List<Gene>>
+    byId: OrderedMap<string, List<Orthology>>
 
 
     constructor(
@@ -107,11 +123,11 @@ export class OrthologyData{
     )
     {
         const orthoList = List.of(...orthologies)  //for the sake of groupBy
-        const byId =  orthoList.groupBy<string>( item => item.selected_gene)
-        this.orthology_table =  byId
+        this.byId =  orthoList.groupBy<string>( item => item.selected_gene)
+            .map((values, key: string) => values.toList()).toOrderedMap()
+        this.orthology_table =  this.byId
             .map((values, key: string) =>
-                values.toList() // trick to override weird typing in immutable js type annotations
-                    .groupBy<string>(v=>v.target_species)
+                values.groupBy<string>(v=>v.target_species)
                     .toOrderedMap()// trick to override weird typing in immutable js type annotations
                     .map((v, k) => v.toList())
             ).toOrderedMap()
@@ -121,7 +137,6 @@ export class OrthologyData{
             .map((values, key)=>values.toList()
             )
             .toOrderedMap()
-
     }
 
     get isEmpty(){

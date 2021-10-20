@@ -50,6 +50,29 @@ import {OrthologyData} from "../shared/tables";
 
 // import GENE_EXPRESSIONS from './data/geneExpressions.json'
 
+class SamplesAndSpecies
+{
+  speciesMap: OrderedMap<string, Species>
+  runToSpeciesHash: OrderedMap<string, Sample>
+
+  constructor(public samples: Array<Sample>, public species: Array<Species>){
+    this.speciesMap = OrderedMap<string, Species>(species.map( sp => [sp.species , sp] ))
+    this.runToSpeciesHash = OrderedMap<string, Sample>(samples.filter(sample=>this.speciesMap.has(sample.organism)).map(sample => {
+      let sp: Species = this.speciesMap.get(sample.organism) as Species //getting species from species Map
+      sample.lifespan =  sp.lifespan;
+      sample.common_name = sp.common_name;
+      sample.mass_g = sp.mass;
+      sample.ensembl_url = sp.ensembl_url;
+      sample.metabolic_rate = sp.metabolic_rate;
+      sample.temperature_kelvin = sp.temperature_kelvin;
+      sample.animal_class = sp.animal_class;
+      sample.taxon = sp.taxon
+      return [sample.run, sample]
+    })).sortBy(value=> -value.lifespan!)
+  }
+
+}
+
 
 export const SearchPage = () => {
 
@@ -63,17 +86,9 @@ export const SearchPage = () => {
 
   const [selectedSpecies, setSelectedSpecies] = useState(new Array<Species>())
 
-  const [organismList, setOrganismList] =useState(new Array<TextOption>())
-
   const [selectedGenes, setSelectedGenes] = useState(new Array<Gene>())
 
-  const HUMAN = {
-    key: 'Human',
-    value: 'Human',
-    text: 'Human',
-    id: 'Homo_sapiens'
-  };
-  const [selectedOrganism, setSelectedOrganism] = useState(HUMAN.id)
+  const [selectedOrganism, setSelectedOrganism] = useState<Species>(Species.human)
   const [referenceGenes, setReferenceGenes] = useState(new Array<Gene>())
   const [orthologyData, setOrthologyData] = useState<OrthologyData>(OrthologyData.empty)
 
@@ -86,32 +101,12 @@ export const SearchPage = () => {
 
   const getSamples = (): Promise<Array<Sample>> => fetch('/api/samples').then(res => res.json()).then(res=> plainToClass(Sample, res))
 
-  const getSamplesAndSpecies = async () => {
+  const getSamplesAndSpecies = async (): Promise<SamplesAndSpecies> => {
     console.log('getSamplesAndSpecies request'); // remove api
     const speciesArray: Array<Species> = await getSpecies()
     const samplesArray: Array<Sample> = await getSamples()
-    const speciesNames = speciesArray.map( species => TextOption.fromSpecies(species) )
-    const species = OrderedMap<string, Species>(speciesArray.map( sp => [sp.species , sp] ))
-
-
-    const runToSpeciesHash = OrderedMap<string, Sample>(samplesArray.filter(sample=>species.has(sample.organism)).map(sample => {
-      let sp: Species = species.get(sample.organism) as Species //getting species from species Map
-      sample.lifespan =  sp.lifespan;
-      sample.common_name = sp.common_name;
-      sample.mass_g = sp.mass;
-      sample.ensembl_url = sp.ensembl_url;
-      sample.metabolic_rate = sp.metabolic_rate;
-      sample.temperature_kelvin = sp.temperature_kelvin;
-      sample.animal_class = sp.animal_class;
-      sample.taxon = sp.taxon
-      return [sample.run, sample]
-    })).sortBy(value=> -value.lifespan!)
-    console.log("RUN TO SPECIES HASH: ", runToSpeciesHash.toArray())
-    return ({
-      species: species,
-      speciesNames: speciesNames,
-      runToSpeciesHash: runToSpeciesHash
-    })
+    //const speciesNames = speciesArray.map( species => TextOption.fromSpecies(species) )
+    return new SamplesAndSpecies(samplesArray, speciesArray)
   }
 
   const autoSizeAll = (columnApi, skipHeader = false) => {
@@ -130,15 +125,12 @@ export const SearchPage = () => {
    */
   useEffect(()=>{
 
-    getSamplesAndSpecies().then( values => {
-      const {species, speciesNames, runToSpeciesHash} = values
-      setSpecies(species)
-      setOrganismList(speciesNames)
-
-      const samplesRowData = Array.from(runToSpeciesHash.values())
+    getSamplesAndSpecies().then( sampleSpecies => {
+      console.log("Loading samples and species")
+      setSpecies(sampleSpecies.speciesMap)
+      const samplesRowData = Array.from(sampleSpecies.runToSpeciesHash.values())
       console.log("SAMPLES ROW DATA", samplesRowData)
       setSamples( samplesRowData )
-      //setSpeciesByRun(runToSpeciesHash)
     })
 
     }, [])
@@ -184,9 +176,9 @@ export const SearchPage = () => {
           <Step.Content style={{ width: `calc(100% - 25px)` }}>
             <Step.Title><Header textAlign='center'>Choose reference genes</Header></Step.Title>
             <OrthologySelection
+                species={species}
                 selectedOrganism={selectedOrganism}
                 setSelectedOrganism={setSelectedOrganism}
-                organismList={organismList}
                 setShowLoader={setShowLoader}
                 referenceGenes={referenceGenes} setReferenceGenes={setReferenceGenes}
                 selectedGenes={selectedGenes} setSelectedGenes={setSelectedGenes}
@@ -200,7 +192,7 @@ export const SearchPage = () => {
             <Step.Title><Header>Load ortholog genes</Header></Step.Title>
             <OrthologyTable
                 selectedSamples= {selectedSamples}
-                selectedOrganism = {selectedOrganism}
+                selectedOrganism = {selectedOrganism.species}
                 selectedSpecies={selectedSpecies}
                 orthologyData={orthologyData} setOrthologyData = {setOrthologyData}
                 selectedGenes = {selectedGenes}
