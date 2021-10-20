@@ -41,15 +41,20 @@ module.exports = {
   devServer: {
     port: 8082,
     hot: true,
-    inline: true,
-    quiet: false,
-    noInfo: true,
-    disableHostCheck: true,
+    allowedHosts: [
+      'localhost',
+      'agingkills.eu',
+      'pic'
+    ],
     host: (process.env.HOST || '0.0.0.0'),
     open: true,
     proxy: {
       '/api': 'http://' + (process.env.HOST || '0.0.0.0') + ':' + (process.env.PORT || '8080'),
-      disableHostCheck: true
+      allowedHosts: [
+        'localhost',
+        'agingkills.eu',
+        "pic"
+      ],
     }
   },
   plugins: [

@@ -35,7 +35,7 @@ yarn client
 The project depends on nodejs and yarn. Note: official software sources of Linux distributions rely on outdated versions of node and yarn
 The easiest way to install latest nodejs is using https://github.com/nvm-sh/nvm
 ```bash
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install node
 ```
 Then install yarn and use it for dependencies resolution:
