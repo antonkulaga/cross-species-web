@@ -73,7 +73,7 @@ export class GraphRepository {
         const queryString = Query.expressions(runs, ensemble_ids)
         const bindings = await this.select_query(queryString)
         const results = bindings.map(b=> Expressions.fromBinding(b))
-        console.log("expressions results", results)
+        //console.log("expressions results", results)
         return results
     }
 
@@ -120,14 +120,12 @@ export class GraphRepository {
      * Returnes the list of Orhotologous genes for the genes spcified
      * @param genes ensembl ids of the genes
      * @param species
-     * @param orthologyTypes
+     * @param orthology_types
      */
-    async orthology(genes: Array<string>, species: Array<string>, orthologyTypes: Array<string>): Promise<Array<Orthology>> {
-        const queryString: string = Query.orthology(genes, species, orthologyTypes)
+    async orthology(genes: Array<string>, species: Array<string>, orthology_types: Array<string>): Promise<Array<Orthology>> {
+        const queryString: string = Query.orthology(genes, species, orthology_types)
         const bindings = await this.select_query(queryString)
         const result = bindings.map(b=>Orthology.fromBinding(b))
-        //console.log("input was: "+ queryString)
-        //console.log("result was: ", result)
         return result
     }
 

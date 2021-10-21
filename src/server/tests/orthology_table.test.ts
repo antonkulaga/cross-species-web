@@ -136,8 +136,6 @@ test("orthology table should convert to orthology rows", async () => {
         ]
     ))
 
-
-
     const rows2 = results.makeRowsText("Homo_sapiens")
     expect(rows2).toEqual(expect.arrayContaining([
         {

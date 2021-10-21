@@ -1,6 +1,8 @@
 import {Type} from "class-transformer";
 import {List, OrderedMap} from "immutable";
 import {Expressions, Gene, Orthology} from "./models";
+import {object} from "prop-types";
+import {orthology} from "../server/queries";
 
 enum ExpressionAggregate {
     Sum,
@@ -67,31 +69,31 @@ export class ExpressionsTable{
      * @param aggregate
      */
     makeExpressionRow(gene: Gene, aggregate: ExpressionAggregate = ExpressionAggregate.Sum) { //: { [key: string]: string }
-        const orthos = this.orthologyData.byId.get(gene.ensembl_short)
+        const orthos = this.orthologyData.byId.get(gene.ensembl_id)
         if(orthos === undefined){
             console.error("NOT FOUND", gene.ensembl_id, "in ", this.expressionsByRuns.toJSON())
             return OrderedMap<string, string>().toJSON()
         } else {
             const genes = orthos.map(o=>o.gene.ensembl_id)!
             console.log("expressions for for genes", genes)
-            const result: OrderedMap<string, string> = OrderedMap<string, string>(this.runs.map(run => {
+            const arr: Array<{ [p: string]: string }> = this.runs.map(run => {
                     const runExpressions = this.expressionsByRuns.get(run)!
                     if (runExpressions === undefined) {
-                        return [run, "N/A"]
+                        return {[run]: "N/A"}
                     }
                     else
                     {
                         const exps = runExpressions.filter(exp=>genes.contains(exp.gene))
                         if( exps.size === 0){
-                            return [run, "N/A"]
+                            return {[run]: "N/A"}
                         } else {
                             const v: string = this.aggregateExpressions(exps).toString()
-                            return [run, v]
+                            return {[run]: v}
                         }
                     }
                 }
-            ))
-            return result.toJSON()
+            )
+            return  Object.assign({"selected_gene": gene.text}, ...arr)
         }
     }
 
@@ -122,7 +124,10 @@ export class OrthologyData{
         public orthologies: Array<Orthology> = []
     )
     {
-        const orthoList = List.of(...orthologies)  //for the sake of groupBy
+        const self = reference_genes.map(
+            gene => new Orthology(gene.ensembl_id, gene.species, "one2one",gene.ensembl_id, gene.species, gene.symbol, gene.symbol)
+        )
+        const orthoList = List.of(...orthologies.concat(self))  //for the sake of groupBy
         this.byId =  orthoList.groupBy<string>( item => item.selected_gene)
             .map((values, key: string) => values.toList()).toOrderedMap()
         this.orthology_table =  this.byId

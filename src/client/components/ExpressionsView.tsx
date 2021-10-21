@@ -17,8 +17,14 @@ type ExpressioinsViewInput = {
     autoSizeAll: (value: any) => void
 }
 
-
-//NOT YET READY
+/**
+ * View of Gene Expressions
+ * @param orthologyData
+ * @param selectedSamples
+ * @param setShowLoader
+ * @param autoSizeAll
+ * @constructor
+ */
 export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, autoSizeAll}: ExpressioinsViewInput) => {
 
     //const round = (num) => isNaN(num) ? null: Math.round((num + Number.EPSILON) * 100) / 100
