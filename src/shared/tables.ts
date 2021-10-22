@@ -75,7 +75,6 @@ export class ExpressionsTable{
             return OrderedMap<string, string>().toJSON()
         } else {
             const genes = orthos.map(o=>o.gene.ensembl_id)!
-            console.log("expressions for for genes", genes)
             const arr: Array<{ [p: string]: string }> = this.runs.map(run => {
                     const runExpressions = this.expressionsByRuns.get(run)!
                     if (runExpressions === undefined) {

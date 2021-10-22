@@ -27,8 +27,6 @@ test("expressions loading for selected species", async () => {
         //console.log("SRR306839" , expressions.filter(exp=>exp.run === "SRR306839" && exp.gene === "ENSG00000198663"))
         //console.log("EXPRESSIONS ARE: ", expressions)
         const table = new ExpressionsTable(orthologyData, runs, expressions)
-        console.log("SRR306839", table.expressionsByRuns.get("SRR306839")?.toArray())
-        //console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!", orthologyData.byId.get("ENSG00000198663")?.toArray().filter(t=>t.target_species === "Homo_sapiens"))
         const rows = table.makeRows()
         console.log("ROWS ARE, rows:", rows)
     }
