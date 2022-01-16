@@ -1,14 +1,16 @@
 import {Divider, Header, Segment} from "semantic-ui-react";
-import {Layout, PlotData} from "plotly.js";
+import {Annotations, ColorScale, Layout, PlotData} from "plotly.js";
 
 import Plotly from "react-plotly.js";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
-import {ExpressionsTable, OrthologyData} from "../../shared/tables";
+import {ExpressionRow, ExpressionsTable, OrthologyData} from "../../shared/tables";
 import {Sample} from "../../shared/models";
+import {OrderedMap} from "immutable";
 
 type HeatmapViewInput = {
     children?: JSX.Element | JSX.Element[],
     expressionsTable: ExpressionsTable
+    expressionRows: Array<ExpressionRow>
     //selectedSamples: Array<Sample>,
     //orthologyData: OrthologyData
     //setShowLoader: Dispatch<SetStateAction<boolean>>,
@@ -23,7 +25,7 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
     /**
      * TODO: type this!
      */
-    const default_layout: any = {
+    const default_layout: Partial<Layout> = {
         // title: 'ExpressionsView with selected genes and samples',
         annotations: [],
         margin: {
@@ -41,21 +43,21 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
             tickfont: {
                 size: 12
             },
-            tickangle: '-30',
-            autosize: true
+            tickangle: -30
+            //autosize: true
         },
         yaxis: {
             side: 'left',
             autorange: 'reversed',
             tickfont: {
                 size: 12
-            },
-            autosize: true
+            }
+            //autosize: true
         }
     };
 
 
-    const [layout, setLayout] = useState<Layout>(default_layout)
+    const [layout, setLayout] = useState<Partial<Layout>>(default_layout)
 
 
 
@@ -63,6 +65,11 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
 
         if(expressionsTable.expressions.length > 0){
             console.info("should render heatmap!")
+            const xValues = expressionsTable.runs
+            const yValues = expressionsTable.orthologyData.reference_genes
+            const zValues = expressionsTable.matrix
+            //updateHeatmap(xValues, yValues.map(g=>g.ensembl_id), zValues, expressionsTable.expressionsByGeneByRun)
+            //const zValues =
         }
 
     }, [expressionsTable])
@@ -75,7 +82,9 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
                 </Header>
             </Divider>
             <Plotly
-                data={heatmapData}
+                data={
+                       heatmapData
+                }
                 layout={layout}
                 style={{
                     display: 'flex',
@@ -87,11 +96,11 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
         </Segment>
     )
 
-    /*
-    const updateHeatmap = (xValues, yValues, zValues, expressionsByGeneByRun) => {
+
+    const updateHeatmap = (xValues: Array<string>, yValues: Array<string>, zValues: Array<any>, expressionsByGeneByRun: OrderedMap<string, string>) => {
         layout.width = Math.max(1000, 75 * xValues.length);
         layout.height = Math.max(1000, 40 * yValues.length);
-        layout.annotations = yValues.flatMap(y=>
+        const annos: Array<any> = yValues.flatMap(y=>
             xValues.map(x=>
                 ({
                     xref: 'x1',
@@ -108,25 +117,27 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
                 })
             ) // design debt = fix duplicate
         )
+        layout.annotations = annos
 
-        const dvalues = {
+        const colorScale: ColorScale = new Array<[number, string]>(
+            [0.0, 'rgb(0,0,0)'],
+            [0.05, 'rgb(69,117,180)'],
+            [0.2222, 'rgb(116,173,209)'],
+            [0.3333, 'rgb(171,217,233)'],
+            [0.4444, 'rgb(224,243,248)'],
+            [0.5555, 'rgb(254,224,144)'],
+            [0.6666, 'rgb(253,174,97)'],
+            [0.7777, 'rgb(244,109,67)'],
+            [0.95, 'rgb(215,48,39)'],
+            [1.0, 'rgb(255,0,0)']
+        )
+        const dvalues: Partial<PlotData> = {
             x: xValues,
             y: yValues,
             z: zValues,
             //colorscale: 'RdBu',
-            colorscale: [
-                ['0.0', 'rgb(0,0,0)'],
-                ['0.05', 'rgb(69,117,180)'],
-                ['0.222222222222', 'rgb(116,173,209)'],
-                ['0.333333333333', 'rgb(171,217,233)'],
-                ['0.444444444444', 'rgb(224,243,248)'],
-                ['0.555555555556', 'rgb(254,224,144)'],
-                ['0.666666666667', 'rgb(253,174,97)'],
-                ['0.777777777778', 'rgb(244,109,67)'],
-                ['0.95', 'rgb(215,48,39)'],
-                ['1.0', 'rgb(255,0,0)']
-            ],
-            hoverongaps: false,
+            colorscale: colorScale,
+           // hoverongaps: false,
             showscale: false,
             type: 'heatmap'
         }
@@ -135,14 +146,13 @@ export const HeatmapView = ({expressionsTable}: HeatmapViewInput) => {
         console.log("===================")
         console.log("layout", layout)
         setLayout(layout)
-        setheatmapData([dvalues])
+        setHeatmapData([dvalues])
         setTimeout(() =>{
             //TODO unbreak
             //if(heatmapRef.current !== null) heatmapRef.current.el.scrollIntoView()
             }, 5000
         );
     }
-     */
 }
 
 export default  HeatmapView

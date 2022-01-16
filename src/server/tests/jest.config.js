@@ -12,11 +12,6 @@ module.exports = {
   globals: {
     'ts-jest': {
       tsconfig: {
-        "paths": {
-          "graphdb": ["./node_modules/graphdb"]
-        },
-        "typeRoots": [
-          "./node_modules/@types","./node_modules/graphdb/lib/types", "./node_modules/@types/jest"],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
         "types": ["graphdb/lib/types", "jest", "@types/jest"],                      /* Specify type package names to be included without being referenced in a source file. */
         "downlevelIteration": true,
         "inlineSourceMap": true,

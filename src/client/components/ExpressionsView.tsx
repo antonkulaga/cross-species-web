@@ -6,7 +6,7 @@ import {List, Map, OrderedMap} from "immutable";
 import {Expressions, Gene, Orthology, RequestContent, Sample, TextOption} from "../../shared/models";
 import {GridApi} from "ag-grid-community";
 import {plainToClass} from "class-transformer";
-import {ExpressionsTable, OrthologyData} from "../../shared/tables";
+import {ExpressionsTable, OrthologyData, ExpressionRow} from "../../shared/tables";
 import HeatmapView from "./HeatmapView";
 
 type ExpressioinsViewInput = {
@@ -57,7 +57,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
 
     //const [runs, setRuns] = useState<Array<string>>([])
 
-    const [expressionRows, setExpressionRows] = useState<Array<any>>([])
+    const [expressionRows, setExpressionRows] = useState<Array<ExpressionRow>>([])
 
    // const heatmapRef = React.createRef();
 
@@ -80,7 +80,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
     const [expressionsGridApi, setExpressionsGridApi] = useState<GridApi>({} as any)
 
     const renderHeatMap = () => canRender() ?  (
-        <HeatmapView expressionsTable={expressionsTable}>
+        <HeatmapView expressionsTable={expressionsTable} expressionRows={expressionRows}>
 
         </HeatmapView>
     )
@@ -132,7 +132,7 @@ export const ExpressionsView = ({orthologyData, selectedSamples, setShowLoader, 
     useEffect(() => {
         if(expressionsTable.expressions.length > 0){
             //console.log("expressions are", expressionsTable.expressions)
-            const rows = expressionsTable.makeRows()
+            const rows: Array<ExpressionRow> = expressionsTable.makeRows()
             setExpressionRows(rows)
         }    else{
             setExpressionRows([])
